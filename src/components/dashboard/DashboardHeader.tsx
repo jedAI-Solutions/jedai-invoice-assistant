@@ -4,19 +4,38 @@ import { Badge } from "@/components/ui/badge";
 
 export const DashboardHeader = () => {
   return (
-    <div className="bg-card shadow-soft border-b p-6">
+    <div className="bg-gradient-card shadow-soft border-b p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Steuerberater Dashboard</h1>
-            <p className="text-muted-foreground">Intelligente Belegverarbeitung und Buchungsautomatisierung</p>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <img 
+                src="/lovable-uploads/c7d57f27-5852-4101-a609-f621974a7b6a.png" 
+                alt="jed AI Solutions Logo" 
+                className="h-12 w-auto"
+              />
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-logo bg-clip-text text-transparent">
+                  Taxagent
+                </h1>
+                <p className="text-sm text-muted-foreground">Powered by jed AI Solutions</p>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-4">
-            <Badge variant="secondary" className="bg-success text-success-foreground">
-              System Online
+            <Badge className="bg-gradient-primary text-white border-0">
+              KI-System Online
             </Badge>
-            <Button variant="outline">Einstellungen</Button>
+            <Button variant="outline" className="border-primary/30 hover:bg-primary/5">
+              Einstellungen
+            </Button>
           </div>
+        </div>
+        
+        <div className="mb-4">
+          <p className="text-muted-foreground">
+            Intelligente Belegverarbeitung und Buchungsautomatisierung für Steuerberater
+          </p>
         </div>
         
         <div className="flex items-center gap-4">
