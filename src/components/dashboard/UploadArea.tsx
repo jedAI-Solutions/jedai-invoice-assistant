@@ -108,36 +108,35 @@ export const UploadArea = () => {
         body: JSON.stringify(payload),
       });
 
-      console.log('Request sent successfully (no-cors mode)');
-
-      // Since we're using no-cors, we can't read the response status
-      // Update progress to simulate upload completion
-      setFiles(prev => prev.map(f => 
-        f.id === fileId ? { ...f, progress: 50 } : f
-      ));
-
-      // Simulate processing since we can't read the actual response
-      setFiles(prev => prev.map(f => 
-        f.id === fileId 
-          ? { ...f, status: 'processing', progress: 100 } 
-          : f
-      ));
-
-      console.log('Processing status set for file:', fileId);
-
-      // Complete after processing time
-      setTimeout(() => {
+      console.log('Response received:', response.status, response.statusText);
+      
+      if (response.ok) {
+        const responseData = await response.text();
+        console.log('Response data:', responseData);
+        
         setFiles(prev => prev.map(f => 
-          f.id === fileId 
-            ? { 
-                ...f, 
-                status: 'completed', 
-                confidence: Math.floor(Math.random() * 20) + 80 
-              } 
-            : f
+          f.id === fileId ? { ...f, status: 'processing', progress: 100 } : f
         ));
-        console.log('File completed:', fileId);
-      }, 2000);
+
+        // Complete after processing time
+        setTimeout(() => {
+          setFiles(prev => prev.map(f => 
+            f.id === fileId 
+              ? { 
+                  ...f, 
+                  status: 'completed', 
+                  confidence: Math.floor(Math.random() * 20) + 80 
+                } 
+              : f
+          ));
+          console.log('File completed:', fileId);
+        }, 2000);
+      } else {
+        console.error('Upload failed:', response.status, response.statusText);
+        setFiles(prev => prev.map(f => 
+          f.id === fileId ? { ...f, status: 'error', progress: 0 } : f
+        ));
+      }
     } catch (error) {
       console.error('Upload error:', error);
       setFiles(prev => prev.map(f => 
