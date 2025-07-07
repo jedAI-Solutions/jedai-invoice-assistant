@@ -60,11 +60,16 @@ export const UploadArea = () => {
   const uploadFileToWebhook = async (file: File, fileId: string) => {
     const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook/beleg-upload';
     
+    console.log('Starting upload to:', webhookUrl);
+    console.log('File details:', { name: file.name, size: file.size, type: file.type });
+    
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('filename', file.name);
       formData.append('fileId', fileId);
+      
+      console.log('FormData prepared:', { filename: file.name, fileId });
       
       // Update progress to show upload starting
       setFiles(prev => prev.map(f => 
@@ -74,6 +79,7 @@ export const UploadArea = () => {
       const response = await fetch(webhookUrl, {
         method: 'POST',
         body: formData,
+        mode: 'cors',
       });
 
       // Update progress during upload
