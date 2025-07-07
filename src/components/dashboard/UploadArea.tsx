@@ -1,0 +1,201 @@
+import { useState, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
+interface UploadFile {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  status: 'uploading' | 'processing' | 'completed' | 'error';
+  progress: number;
+  confidence?: number;
+}
+
+export const UploadArea = () => {
+  const [files, setFiles] = useState<UploadFile[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFiles(e.dataTransfer.files);
+    }
+  }, []);
+
+  const handleFiles = (fileList: FileList) => {
+    const newFiles: UploadFile[] = Array.from(fileList).map((file, index) => ({
+      id: `file-${Date.now()}-${index}`,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      status: 'uploading',
+      progress: 0
+    }));
+
+    setFiles(prev => [...prev, ...newFiles]);
+
+    // Simuliere Upload und Verarbeitung
+    newFiles.forEach(file => {
+      simulateFileProcessing(file.id);
+    });
+  };
+
+  const simulateFileProcessing = (fileId: string) => {
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.random() * 20;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        setFiles(prev => prev.map(f => 
+          f.id === fileId 
+            ? { ...f, status: 'processing', progress: 100 } 
+            : f
+        ));
+
+        // Wechsel zu "completed" nach kurzer Verzögerung
+        setTimeout(() => {
+          setFiles(prev => prev.map(f => 
+            f.id === fileId 
+              ? { ...f, status: 'completed', confidence: Math.floor(Math.random() * 20) + 80 } 
+              : f
+          ));
+        }, 2000);
+      } else {
+        setFiles(prev => prev.map(f => 
+          f.id === fileId ? { ...f, progress } : f
+        ));
+      }
+    }, 500);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'uploading': return 'secondary';
+      case 'processing': return 'secondary';
+      case 'completed': return 'default';
+      case 'error': return 'destructive';
+      default: return 'secondary';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'uploading': return 'Hochladen...';
+      case 'processing': return 'KI-Verarbeitung...';
+      case 'completed': return 'Abgeschlossen';
+      case 'error': return 'Fehler';
+      default: return 'Unbekannt';
+    }
+  };
+
+  return (
+    <Card className="bg-gradient-card shadow-medium">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>Beleg-Upload</span>
+          <Badge variant="outline">PDF, JPG, PNG, XML</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            dragActive 
+              ? 'border-primary bg-primary/5' 
+              : 'border-border bg-muted/50'
+          }`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-foreground">
+                Belege hier ablegen oder
+              </p>
+              <Button 
+                variant="link" 
+                className="p-0 h-auto text-primary"
+                onClick={() => document.getElementById('file-input')?.click()}
+              >
+                Dateien auswählen
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              PDF, JPG, PNG, XML (ZUGFeRD/XRechnung) • Max. 10MB pro Datei
+            </p>
+          </div>
+          <input
+            id="file-input"
+            type="file"
+            multiple
+            accept=".pdf,.jpg,.jpeg,.png,.xml"
+            className="hidden"
+            onChange={(e) => e.target.files && handleFiles(e.target.files)}
+          />
+        </div>
+
+        {files.length > 0 && (
+          <div className="mt-6 space-y-3">
+            <h4 className="font-semibold text-foreground">Verarbeitungsfortschritt</h4>
+            {files.map((file) => (
+              <div key={file.id} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-sm truncate flex-1 mr-4">{file.name}</span>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={getStatusColor(file.status) as any}>
+                      {getStatusText(file.status)}
+                    </Badge>
+                    {file.confidence && (
+                      <Badge variant="outline">
+                        KI: {file.confidence}%
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                  <span>{formatFileSize(file.size)}</span>
+                  <span>•</span>
+                  <span>{file.type}</span>
+                </div>
+                {file.status !== 'completed' && (
+                  <Progress value={file.progress} className="h-2" />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
