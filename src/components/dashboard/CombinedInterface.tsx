@@ -18,6 +18,7 @@ interface BookingEntry {
   confidence: number;
   status: 'pending' | 'approved' | 'rejected' | 'ready' | 'exported' | 'corrected';
   listType: 'review' | 'agenda';
+  aiHints?: string[];
 }
 
 export const CombinedInterface = () => {
@@ -33,7 +34,8 @@ export const CombinedInterface = () => {
       taxRate: "19%",
       confidence: 74,
       status: 'pending',
-      listType: 'review'
+      listType: 'review',
+      aiHints: ["Prüfen Sie die Zuordnung zu 6815", "Betrag erscheint ungewöhnlich hoch", "Rechnungsdatum prüfen"]
     },
     {
       id: "r2", 
@@ -45,7 +47,8 @@ export const CombinedInterface = () => {
       taxRate: "19%",
       confidence: 67,
       status: 'pending',
-      listType: 'review'
+      listType: 'review',
+      aiHints: ["Belegqualität niedrig", "Fahrtzweck unklar", "Kilometerstand nicht erkennbar"]
     },
     {
       id: "r3",
@@ -57,7 +60,8 @@ export const CombinedInterface = () => {
       taxRate: "19%",
       confidence: 45,
       status: 'pending',
-      listType: 'review'
+      listType: 'review',
+      aiHints: ["Teilnehmer nicht erkennbar", "Geschäftlicher Anlass unklar", "Bewirtungsnachweis unvollständig"]
     }
   ];
 
@@ -73,7 +77,8 @@ export const CombinedInterface = () => {
       taxRate: "19%",
       confidence: 96,
       status: 'ready',
-      listType: 'agenda'
+      listType: 'agenda',
+      aiHints: ["Automatische Erkennung erfolgreich", "Alle Daten vollständig", "Exportbereit"]
     },
     {
       id: "a2", 
@@ -85,7 +90,8 @@ export const CombinedInterface = () => {
       taxRate: "19%",
       confidence: 94,
       status: 'ready',
-      listType: 'agenda'
+      listType: 'agenda',
+      aiHints: ["Lieferant bekannt", "Standard-Buchung", "Keine Korrekturen nötig"]
     },
     {
       id: "a3",
@@ -97,7 +103,8 @@ export const CombinedInterface = () => {
       taxRate: "19%",
       confidence: 98,
       status: 'exported',
-      listType: 'agenda'
+      listType: 'agenda',
+      aiHints: ["Bereits exportiert", "Monatlicher Standardposten", "Vollautomatisch verarbeitet"]
     }
   ];
 
@@ -225,9 +232,9 @@ export const CombinedInterface = () => {
   const readyExports = agendaEntries.filter(e => e.status === 'ready').length;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
       {/* Prüfungsliste */}
-      <div className="lg:col-span-4">
+      <div className="lg:col-span-2">
         {renderBookingList(
           reviewEntries, 
           "Prüfungsliste", 
@@ -236,20 +243,10 @@ export const CombinedInterface = () => {
         )}
       </div>
 
-      {/* Agenda Import Liste */}
-      <div className="lg:col-span-4">
-        {renderBookingList(
-          agendaEntries, 
-          "Agenda Import", 
-          `${readyExports} bereit`, 
-          "bg-success/10 text-success border-success/20"
-        )}
-      </div>
-
-      {/* Gemeinsame Buchungsvorschlag Maske */}
-      <Card className="lg:col-span-4 bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:shadow-strong transition-all duration-300">
+      {/* Gemeinsame Buchungsvorschlag Maske - IN DER MITTE */}
+      <Card className="lg:col-span-1 bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:shadow-strong transition-all duration-300">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex items-center justify-between text-sm">
             <span>Buchungsvorschlag</span>
             {selectedEntry && (
               <Badge variant="outline" className={selectedEntry.listType === 'review' ? 'bg-warning/10 text-warning border-warning/20' : 'bg-success/10 text-success border-success/20'}>
@@ -258,124 +255,155 @@ export const CombinedInterface = () => {
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4">
           {selectedEntry ? (
-            <Tabs defaultValue="buchung" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-white/10 backdrop-blur-glass border border-white/20">
-                <TabsTrigger value="buchung" className="data-[state=active]:bg-white/20">Buchungsdaten</TabsTrigger>
-                <TabsTrigger value="beleg" className="data-[state=active]:bg-white/20">Belegansicht</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="buchung" className="space-y-6">
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <Label htmlFor="datum">Belegdatum</Label>
-                    <Input 
-                      id="datum" 
-                      type="date" 
-                      value={selectedEntry.date}
-                      onChange={() => {}}
-                      className="bg-white/10 backdrop-blur-glass border-white/20"
-                    />
+            <div className="space-y-4">
+              {/* KI-Prüfhinweise */}
+              {selectedEntry.aiHints && selectedEntry.aiHints.length > 0 && (
+                <div className="p-3 bg-white/10 backdrop-blur-glass rounded-lg border border-white/20">
+                  <div className="flex items-start gap-2 mb-2">
+                    <div className="w-4 h-4 rounded-full bg-primary/80 flex items-center justify-center mt-0.5">
+                      <span className="text-xs text-white font-bold">KI</span>
+                    </div>
+                    <span className="text-sm font-medium">Prüfhinweise:</span>
                   </div>
-                  <div>
-                    <Label htmlFor="betrag">Betrag</Label>
-                    <Input 
-                      id="betrag" 
-                      type="number" 
-                      step="0.01"
-                      value={selectedEntry.amount}
-                      onChange={() => {}}
-                      className="bg-white/10 backdrop-blur-glass border-white/20"
-                    />
-                  </div>
+                  <ul className="space-y-1 text-xs text-muted-foreground ml-6">
+                    {selectedEntry.aiHints.map((hint, index) => (
+                      <li key={index} className="flex items-start gap-1">
+                        <span className="text-primary mt-1">•</span>
+                        <span>{hint}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
+              )}
 
+              {/* Kompakte Buchungsdaten */}
+              <div className="space-y-3">
                 <div>
-                  <Label htmlFor="beschreibung">Buchungstext</Label>
+                  <Label htmlFor="datum" className="text-xs">Belegdatum</Label>
+                  <Input 
+                    id="datum" 
+                    type="date" 
+                    value={selectedEntry.date}
+                    onChange={() => {}}
+                    className="bg-white/10 backdrop-blur-glass border-white/20 h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="betrag" className="text-xs">Betrag</Label>
+                  <Input 
+                    id="betrag" 
+                    type="number" 
+                    step="0.01"
+                    value={selectedEntry.amount}
+                    onChange={() => {}}
+                    className="bg-white/10 backdrop-blur-glass border-white/20 h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="beschreibung" className="text-xs">Buchungstext</Label>
                   <Input 
                     id="beschreibung" 
                     value={selectedEntry.description}
                     onChange={() => {}}
-                    className="bg-white/10 backdrop-blur-glass border-white/20"
+                    className="bg-white/10 backdrop-blur-glass border-white/20 h-8 text-sm"
                   />
                 </div>
-
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <Label htmlFor="konto">SKR-Konto</Label>
-                    <Select value={selectedEntry.account}>
-                      <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="6400">6400 - Strom/Gas/Wasser</SelectItem>
-                        <SelectItem value="6815">6815 - Büromaterial</SelectItem>
-                        <SelectItem value="6320">6320 - Kommunikation</SelectItem>
-                        <SelectItem value="6670">6670 - Fahrzeugkosten</SelectItem>
-                        <SelectItem value="6030">6030 - Mieten</SelectItem>
-                        <SelectItem value="6720">6720 - Versicherungen</SelectItem>
-                        <SelectItem value="6200">6200 - Werbekosten</SelectItem>
-                        <SelectItem value="6300">6300 - Bewirtung</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="steuer">Steuersatz</Label>
-                    <Select value={selectedEntry.taxRate}>
-                      <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="19%">19% - Regelsteuersatz</SelectItem>
-                        <SelectItem value="7%">7% - Ermäßigter Satz</SelectItem>
-                        <SelectItem value="0%">0% - Steuerfrei</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div>
+                  <Label htmlFor="konto" className="text-xs">SKR-Konto</Label>
+                  <Select value={selectedEntry.account}>
+                    <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20 h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="6400">6400 - Strom/Gas/Wasser</SelectItem>
+                      <SelectItem value="6815">6815 - Büromaterial</SelectItem>
+                      <SelectItem value="6320">6320 - Kommunikation</SelectItem>
+                      <SelectItem value="6670">6670 - Fahrzeugkosten</SelectItem>
+                      <SelectItem value="6030">6030 - Mieten</SelectItem>
+                      <SelectItem value="6720">6720 - Versicherungen</SelectItem>
+                      <SelectItem value="6200">6200 - Werbekosten</SelectItem>
+                      <SelectItem value="6300">6300 - Bewirtung</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-
-                <div className="flex items-center gap-2 p-3 bg-white/10 backdrop-blur-glass rounded-lg border border-white/20">
-                  <div className={`w-2 h-2 rounded-full ${selectedEntry.confidence >= 80 ? 'bg-success' : selectedEntry.confidence >= 70 ? 'bg-warning' : 'bg-destructive'}`}></div>
-                  <span className="text-sm">
-                    KI-Konfidenz: <strong>{selectedEntry.confidence}%</strong> - 
-                    {selectedEntry.confidence >= 90 ? ' Sehr zuverlässig' : 
-                     selectedEntry.confidence >= 80 ? ' Exportbereit' :
-                     selectedEntry.confidence >= 70 ? ' Zuverlässig' : ' Prüfung empfohlen'}
-                  </span>
+                <div>
+                  <Label htmlFor="steuer" className="text-xs">Steuersatz</Label>
+                  <Select value={selectedEntry.taxRate}>
+                    <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20 h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="19%">19% - Regelsteuersatz</SelectItem>
+                      <SelectItem value="7%">7% - Ermäßigter Satz</SelectItem>
+                      <SelectItem value="0%">0% - Steuerfrei</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
 
-                {getActionButtons()}
-              </TabsContent>
-              
-              <TabsContent value="beleg" className="mt-6">
-                <div className="border border-white/20 rounded-lg p-6 bg-white/10 backdrop-blur-glass text-center">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground">{selectedEntry.document}</h4>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Belegvorschau wird hier angezeigt
-                      </p>
-                    </div>
-                    <Button variant="outline" className="bg-white/10 backdrop-blur-glass border-white/20">
-                      Beleg öffnen
+              {/* Konfidenz-Anzeige */}
+              <div className="flex items-center gap-2 p-2 bg-white/10 backdrop-blur-glass rounded-lg border border-white/20">
+                <div className={`w-2 h-2 rounded-full ${selectedEntry.confidence >= 80 ? 'bg-success' : selectedEntry.confidence >= 70 ? 'bg-warning' : 'bg-destructive'}`}></div>
+                <span className="text-xs">
+                  <strong>{selectedEntry.confidence}%</strong> - 
+                  {selectedEntry.confidence >= 90 ? ' Sehr zuverlässig' : 
+                   selectedEntry.confidence >= 80 ? ' Exportbereit' :
+                   selectedEntry.confidence >= 70 ? ' Zuverlässig' : ' Prüfung empfohlen'}
+                </span>
+              </div>
+
+              {/* Kompakte Aktionsbuttons */}
+              <div className="space-y-2">
+                {selectedEntry.listType === 'review' ? (
+                  <>
+                    <Button size="sm" className="w-full bg-gradient-primary text-white border-0 h-8 text-xs">
+                      Genehmigen
                     </Button>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="flex-1 bg-white/10 backdrop-blur-glass border-white/20 h-8 text-xs">
+                        Speichern
+                      </Button>
+                      <Button size="sm" variant="destructive" className="h-8 text-xs">
+                        Ablehnen
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Button size="sm" className="w-full bg-gradient-primary text-white border-0 h-8 text-xs">
+                      Exportieren
+                    </Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="flex-1 bg-white/10 backdrop-blur-glass border-white/20 h-8 text-xs">
+                        Korrigieren
+                      </Button>
+                      <Button size="sm" variant="outline" className="bg-white/10 backdrop-blur-glass border-white/20 h-8 text-xs">
+                        → Prüfung
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">Wählen Sie eine Buchung zur Bearbeitung aus</p>
+              <p className="text-xs text-muted-foreground">Buchung auswählen</p>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Agenda Import Liste */}
+      <div className="lg:col-span-2">
+        {renderBookingList(
+          agendaEntries, 
+          "Agenda Import", 
+          `${readyExports} bereit`, 
+          "bg-success/10 text-success border-success/20"
+        )}
+      </div>
     </div>
   );
 };

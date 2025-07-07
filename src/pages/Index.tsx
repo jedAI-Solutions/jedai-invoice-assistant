@@ -26,11 +26,18 @@ const Index = () => {
           {/* Statistiken Übersicht */}
           <StatsOverview />
           
-          {/* Upload Area */}
-          <UploadArea />
-          
-          {/* Kombinierte Prüfungs- und Import-Listen */}
-          <CombinedInterface />
+          {/* Layout: Upload (klein) + Kombinierte Listen mit Buchungsmaske in der Mitte */}
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            {/* Upload Area - kleiner */}
+            <div className="xl:col-span-1">
+              <UploadArea />
+            </div>
+            
+            {/* Kombinierte Interface */}
+            <div className="xl:col-span-3">
+              <CombinedInterface />
+            </div>
+          </div>
         </div>
       </div>
     </div>
