@@ -1,7 +1,7 @@
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { StatsOverview } from "@/components/dashboard/StatsOverview";
 import { UploadArea } from "@/components/dashboard/UploadArea";
-import { ReviewInterface } from "@/components/dashboard/ReviewInterface";
+import { CombinedInterface } from "@/components/dashboard/CombinedInterface";
 import dashboardBg from "@/assets/dashboard-bg.jpg";
 
 const Index = () => {
@@ -26,15 +26,11 @@ const Index = () => {
           {/* Statistiken Übersicht */}
           <StatsOverview />
           
-          {/* Upload und Review Interface */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            <div className="xl:col-span-1">
-              <UploadArea />
-            </div>
-            <div className="xl:col-span-2">
-              <ReviewInterface />
-            </div>
-          </div>
+          {/* Upload Area */}
+          <UploadArea />
+          
+          {/* Kombinierte Prüfungs- und Import-Listen */}
+          <CombinedInterface />
         </div>
       </div>
     </div>

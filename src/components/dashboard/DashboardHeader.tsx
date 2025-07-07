@@ -44,26 +44,6 @@ export const DashboardHeader = () => {
           </p>
         </div>
         
-        {/* Navigation Tabs */}
-        <div className="mb-6">
-          <Tabs value={currentTab} onValueChange={(value) => {
-            if (value === 'agenda') {
-              navigate('/agenda-import');
-            } else {
-              navigate('/');
-            }
-          }}>
-            <TabsList className="bg-white/10 backdrop-blur-glass border border-white/20">
-              <TabsTrigger value="review" className="data-[state=active]:bg-white/20">
-                Prüfungsliste (Konfidenz &lt; 80%)
-              </TabsTrigger>
-              <TabsTrigger value="agenda" className="data-[state=active]:bg-white/20">
-                Agenda Import (Konfidenz ≥ 80%)
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-        
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-muted-foreground">Mandant:</span>
