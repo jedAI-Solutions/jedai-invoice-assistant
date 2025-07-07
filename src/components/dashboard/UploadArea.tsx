@@ -158,7 +158,7 @@ export const UploadArea = () => {
   };
 
   return (
-    <Card className="bg-gradient-card shadow-medium">
+    <Card className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:shadow-strong transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Beleg-Upload</span>
@@ -167,10 +167,10 @@ export const UploadArea = () => {
       </CardHeader>
       <CardContent>
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
             dragActive 
-              ? 'border-primary bg-primary/5' 
-              : 'border-border bg-muted/50'
+              ? 'border-primary bg-primary/10 backdrop-blur-glass scale-105' 
+              : 'border-white/30 bg-white/5 backdrop-blur-glass hover:bg-white/10'
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -213,7 +213,7 @@ export const UploadArea = () => {
           <div className="mt-6 space-y-3">
             <h4 className="font-semibold text-foreground">Verarbeitungsfortschritt</h4>
             {files.map((file) => (
-              <div key={file.id} className="border rounded-lg p-4">
+              <div key={file.id} className="border border-white/20 rounded-lg p-4 bg-white/10 backdrop-blur-glass hover:bg-white/15 transition-all duration-300">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-sm truncate flex-1 mr-4">{file.name}</span>
                   <div className="flex items-center gap-2">

@@ -61,7 +61,7 @@ export const StatsOverview = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
       {stats.map((stat, index) => (
-        <Card key={index} className="bg-gradient-card shadow-soft hover:shadow-medium transition-shadow">
+        <Card key={index} className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:bg-gradient-card-hover transition-all duration-300 hover:scale-105">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               {stat.title}

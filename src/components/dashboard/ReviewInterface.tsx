@@ -82,7 +82,7 @@ export const ReviewInterface = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Buchungsliste */}
-      <Card className="lg:col-span-1 bg-gradient-card shadow-medium">
+      <Card className="lg:col-span-1 bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:shadow-strong transition-all duration-300">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Prüfungsliste</span>
@@ -94,8 +94,8 @@ export const ReviewInterface = () => {
             {bookings.map((booking) => (
               <div
                 key={booking.id}
-                className={`p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors ${
-                  selectedBooking?.id === booking.id ? 'bg-muted border-l-4 border-l-primary' : ''
+                className={`p-4 border-b border-white/10 cursor-pointer hover:bg-white/10 transition-all duration-300 ${
+                  selectedBooking?.id === booking.id ? 'bg-white/15 border-l-4 border-l-primary backdrop-blur-glass' : 'hover:backdrop-blur-glass'
                 }`}
                 onClick={() => setSelectedBooking(booking)}
               >
@@ -127,7 +127,7 @@ export const ReviewInterface = () => {
       </Card>
 
       {/* Buchungsdetails */}
-      <Card className="lg:col-span-2 bg-gradient-card shadow-medium">
+      <Card className="lg:col-span-2 bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:shadow-strong transition-all duration-300">
         <CardHeader>
           <CardTitle>Buchungsvorschlag bearbeiten</CardTitle>
         </CardHeader>
@@ -202,7 +202,7 @@ export const ReviewInterface = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2 p-3 bg-white/10 backdrop-blur-glass rounded-lg border border-white/20">
                   <div className="w-2 h-2 rounded-full bg-success"></div>
                   <span className="text-sm">
                     KI-Konfidenz: <strong>{selectedBooking.confidence}%</strong> - 
@@ -225,7 +225,7 @@ export const ReviewInterface = () => {
               </TabsContent>
               
               <TabsContent value="beleg" className="mt-6">
-                <div className="border rounded-lg p-6 bg-muted/30 text-center">
+                <div className="border border-white/20 rounded-lg p-6 bg-white/10 backdrop-blur-glass text-center">
                   <div className="flex flex-col items-center gap-4">
                     <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center">
                       <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">

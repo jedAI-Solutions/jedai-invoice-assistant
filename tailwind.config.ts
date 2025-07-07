@@ -77,13 +77,19 @@ export default {
 				'gradient-primary': 'var(--gradient-primary)',
 				'gradient-logo': 'var(--gradient-logo)',
 				'gradient-card': 'var(--gradient-card)',
+				'gradient-card-hover': 'var(--gradient-card-hover)',
+				'gradient-glass': 'var(--gradient-glass)',
 				'gradient-success': 'var(--gradient-success)',
 				'gradient-hero': 'var(--gradient-hero)'
 			},
 			boxShadow: {
 				'soft': 'var(--shadow-soft)',
 				'medium': 'var(--shadow-medium)',
-				'strong': 'var(--shadow-strong)'
+				'strong': 'var(--shadow-strong)',
+				'glass': 'var(--glass-shadow)'
+			},
+			backdropBlur: {
+				'glass': '10px'
 			},
 			transitionProperty: {
 				'smooth': 'var(--transition-smooth)',
