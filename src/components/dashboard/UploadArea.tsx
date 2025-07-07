@@ -39,6 +39,7 @@ export const UploadArea = () => {
   }, []);
 
   const handleFiles = (fileList: FileList) => {
+    console.log('handleFiles called with:', fileList.length, 'files');
     const fileArray = Array.from(fileList);
     const newFiles: UploadFile[] = fileArray.map((file, index) => ({
       id: `file-${Date.now()}-${index}`,
@@ -49,10 +50,12 @@ export const UploadArea = () => {
       progress: 0
     }));
 
+    console.log('New files created:', newFiles);
     setFiles(prev => [...prev, ...newFiles]);
 
     // Upload zu Webhook
     newFiles.forEach((uploadFile, index) => {
+      console.log('Starting upload for file:', uploadFile.name);
       uploadFileToWebhook(fileArray[index], uploadFile.id);
     });
   };
