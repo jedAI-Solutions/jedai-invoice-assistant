@@ -30,6 +30,13 @@ export const StatsOverview = () => {
       change: "0",
       trend: "neutral",
       description: "Manuelle Reviews"
+    },
+    {
+      title: "Eingesparte Zeit",
+      value: "42,5 Std",
+      change: "+8,2 Std",
+      trend: "up",
+      description: "Kumuliert/Monat"
     }
   ];
 
@@ -52,7 +59,7 @@ export const StatsOverview = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
       {stats.map((stat, index) => (
         <Card key={index} className="bg-gradient-card shadow-soft hover:shadow-medium transition-shadow">
           <CardHeader className="pb-2">
