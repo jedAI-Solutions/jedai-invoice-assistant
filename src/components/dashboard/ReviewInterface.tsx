@@ -146,7 +146,8 @@ export const ReviewInterface = () => {
                     <Input 
                       id="datum" 
                       type="date" 
-                      defaultValue={selectedBooking.date}
+                      value={selectedBooking.date}
+                      onChange={() => {}}
                     />
                   </div>
                   <div>
@@ -155,7 +156,8 @@ export const ReviewInterface = () => {
                       id="betrag" 
                       type="number" 
                       step="0.01"
-                      defaultValue={selectedBooking.amount}
+                      value={selectedBooking.amount}
+                      onChange={() => {}}
                     />
                   </div>
                 </div>
@@ -164,14 +166,15 @@ export const ReviewInterface = () => {
                   <Label htmlFor="beschreibung">Buchungstext</Label>
                   <Input 
                     id="beschreibung" 
-                    defaultValue={selectedBooking.description}
+                    value={selectedBooking.description}
+                    onChange={() => {}}
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="konto">SKR-Konto</Label>
-                    <Select defaultValue={selectedBooking.account}>
+                    <Select value={selectedBooking.account}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -186,7 +189,7 @@ export const ReviewInterface = () => {
                   </div>
                   <div>
                     <Label htmlFor="steuer">Steuersatz</Label>
-                    <Select defaultValue={selectedBooking.taxRate}>
+                    <Select value={selectedBooking.taxRate}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
