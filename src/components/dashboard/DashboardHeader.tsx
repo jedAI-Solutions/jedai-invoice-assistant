@@ -6,19 +6,19 @@ export const DashboardHeader = () => {
   return (
     <div className="bg-gradient-card shadow-soft border-b p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
               <img 
                 src="/lovable-uploads/c7d57f27-5852-4101-a609-f621974a7b6a.png" 
                 alt="jed AI Solutions Logo" 
-                className="h-12 w-auto"
+                className="h-20 w-auto drop-shadow-lg"
               />
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-logo bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold bg-gradient-logo bg-clip-text text-transparent">
                   Taxagent
                 </h1>
-                <p className="text-sm text-muted-foreground">Powered by jed AI Solutions</p>
+                <p className="text-base text-muted-foreground mt-1">Powered by jed AI Solutions</p>
               </div>
             </div>
           </div>
