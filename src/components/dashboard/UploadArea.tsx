@@ -39,7 +39,8 @@ export const UploadArea = () => {
   }, []);
 
   const handleFiles = (fileList: FileList) => {
-    const newFiles: UploadFile[] = Array.from(fileList).map((file, index) => ({
+    const fileArray = Array.from(fileList);
+    const newFiles: UploadFile[] = fileArray.map((file, index) => ({
       id: `file-${Date.now()}-${index}`,
       name: file.name,
       size: file.size,
@@ -50,39 +51,69 @@ export const UploadArea = () => {
 
     setFiles(prev => [...prev, ...newFiles]);
 
-    // Simuliere Upload und Verarbeitung
-    newFiles.forEach(file => {
-      simulateFileProcessing(file.id);
+    // Upload zu Webhook
+    newFiles.forEach((uploadFile, index) => {
+      uploadFileToWebhook(fileArray[index], uploadFile.id);
     });
   };
 
-  const simulateFileProcessing = (fileId: string) => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 20;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
+  const uploadFileToWebhook = async (file: File, fileId: string) => {
+    const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook-test/beleg-upload';
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('filename', file.name);
+      formData.append('fileId', fileId);
+      
+      // Update progress to show upload starting
+      setFiles(prev => prev.map(f => 
+        f.id === fileId ? { ...f, progress: 10 } : f
+      ));
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        body: formData,
+      });
+
+      // Update progress during upload
+      setFiles(prev => prev.map(f => 
+        f.id === fileId ? { ...f, progress: 50 } : f
+      ));
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Upload completed, now processing
         setFiles(prev => prev.map(f => 
           f.id === fileId 
             ? { ...f, status: 'processing', progress: 100 } 
             : f
         ));
 
-        // Wechsel zu "completed" nach kurzer Verzögerung
+        // Simulate processing time then complete
         setTimeout(() => {
           setFiles(prev => prev.map(f => 
             f.id === fileId 
-              ? { ...f, status: 'completed', confidence: Math.floor(Math.random() * 20) + 80 } 
+              ? { 
+                  ...f, 
+                  status: 'completed', 
+                  confidence: result.confidence || Math.floor(Math.random() * 20) + 80 
+                } 
               : f
           ));
         }, 2000);
       } else {
-        setFiles(prev => prev.map(f => 
-          f.id === fileId ? { ...f, progress } : f
-        ));
+        throw new Error(`Upload failed: ${response.statusText}`);
       }
-    }, 500);
+    } catch (error) {
+      console.error('Upload error:', error);
+      setFiles(prev => prev.map(f => 
+        f.id === fileId 
+          ? { ...f, status: 'error', progress: 0 } 
+          : f
+      ));
+    }
   };
 
   const formatFileSize = (bytes: number) => {
