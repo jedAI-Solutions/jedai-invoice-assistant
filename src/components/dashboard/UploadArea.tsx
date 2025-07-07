@@ -67,31 +67,16 @@ export const UploadArea = () => {
     console.log('File details:', { name: file.name, size: file.size, type: file.type });
     
     try {
-      // Convert file to base64
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          // Remove the data:type;base64, prefix
-          const base64Content = result.split(',')[1];
-          resolve(base64Content);
-        };
-        reader.readAsDataURL(file);
-      });
+      // Create FormData to send the actual file
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('filename', file.name);
+      formData.append('fileId', fileId);
+      formData.append('fileType', file.type);
+      formData.append('mimeType', file.type);
+      formData.append('fileSize', file.size.toString());
       
-      console.log('File converted to base64, length:', base64.length);
-      
-      const payload = {
-        filename: file.name,
-        fileId: fileId,
-        fileContent: base64,
-        fileType: file.type,
-        mimeType: file.type,
-        contentType: file.type,
-        fileSize: file.size
-      };
-      
-      console.log('Payload prepared:', { filename: file.name, fileId, fileType: file.type, fileSize: file.size, base64Length: base64.length });
+      console.log('FormData prepared with actual file');
       
       // Update progress to show upload starting
       setFiles(prev => prev.map(f => 
@@ -102,10 +87,7 @@ export const UploadArea = () => {
       
       const response = await fetch(webhookUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        body: formData, // Send FormData directly, don't set Content-Type header
       });
 
       console.log('Response received:', response.status, response.statusText);
