@@ -79,11 +79,15 @@ export const UploadArea = () => {
         f.id === fileId ? { ...f, progress: 10 } : f
       ));
 
+      console.log('Making request to:', webhookUrl);
+      
       const response = await fetch(webhookUrl, {
         method: 'POST',
         body: formData,
         mode: 'no-cors', // Handle CORS for external webhook
       });
+
+      console.log('Request sent successfully (no-cors mode)');
 
       // Since we're using no-cors, we can't read the response status
       // Update progress to simulate upload completion
@@ -98,6 +102,8 @@ export const UploadArea = () => {
           : f
       ));
 
+      console.log('Processing status set for file:', fileId);
+
       // Complete after processing time
       setTimeout(() => {
         setFiles(prev => prev.map(f => 
@@ -109,6 +115,7 @@ export const UploadArea = () => {
               } 
             : f
         ));
+        console.log('File completed:', fileId);
       }, 2000);
     } catch (error) {
       console.error('Upload error:', error);
