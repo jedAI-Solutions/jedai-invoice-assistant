@@ -86,6 +86,8 @@ export const UploadArea = () => {
         fileId: fileId,
         fileContent: base64,
         fileType: file.type,
+        mimeType: file.type,
+        contentType: file.type,
         fileSize: file.size
       };
       
