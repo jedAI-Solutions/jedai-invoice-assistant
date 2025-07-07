@@ -58,7 +58,7 @@ export const UploadArea = () => {
   };
 
   const uploadFileToWebhook = async (file: File, fileId: string) => {
-    const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook-test/beleg-upload';
+    const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook/beleg-upload';
     
     try {
       const formData = new FormData();
