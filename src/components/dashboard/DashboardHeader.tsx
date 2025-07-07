@@ -1,8 +1,14 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export const DashboardHeader = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  const currentTab = location.pathname === '/agenda-import' ? 'agenda' : 'review';
   return (
     <div className="bg-white/10 backdrop-blur-glass shadow-glass border-b border-white/20 p-6">
       <div className="max-w-7xl mx-auto">
@@ -38,11 +44,31 @@ export const DashboardHeader = () => {
           </p>
         </div>
         
+        {/* Navigation Tabs */}
+        <div className="mb-6">
+          <Tabs value={currentTab} onValueChange={(value) => {
+            if (value === 'agenda') {
+              navigate('/agenda-import');
+            } else {
+              navigate('/');
+            }
+          }}>
+            <TabsList className="bg-white/10 backdrop-blur-glass border border-white/20">
+              <TabsTrigger value="review" className="data-[state=active]:bg-white/20">
+                Prüfungsliste (Konfidenz &lt; 80%)
+              </TabsTrigger>
+              <TabsTrigger value="agenda" className="data-[state=active]:bg-white/20">
+                Agenda Import (Konfidenz ≥ 80%)
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-muted-foreground">Mandant:</span>
             <Select defaultValue="mustermann-gmbh">
-              <SelectTrigger className="w-64">
+              <SelectTrigger className="w-64 bg-white/10 backdrop-blur-glass border-white/20">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -57,7 +83,7 @@ export const DashboardHeader = () => {
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-muted-foreground">Zeitraum:</span>
             <Select defaultValue="aktueller-monat">
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-48 bg-white/10 backdrop-blur-glass border-white/20">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

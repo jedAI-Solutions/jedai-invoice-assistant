@@ -20,6 +20,7 @@ interface BookingEntry {
 }
 
 export const ReviewInterface = () => {
+  // Nur Belege mit Konfidenz < 80% anzeigen
   const [bookings] = useState<BookingEntry[]>([
     {
       id: "1",
@@ -29,7 +30,7 @@ export const ReviewInterface = () => {
       description: "Büromaterial und Software-Lizenzen",
       account: "6815",
       taxRate: "19%",
-      confidence: 94,
+      confidence: 74,
       status: 'pending'
     },
     {
@@ -40,27 +41,38 @@ export const ReviewInterface = () => {
       description: "Kraftstoff Firmenfahrzeug",
       account: "6670",
       taxRate: "19%",
-      confidence: 87,
+      confidence: 67,
       status: 'pending'
     },
     {
       id: "3",
-      document: "Miete_Januar_2024.pdf", 
-      date: "2024-01-01",
-      amount: 2800.00,
-      description: "Büroräume Miete Januar",
-      account: "6030",
-      taxRate: "0%",
-      confidence: 98,
-      status: 'approved'
+      document: "Unklarer_Beleg_003.pdf", 
+      date: "2024-01-13",
+      amount: 245.80,
+      description: "Geschäftsessen - Details unklar",
+      account: "6300",
+      taxRate: "19%",
+      confidence: 45,
+      status: 'pending'
+    },
+    {
+      id: "4",
+      document: "Teilweise_Rechnung_004.jpg", 
+      date: "2024-01-12",
+      amount: 156.00,
+      description: "Hardware - teilweise lesbar",
+      account: "6815",
+      taxRate: "19%",
+      confidence: 72,
+      status: 'pending'
     }
   ]);
 
   const [selectedBooking, setSelectedBooking] = useState<BookingEntry | null>(bookings[0]);
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 95) return "bg-success text-success-foreground";
-    if (confidence >= 85) return "bg-warning text-warning-foreground";
+    if (confidence >= 70) return "bg-warning text-warning-foreground";
+    if (confidence >= 50) return "bg-warning/80 text-warning-foreground";
     return "bg-destructive text-destructive-foreground";
   };
 
