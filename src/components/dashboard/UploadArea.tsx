@@ -106,7 +106,6 @@ export const UploadArea = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-        mode: 'no-cors', // Handle CORS for external webhook
       });
 
       console.log('Request sent successfully (no-cors mode)');
