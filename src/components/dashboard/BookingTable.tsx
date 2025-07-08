@@ -126,9 +126,9 @@ export const BookingTable = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Alle Mandanten</SelectItem>
-                    <SelectItem value="m1">Mustermann GmbH</SelectItem>
-                    <SelectItem value="m2">Beispiel AG</SelectItem>
-                    <SelectItem value="m3">Demo KG</SelectItem>
+                    {mandanten.map((mandant) => (
+                      <SelectItem key={mandant.id} value={mandant.id}>{mandant.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

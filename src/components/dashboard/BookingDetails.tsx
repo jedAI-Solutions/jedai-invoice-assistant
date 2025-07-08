@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +21,12 @@ export const BookingDetails = ({
   onReject,
   onSaveChanges
 }: BookingDetailsProps) => {
-  if (!selectedEntry) {
+  const [editedEntry, setEditedEntry] = useState<BookingEntry | null>(null);
+
+  useEffect(() => {
+    setEditedEntry(selectedEntry);
+  }, [selectedEntry]);
+  if (!selectedEntry || !editedEntry) {
     return (
       <Card className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass">
         <CardContent className="p-12 text-center">
@@ -92,8 +98,8 @@ export const BookingDetails = ({
                   <Input 
                     id="datum" 
                     type="date" 
-                    value={selectedEntry.date}
-                    onChange={() => {}}
+                    value={editedEntry.date}
+                    onChange={(e) => setEditedEntry(prev => prev ? {...prev, date: e.target.value} : null)}
                     className="bg-white/10 backdrop-blur-glass border-white/20"
                   />
                 </div>
@@ -103,8 +109,8 @@ export const BookingDetails = ({
                     id="betrag" 
                     type="number" 
                     step="0.01"
-                    value={selectedEntry.amount}
-                    onChange={() => {}}
+                    value={editedEntry.amount}
+                    onChange={(e) => setEditedEntry(prev => prev ? {...prev, amount: parseFloat(e.target.value)} : null)}
                     className="bg-white/10 backdrop-blur-glass border-white/20"
                   />
                 </div>
@@ -112,27 +118,37 @@ export const BookingDetails = ({
                   <Label htmlFor="beschreibung">Buchungstext</Label>
                   <Input 
                     id="beschreibung" 
-                    value={selectedEntry.description}
-                    onChange={() => {}}
+                    value={editedEntry.description}
+                    onChange={(e) => setEditedEntry(prev => prev ? {...prev, description: e.target.value} : null)}
                     className="bg-white/10 backdrop-blur-glass border-white/20"
                   />
                 </div>
                 <div>
                   <Label htmlFor="mandant">Mandant</Label>
-                  <Input 
-                    id="mandant" 
-                    value={selectedEntry.mandant}
-                    onChange={() => {}}
-                    className="bg-white/10 backdrop-blur-glass border-white/20"
-                    disabled
-                  />
+                  <Select value={editedEntry.mandantId} onValueChange={(value) => {
+                    const mandantNames = {
+                      'm1': 'Mustermann GmbH',
+                      'm2': 'Beispiel AG', 
+                      'm3': 'Demo KG'
+                    };
+                    setEditedEntry(prev => prev ? {...prev, mandantId: value, mandant: mandantNames[value as keyof typeof mandantNames]} : null);
+                  }}>
+                    <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="m1">Mustermann GmbH</SelectItem>
+                      <SelectItem value="m2">Beispiel AG</SelectItem>
+                      <SelectItem value="m3">Demo KG</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="konto">SKR-Konto</Label>
-                  <Select value={selectedEntry.account}>
+                  <Select value={editedEntry.account} onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, account: value} : null)}>
                     <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
                       <SelectValue />
                     </SelectTrigger>
@@ -150,7 +166,7 @@ export const BookingDetails = ({
                 </div>
                 <div>
                   <Label htmlFor="steuer">Steuersatz</Label>
-                  <Select value={selectedEntry.taxRate}>
+                  <Select value={editedEntry.taxRate} onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, taxRate: value} : null)}>
                     <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
                       <SelectValue />
                     </SelectTrigger>
@@ -188,7 +204,7 @@ export const BookingDetails = ({
                   <Button 
                     variant="outline" 
                     className="w-full sm:flex-1 bg-white/10 backdrop-blur-glass border-white/20 h-10"
-                    onClick={() => onSaveChanges(selectedEntry.id, {})}
+                    onClick={() => onSaveChanges(selectedEntry.id, editedEntry)}
                   >
                     Änderungen speichern
                   </Button>
@@ -208,7 +224,7 @@ export const BookingDetails = ({
                   <Button 
                     variant="outline" 
                     className="w-full sm:flex-1 bg-white/10 backdrop-blur-glass border-white/20 h-10"
-                    onClick={() => onSaveChanges(selectedEntry.id, {})}
+                    onClick={() => onSaveChanges(selectedEntry.id, editedEntry)}
                   >
                     Korrektion speichern
                   </Button>
