@@ -16,6 +16,8 @@ interface BookingTableProps {
   onApprove: (entryId: string) => void;
   onReject: (entryId: string) => void;
   selectedEntry?: BookingEntry | null;
+  confidenceFilter: string;
+  onConfidenceFilterChange: (filter: string) => void;
 }
 
 export const BookingTable = ({
@@ -26,7 +28,9 @@ export const BookingTable = ({
   onEntrySelect,
   onApprove,
   onReject,
-  selectedEntry
+  selectedEntry,
+  confidenceFilter,
+  onConfidenceFilterChange
 }: BookingTableProps) => {
   const [sortField, setSortField] = useState<keyof BookingEntry>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -110,42 +114,40 @@ export const BookingTable = ({
   return (
     <Card className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className="flex items-center justify-between font-modern">
           <span>Buchungsübersicht</span>
           <div className="flex items-center gap-3">
-            <Select value={selectedMandant} onValueChange={onMandantChange}>
-              <SelectTrigger className="w-48 bg-white/10 backdrop-blur-glass border-white/20">
-                <SelectValue placeholder="Mandant auswählen" />
+            <Select value={confidenceFilter} onValueChange={onConfidenceFilterChange}>
+              <SelectTrigger className="w-40 bg-white/10 backdrop-blur-glass border-white/20">
+                <SelectValue placeholder="KI-Filter" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alle Mandanten</SelectItem>
-                {mandanten.map((mandant) => (
-                  <SelectItem key={mandant.id} value={mandant.id}>
-                    {mandant.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">Alle Konfidenz</SelectItem>
+                <SelectItem value="green">🟢 Hoch (≥90%)</SelectItem>
+                <SelectItem value="yellow">🟡 Mittel (70-89%)</SelectItem>
+                <SelectItem value="red">🔴 Niedrig (&lt;70%)</SelectItem>
               </SelectContent>
             </Select>
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-modern">
               {sortedEntries.length} Belege
             </Badge>
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        <div className="max-h-[400px] overflow-auto">
           <Table>
             <TableHeader>
               <TableRow className="border-white/10 hover:bg-white/5">
-                <TableHead className="w-12">KI</TableHead>
-                <TableHead><SortButton field="date">Datum</SortButton></TableHead>
-                <TableHead><SortButton field="mandant">Mandant</SortButton></TableHead>
-                <TableHead><SortButton field="description">Beschreibung</SortButton></TableHead>
-                <TableHead><SortButton field="account">Konto</SortButton></TableHead>
-                <TableHead><SortButton field="amount">Betrag</SortButton></TableHead>
-                <TableHead><SortButton field="taxRate">USt</SortButton></TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-32">Aktionen</TableHead>
+                <TableHead className="w-16 font-modern">KI%</TableHead>
+                <TableHead className="font-modern"><SortButton field="date">Datum</SortButton></TableHead>
+                <TableHead className="font-modern"><SortButton field="mandant">Mandant</SortButton></TableHead>
+                <TableHead className="font-modern"><SortButton field="description">Beschreibung</SortButton></TableHead>
+                <TableHead className="font-modern"><SortButton field="account">Konto</SortButton></TableHead>
+                <TableHead className="font-modern"><SortButton field="amount">Betrag</SortButton></TableHead>
+                <TableHead className="font-modern"><SortButton field="taxRate">USt</SortButton></TableHead>
+                <TableHead className="font-modern">Status</TableHead>
+                <TableHead className="w-32 font-modern">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -158,22 +160,26 @@ export const BookingTable = ({
                   onClick={() => onEntrySelect(entry)}
                 >
                   <TableCell>
-                    <div className={`w-3 h-3 rounded-full ${
-                      entry.confidence >= 90 ? 'bg-success' : 
-                      entry.confidence >= 80 ? 'bg-success/80' :
-                      entry.confidence >= 70 ? 'bg-warning' : 'bg-destructive'
-                    }`} />
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${
+                        entry.confidence >= 90 ? 'bg-success' : 
+                        entry.confidence >= 70 ? 'bg-warning' : 'bg-destructive'
+                      }`} />
+                      <span className="text-xs font-medium font-mono">
+                        {entry.confidence}%
+                      </span>
+                    </div>
                   </TableCell>
-                  <TableCell className="font-medium">{entry.date}</TableCell>
+                  <TableCell className="font-medium font-modern">{entry.date}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs font-modern">
                       {entry.mandant}
                     </Badge>
                   </TableCell>
-                  <TableCell className="max-w-48 truncate">{entry.description}</TableCell>
+                  <TableCell className="max-w-48 truncate font-modern">{entry.description}</TableCell>
                   <TableCell className="font-mono text-sm">{entry.account}</TableCell>
-                  <TableCell className="font-semibold">{formatCurrency(entry.amount)}</TableCell>
-                  <TableCell>{entry.taxRate}</TableCell>
+                  <TableCell className="font-semibold font-modern">{formatCurrency(entry.amount)}</TableCell>
+                  <TableCell className="font-modern">{entry.taxRate}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusColor(entry.status) as any} className="text-xs">
                       {getStatusText(entry.status)}

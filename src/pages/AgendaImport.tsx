@@ -18,7 +18,12 @@ const AgendaImport = () => {
       
       {/* Content */}
       <div className="relative z-10">
-        <DashboardHeader />
+        <DashboardHeader 
+          selectedMandant="all"
+          onMandantChange={() => {}}
+          selectedTimeframe="aktueller-monat"
+          onTimeframeChange={() => {}}
+        />
         
         <div className="max-w-7xl mx-auto p-6">
           <AgendaInterface />

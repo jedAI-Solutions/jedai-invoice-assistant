@@ -159,15 +159,15 @@ export const UploadArea = () => {
 
   return (
     <Card className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:shadow-strong transition-all duration-300">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center justify-between text-sm font-modern">
           <span>Beleg-Upload</span>
-          <Badge variant="outline">PDF, JPG, PNG, XML</Badge>
+          <Badge variant="outline" className="text-xs">PDF/JPG/PNG</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
+          className={`border-2 border-dashed rounded-lg p-4 text-center transition-all duration-300 ${
             dragActive 
               ? 'border-primary bg-primary/10 backdrop-blur-glass scale-105' 
               : 'border-white/30 bg-white/5 backdrop-blur-glass hover:bg-white/10'
@@ -177,26 +177,27 @@ export const UploadArea = () => {
           onDragOver={handleDrag}
           onDrop={handleDrop}
         >
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
             <div>
-              <p className="text-lg font-semibold text-foreground">
-                Belege hier ablegen oder
+              <p className="text-sm font-semibold text-foreground font-modern">
+                Belege ablegen
               </p>
               <Button 
                 variant="link" 
-                className="p-0 h-auto text-primary"
+                size="sm"
+                className="p-0 h-auto text-primary text-xs"
                 onClick={() => document.getElementById('file-input')?.click()}
               >
-                Dateien auswählen
+                oder auswählen
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground">
-              PDF, JPG, PNG, XML (ZUGFeRD/XRechnung) • Max. 10MB pro Datei
+            <p className="text-xs text-muted-foreground">
+              PDF, JPG, PNG • Max. 10MB
             </p>
           </div>
           <input

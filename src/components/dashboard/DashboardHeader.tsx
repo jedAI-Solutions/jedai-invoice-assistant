@@ -4,7 +4,19 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export const DashboardHeader = () => {
+interface DashboardHeaderProps {
+  selectedMandant: string;
+  onMandantChange: (mandant: string) => void;
+  selectedTimeframe: string;
+  onTimeframeChange: (timeframe: string) => void;
+}
+
+export const DashboardHeader = ({ 
+  selectedMandant, 
+  onMandantChange, 
+  selectedTimeframe, 
+  onTimeframeChange 
+}: DashboardHeaderProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -14,17 +26,17 @@ export const DashboardHeader = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
               <img 
                 src="/lovable-uploads/c7d57f27-5852-4101-a609-f621974a7b6a.png" 
                 alt="jed AI Solutions Logo" 
-                className="h-20 w-auto drop-shadow-lg"
+                className="h-24 w-auto drop-shadow-xl"
               />
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-logo bg-clip-text text-transparent">
+                <h1 className="text-5xl font-bold bg-gradient-logo bg-clip-text text-transparent font-modern">
                   Taxagent
                 </h1>
-                <p className="text-base text-muted-foreground mt-1">Powered by jed AI Solutions</p>
+                <p className="text-lg text-muted-foreground mt-1 font-modern">Powered by jedAI Solutions</p>
               </div>
             </div>
           </div>
@@ -46,23 +58,23 @@ export const DashboardHeader = () => {
         
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground">Mandant:</span>
-            <Select defaultValue="mustermann-gmbh">
+            <span className="text-sm font-medium text-muted-foreground font-modern">Mandant:</span>
+            <Select value={selectedMandant} onValueChange={onMandantChange}>
               <SelectTrigger className="w-64 bg-white/10 backdrop-blur-glass border-white/20">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="mustermann-gmbh">Mustermann GmbH</SelectItem>
-                <SelectItem value="schmidt-kg">Schmidt & Co KG</SelectItem>
-                <SelectItem value="weber-einzelunternehmen">Weber Einzelunternehmen</SelectItem>
-                <SelectItem value="alle-mandanten">Alle Mandanten</SelectItem>
+                <SelectItem value="all">Alle Mandanten</SelectItem>
+                <SelectItem value="m1">Mustermann GmbH</SelectItem>
+                <SelectItem value="m2">Beispiel AG</SelectItem>
+                <SelectItem value="m3">Demo KG</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground">Zeitraum:</span>
-            <Select defaultValue="aktueller-monat">
+            <span className="text-sm font-medium text-muted-foreground font-modern">Zeitraum:</span>
+            <Select value={selectedTimeframe} onValueChange={onTimeframeChange}>
               <SelectTrigger className="w-48 bg-white/10 backdrop-blur-glass border-white/20">
                 <SelectValue />
               </SelectTrigger>

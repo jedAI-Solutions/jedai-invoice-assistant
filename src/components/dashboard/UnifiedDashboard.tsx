@@ -5,9 +5,11 @@ import { BookingEntry, Mandant, DashboardStats } from "@/types/booking";
 
 interface UnifiedDashboardProps {
   onStatsUpdate: (stats: DashboardStats) => void;
+  selectedMandant: string;
+  selectedTimeframe: string;
 }
 
-export const UnifiedDashboard = ({ onStatsUpdate }: UnifiedDashboardProps) => {
+export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimeframe }: UnifiedDashboardProps) => {
   // Sample data - in real app this would come from API/database
   const mandanten: Mandant[] = [
     { id: "m1", name: "Mustermann GmbH", shortName: "MM", color: "#3b82f6" },
@@ -115,16 +117,35 @@ export const UnifiedDashboard = ({ onStatsUpdate }: UnifiedDashboardProps) => {
   ]);
 
   const [selectedEntry, setSelectedEntry] = useState<BookingEntry | null>(null);
-  const [selectedMandant, setSelectedMandant] = useState<string>("all");
   const [entries, setEntries] = useState<BookingEntry[]>(allEntries);
+  const [confidenceFilter, setConfidenceFilter] = useState<string>("all");
 
-  // Filter entries based on selected mandant
+  // Filter entries based on selected mandant and confidence
   const filteredEntries = useMemo(() => {
-    if (selectedMandant === "all") {
-      return entries;
+    let filtered = entries;
+    
+    // Filter by mandant
+    if (selectedMandant !== "all") {
+      filtered = filtered.filter(entry => entry.mandantId === selectedMandant);
     }
-    return entries.filter(entry => entry.mandantId === selectedMandant);
-  }, [entries, selectedMandant]);
+    
+    // Filter by confidence level
+    if (confidenceFilter !== "all") {
+      switch (confidenceFilter) {
+        case "green":
+          filtered = filtered.filter(entry => entry.confidence >= 90);
+          break;
+        case "yellow":
+          filtered = filtered.filter(entry => entry.confidence >= 70 && entry.confidence < 90);
+          break;
+        case "red":
+          filtered = filtered.filter(entry => entry.confidence < 70);
+          break;
+      }
+    }
+    
+    return filtered;
+  }, [entries, selectedMandant, confidenceFilter]);
 
   // Calculate stats based on filtered entries
   const stats = useMemo(() => {
@@ -199,11 +220,13 @@ export const UnifiedDashboard = ({ onStatsUpdate }: UnifiedDashboardProps) => {
         entries={filteredEntries}
         mandanten={mandanten}
         selectedMandant={selectedMandant}
-        onMandantChange={setSelectedMandant}
+        onMandantChange={() => {}} // Handled by parent
         onEntrySelect={setSelectedEntry}
         onApprove={handleApprove}
         onReject={handleReject}
         selectedEntry={selectedEntry}
+        confidenceFilter={confidenceFilter}
+        onConfidenceFilterChange={setConfidenceFilter}
       />
 
       {/* Booking Details */}

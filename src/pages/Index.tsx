@@ -15,6 +15,9 @@ const Index = () => {
     totalAmount: 0,
     avgConfidence: 0
   });
+  
+  const [selectedMandant, setSelectedMandant] = useState<string>("all");
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>("aktueller-monat");
   return (
     <div 
       className="min-h-screen relative overflow-hidden"
@@ -30,22 +33,31 @@ const Index = () => {
       
       {/* Content */}
       <div className="relative z-10">
-        <DashboardHeader />
+        <DashboardHeader 
+          selectedMandant={selectedMandant}
+          onMandantChange={setSelectedMandant}
+          selectedTimeframe={selectedTimeframe}
+          onTimeframeChange={setSelectedTimeframe}
+        />
         
         <div className="max-w-7xl mx-auto p-6 space-y-8">
           {/* Statistiken Übersicht */}
           <StatsOverview stats={dashboardStats} />
           
-          {/* Layout: Upload (klein) + Unified Dashboard */}
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-            {/* Upload Area - kleiner */}
-            <div className="xl:col-span-1">
+          {/* Optimized Layout: Upload smaller, Dashboard full width */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            {/* Upload Area - sehr klein */}
+            <div className="lg:col-span-1">
               <UploadArea />
             </div>
             
-            {/* Unified Dashboard */}
-            <div className="xl:col-span-3">
-              <UnifiedDashboard onStatsUpdate={setDashboardStats} />
+            {/* Unified Dashboard - maximale Breite */}
+            <div className="lg:col-span-4">
+              <UnifiedDashboard 
+                onStatsUpdate={setDashboardStats} 
+                selectedMandant={selectedMandant}
+                selectedTimeframe={selectedTimeframe}
+              />
             </div>
           </div>
         </div>
