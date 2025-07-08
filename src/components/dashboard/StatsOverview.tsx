@@ -1,42 +1,47 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DashboardStats } from "@/types/booking";
 
-export const StatsOverview = () => {
-  const stats = [
+interface StatsOverviewProps {
+  stats: DashboardStats;
+}
+
+export const StatsOverview = ({ stats }: StatsOverviewProps) => {
+  const displayStats = [
     {
-      title: "Belege heute",
-      value: "24",
+      title: "Belege gesamt",
+      value: stats.totalEntries.toString(),
       change: "+12%",
       trend: "up",
       description: "vs. Vortag"
     },
     {
       title: "Automatisierungsgrad",
-      value: "89%",
+      value: `${Math.round(stats.avgConfidence)}%`,
       change: "+3%",
       trend: "up",
-      description: "KI-Konfidenz ⌀ 92%"
+      description: `KI-Konfidenz ⌀ ${stats.avgConfidence}%`
     },
     {
-      title: "Verarbeitungszeit",
-      value: "1,2 Min",
-      change: "-15%",
-      trend: "down",
-      description: "⌀ pro Beleg"
+      title: "Exportbereit",
+      value: stats.readyForExport.toString(),
+      change: "0",
+      trend: "neutral",
+      description: "Bereit für Agenda"
     },
     {
       title: "Ausstehende Prüfungen",
-      value: "7",
+      value: stats.pendingReviews.toString(),
       change: "0",
       trend: "neutral",
       description: "Manuelle Reviews"
     },
     {
-      title: "Eingesparte Zeit",
-      value: "42,5 Std",
-      change: "+8,2 Std",
+      title: "Gesamtbetrag",
+      value: new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', notation: 'compact' }).format(stats.totalAmount),
+      change: "+8,2%",
       trend: "up",
-      description: "Kumuliert/Monat"
+      description: "Alle Belege"
     }
   ];
 
@@ -60,7 +65,7 @@ export const StatsOverview = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-      {stats.map((stat, index) => (
+      {displayStats.map((stat, index) => (
         <Card key={index} className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:bg-gradient-card-hover transition-all duration-300 hover:scale-105">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">

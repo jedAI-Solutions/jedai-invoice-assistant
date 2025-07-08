@@ -1,10 +1,20 @@
+import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { StatsOverview } from "@/components/dashboard/StatsOverview";
 import { UploadArea } from "@/components/dashboard/UploadArea";
-import { CombinedInterface } from "@/components/dashboard/CombinedInterface";
+import { UnifiedDashboard } from "@/components/dashboard/UnifiedDashboard";
+import { DashboardStats } from "@/types/booking";
 import dashboardBg from "@/assets/dashboard-bg.jpg";
 
 const Index = () => {
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
+    totalEntries: 0,
+    pendingReviews: 0,
+    readyForExport: 0,
+    rejectedEntries: 0,
+    totalAmount: 0,
+    avgConfidence: 0
+  });
   return (
     <div 
       className="min-h-screen relative overflow-hidden"
@@ -24,18 +34,18 @@ const Index = () => {
         
         <div className="max-w-7xl mx-auto p-6 space-y-8">
           {/* Statistiken Übersicht */}
-          <StatsOverview />
+          <StatsOverview stats={dashboardStats} />
           
-          {/* Layout: Upload (klein) + Kombinierte Listen mit Buchungsmaske in der Mitte */}
+          {/* Layout: Upload (klein) + Unified Dashboard */}
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
             {/* Upload Area - kleiner */}
             <div className="xl:col-span-1">
               <UploadArea />
             </div>
             
-            {/* Kombinierte Interface */}
+            {/* Unified Dashboard */}
             <div className="xl:col-span-3">
-              <CombinedInterface />
+              <UnifiedDashboard onStatsUpdate={setDashboardStats} />
             </div>
           </div>
         </div>
