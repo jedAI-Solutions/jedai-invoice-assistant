@@ -135,19 +135,19 @@ export const BookingTable = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="max-h-[400px] overflow-auto">
-          <Table>
+        <div className="max-h-[400px] overflow-y-auto overflow-x-hidden">
+          <Table className="w-full table-fixed">
             <TableHeader>
               <TableRow className="border-white/10 hover:bg-white/5">
                 <TableHead className="w-16 font-modern">KI%</TableHead>
-                <TableHead className="font-modern"><SortButton field="date">Datum</SortButton></TableHead>
-                <TableHead className="font-modern"><SortButton field="mandant">Mandant</SortButton></TableHead>
-                <TableHead className="font-modern"><SortButton field="description">Beschreibung</SortButton></TableHead>
-                <TableHead className="font-modern"><SortButton field="account">Konto</SortButton></TableHead>
-                <TableHead className="font-modern"><SortButton field="amount">Betrag</SortButton></TableHead>
-                <TableHead className="font-modern"><SortButton field="taxRate">USt</SortButton></TableHead>
-                <TableHead className="font-modern">Status</TableHead>
-                <TableHead className="w-32 font-modern">Aktionen</TableHead>
+                <TableHead className="w-20 font-modern"><SortButton field="date">Datum</SortButton></TableHead>
+                <TableHead className="w-20 font-modern"><SortButton field="mandant">Mandant</SortButton></TableHead>
+                <TableHead className="w-32 font-modern"><SortButton field="description">Beschreibung</SortButton></TableHead>
+                <TableHead className="w-16 font-modern"><SortButton field="account">Konto</SortButton></TableHead>
+                <TableHead className="w-20 font-modern"><SortButton field="amount">Betrag</SortButton></TableHead>
+                <TableHead className="w-12 font-modern"><SortButton field="taxRate">USt</SortButton></TableHead>
+                <TableHead className="w-16 font-modern">Status</TableHead>
+                <TableHead className="w-20 font-modern">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -170,16 +170,16 @@ export const BookingTable = ({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium font-modern">{entry.date}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-xs font-modern">
-                      {entry.mandant}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="max-w-48 truncate font-modern">{entry.description}</TableCell>
-                  <TableCell className="font-mono text-sm">{entry.account}</TableCell>
-                  <TableCell className="font-semibold font-modern">{formatCurrency(entry.amount)}</TableCell>
-                  <TableCell className="font-modern">{entry.taxRate}</TableCell>
+                   <TableCell className="font-medium font-modern text-xs truncate">{entry.date}</TableCell>
+                   <TableCell className="truncate">
+                     <Badge variant="outline" className="text-xs font-modern truncate">
+                       {entry.mandant}
+                     </Badge>
+                   </TableCell>
+                   <TableCell className="truncate font-modern text-xs" title={entry.description}>{entry.description}</TableCell>
+                   <TableCell className="font-mono text-xs truncate">{entry.account}</TableCell>
+                   <TableCell className="font-semibold font-modern text-xs truncate">{formatCurrency(entry.amount)}</TableCell>
+                   <TableCell className="font-modern text-xs">{entry.taxRate}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusColor(entry.status) as any} className="text-xs">
                       {getStatusText(entry.status)}
