@@ -154,18 +154,19 @@ export const BookingTable = ({
       </CardHeader>
       <CardContent className="p-0">
         <div className="max-h-[400px] overflow-y-auto overflow-x-hidden">
-          <Table className="w-full table-fixed">
+          <Table className="w-full">
             <TableHeader>
               <TableRow className="border-white/10 hover:bg-white/5">
-                <TableHead className="w-12 md:w-16 font-modern text-xs md:text-sm">KI%</TableHead>
-                <TableHead className="w-16 md:w-20 font-modern text-xs md:text-sm"><SortButton field="date">Datum</SortButton></TableHead>
-                <TableHead className="w-16 md:w-20 font-modern text-xs md:text-sm"><SortButton field="mandant">Mandant</SortButton></TableHead>
-                <TableHead className="w-24 md:w-32 font-modern text-xs md:text-sm"><SortButton field="description">Beschreibung</SortButton></TableHead>
-                <TableHead className="w-12 md:w-16 font-modern text-xs md:text-sm"><SortButton field="account">Konto</SortButton></TableHead>
-                <TableHead className="w-16 md:w-20 font-modern text-xs md:text-sm"><SortButton field="amount">Betrag</SortButton></TableHead>
-                <TableHead className="w-8 md:w-12 font-modern text-xs md:text-sm"><SortButton field="taxRate">USt</SortButton></TableHead>
-                <TableHead className="w-12 md:w-16 font-modern text-xs md:text-sm">Status</TableHead>
-                <TableHead className="w-16 md:w-20 font-modern text-xs md:text-sm">Aktionen</TableHead>
+                {/* Mobile: Show only essential columns */}
+                <TableHead className="font-modern text-xs px-2">KI%</TableHead>
+                <TableHead className="font-modern text-xs px-2 hidden sm:table-cell"><SortButton field="date">Datum</SortButton></TableHead>
+                <TableHead className="font-modern text-xs px-2 hidden md:table-cell"><SortButton field="mandant">Mandant</SortButton></TableHead>
+                <TableHead className="font-modern text-xs px-2"><SortButton field="description">Beschreibung</SortButton></TableHead>
+                <TableHead className="font-modern text-xs px-2 hidden lg:table-cell"><SortButton field="account">Konto</SortButton></TableHead>
+                <TableHead className="font-modern text-xs px-2"><SortButton field="amount">Betrag</SortButton></TableHead>
+                <TableHead className="font-modern text-xs px-2 hidden sm:table-cell"><SortButton field="taxRate">USt</SortButton></TableHead>
+                <TableHead className="font-modern text-xs px-2 hidden md:table-cell">Status</TableHead>
+                <TableHead className="font-modern text-xs px-2">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -177,32 +178,32 @@ export const BookingTable = ({
                   }`}
                   onClick={() => onEntrySelect(entry)}
                 >
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${
-                        entry.confidence >= 90 ? 'bg-success' : 
-                        entry.confidence >= 70 ? 'bg-warning' : 'bg-destructive'
-                      }`} />
-                      <span className="text-xs font-medium font-mono">
-                        {entry.confidence}%
-                      </span>
-                    </div>
-                  </TableCell>
-                   <TableCell className="font-medium font-modern text-xs truncate">{entry.date}</TableCell>
-                   <TableCell className="truncate">
-                     <Badge variant="outline" className="text-xs font-modern truncate">
-                       {entry.mandant}
+                   <TableCell className="px-2">
+                     <div className="flex items-center gap-1">
+                       <div className={`w-2 h-2 rounded-full ${
+                         entry.confidence >= 90 ? 'bg-success' : 
+                         entry.confidence >= 70 ? 'bg-warning' : 'bg-destructive'
+                       }`} />
+                       <span className="text-xs font-medium font-mono">
+                         {entry.confidence}%
+                       </span>
+                     </div>
+                   </TableCell>
+                    <TableCell className="font-medium font-modern text-xs truncate px-2 hidden sm:table-cell">{entry.date}</TableCell>
+                    <TableCell className="truncate px-2 hidden md:table-cell">
+                      <Badge variant="outline" className="text-xs font-modern truncate">
+                        {entry.mandant}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="truncate font-modern text-xs px-2" title={entry.description}>{entry.description}</TableCell>
+                    <TableCell className="font-mono text-xs truncate px-2 hidden lg:table-cell">{entry.account}</TableCell>
+                    <TableCell className="font-semibold font-modern text-xs truncate px-2">{formatCurrency(entry.amount)}</TableCell>
+                    <TableCell className="font-modern text-xs px-2 hidden sm:table-cell">{entry.taxRate}</TableCell>
+                   <TableCell className="px-2 hidden md:table-cell">
+                     <Badge variant={getStatusColor(entry.status) as any} className="text-xs">
+                       {getStatusText(entry.status)}
                      </Badge>
                    </TableCell>
-                   <TableCell className="truncate font-modern text-xs" title={entry.description}>{entry.description}</TableCell>
-                   <TableCell className="font-mono text-xs truncate">{entry.account}</TableCell>
-                   <TableCell className="font-semibold font-modern text-xs truncate">{formatCurrency(entry.amount)}</TableCell>
-                   <TableCell className="font-modern text-xs">{entry.taxRate}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusColor(entry.status) as any} className="text-xs">
-                      {getStatusText(entry.status)}
-                    </Badge>
-                  </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <div className="flex gap-1">
                       {(entry.status === 'pending' || entry.status === 'rejected') && (

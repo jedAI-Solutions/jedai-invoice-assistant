@@ -175,25 +175,26 @@ export const BookingDetails = ({
               </div>
             </div>
 
-            {/* Aktionsbuttons */}
-            <div className="flex gap-3 pt-4">
+            {/* Aktionsbuttons - Optimiert für mobile Ansicht */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 sticky bottom-0 bg-background/95 backdrop-blur-sm p-3 -mx-3 -mb-3 rounded-b-lg border-t border-white/10">
               {(selectedEntry.status === 'pending' || selectedEntry.status === 'rejected') ? (
                 <>
                   <Button 
-                    className="flex-1 bg-gradient-primary text-white border-0"
+                    className="w-full sm:flex-1 bg-gradient-primary text-white border-0 h-10"
                     onClick={() => onApprove(selectedEntry.id)}
                   >
                     Buchung genehmigen
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="flex-1 bg-white/10 backdrop-blur-glass border-white/20"
+                    className="w-full sm:flex-1 bg-white/10 backdrop-blur-glass border-white/20 h-10"
                     onClick={() => onSaveChanges(selectedEntry.id, {})}
                   >
                     Änderungen speichern
                   </Button>
                   <Button 
                     variant="destructive"
+                    className="w-full sm:w-auto h-10"
                     onClick={() => onReject(selectedEntry.id)}
                   >
                     Ablehnen
@@ -201,19 +202,19 @@ export const BookingDetails = ({
                 </>
               ) : (
                 <>
-                  <Button className="flex-1 bg-gradient-primary text-white border-0">
+                  <Button className="w-full sm:flex-1 bg-gradient-primary text-white border-0 h-10">
                     Als Agenda exportieren
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="flex-1 bg-white/10 backdrop-blur-glass border-white/20"
+                    className="w-full sm:flex-1 bg-white/10 backdrop-blur-glass border-white/20 h-10"
                     onClick={() => onSaveChanges(selectedEntry.id, {})}
                   >
                     Korrektion speichern
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="bg-white/10 backdrop-blur-glass border-white/20"
+                    className="w-full sm:w-auto bg-white/10 backdrop-blur-glass border-white/20 h-10"
                     onClick={() => onReject(selectedEntry.id)}
                   >
                     Zur Prüfung verschieben
