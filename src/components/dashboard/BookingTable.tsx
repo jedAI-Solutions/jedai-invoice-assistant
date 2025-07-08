@@ -113,38 +113,40 @@ export const BookingTable = ({
 
   return (
     <Card className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between font-modern">
-          <span>Buchungsübersicht</span>
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground font-modern">Mandant:</span>
-              <Select value={selectedMandant} onValueChange={onMandantChange}>
-                <SelectTrigger className="w-48 bg-white/10 backdrop-blur-glass border-white/20">
-                  <SelectValue />
+      <CardHeader className="p-3 md:p-6">
+        <CardTitle className="flex flex-col md:flex-row md:items-center justify-between font-modern gap-3">
+          <span className="text-lg md:text-xl">Buchungsübersicht</span>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs md:text-sm font-medium text-muted-foreground font-modern whitespace-nowrap">Mandant:</span>
+                <Select value={selectedMandant} onValueChange={onMandantChange}>
+                  <SelectTrigger className="w-full sm:w-40 md:w-48 bg-white/10 backdrop-blur-glass border-white/20 text-xs md:text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle Mandanten</SelectItem>
+                    <SelectItem value="m1">Mustermann GmbH</SelectItem>
+                    <SelectItem value="m2">Beispiel AG</SelectItem>
+                    <SelectItem value="m3">Demo KG</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Select value={confidenceFilter} onValueChange={onConfidenceFilterChange}>
+                <SelectTrigger className="w-full sm:w-32 md:w-40 bg-white/10 backdrop-blur-glass border-white/20 text-xs md:text-sm">
+                  <SelectValue placeholder="KI-Filter" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Alle Mandanten</SelectItem>
-                  <SelectItem value="m1">Mustermann GmbH</SelectItem>
-                  <SelectItem value="m2">Beispiel AG</SelectItem>
-                  <SelectItem value="m3">Demo KG</SelectItem>
+                  <SelectItem value="all">Alle Konfidenz</SelectItem>
+                  <SelectItem value="green">🟢 Hoch (≥90%)</SelectItem>
+                  <SelectItem value="yellow">🟡 Mittel (70-89%)</SelectItem>
+                  <SelectItem value="red">🔴 Niedrig (&lt;70%)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
-            <Select value={confidenceFilter} onValueChange={onConfidenceFilterChange}>
-              <SelectTrigger className="w-40 bg-white/10 backdrop-blur-glass border-white/20">
-                <SelectValue placeholder="KI-Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle Konfidenz</SelectItem>
-                <SelectItem value="green">🟢 Hoch (≥90%)</SelectItem>
-                <SelectItem value="yellow">🟡 Mittel (70-89%)</SelectItem>
-                <SelectItem value="red">🔴 Niedrig (&lt;70%)</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-modern">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-modern text-xs sm:text-sm self-center">
               {sortedEntries.length} Belege
             </Badge>
           </div>
@@ -155,15 +157,15 @@ export const BookingTable = ({
           <Table className="w-full table-fixed">
             <TableHeader>
               <TableRow className="border-white/10 hover:bg-white/5">
-                <TableHead className="w-16 font-modern">KI%</TableHead>
-                <TableHead className="w-20 font-modern"><SortButton field="date">Datum</SortButton></TableHead>
-                <TableHead className="w-20 font-modern"><SortButton field="mandant">Mandant</SortButton></TableHead>
-                <TableHead className="w-32 font-modern"><SortButton field="description">Beschreibung</SortButton></TableHead>
-                <TableHead className="w-16 font-modern"><SortButton field="account">Konto</SortButton></TableHead>
-                <TableHead className="w-20 font-modern"><SortButton field="amount">Betrag</SortButton></TableHead>
-                <TableHead className="w-12 font-modern"><SortButton field="taxRate">USt</SortButton></TableHead>
-                <TableHead className="w-16 font-modern">Status</TableHead>
-                <TableHead className="w-20 font-modern">Aktionen</TableHead>
+                <TableHead className="w-12 md:w-16 font-modern text-xs md:text-sm">KI%</TableHead>
+                <TableHead className="w-16 md:w-20 font-modern text-xs md:text-sm"><SortButton field="date">Datum</SortButton></TableHead>
+                <TableHead className="w-16 md:w-20 font-modern text-xs md:text-sm"><SortButton field="mandant">Mandant</SortButton></TableHead>
+                <TableHead className="w-24 md:w-32 font-modern text-xs md:text-sm"><SortButton field="description">Beschreibung</SortButton></TableHead>
+                <TableHead className="w-12 md:w-16 font-modern text-xs md:text-sm"><SortButton field="account">Konto</SortButton></TableHead>
+                <TableHead className="w-16 md:w-20 font-modern text-xs md:text-sm"><SortButton field="amount">Betrag</SortButton></TableHead>
+                <TableHead className="w-8 md:w-12 font-modern text-xs md:text-sm"><SortButton field="taxRate">USt</SortButton></TableHead>
+                <TableHead className="w-12 md:w-16 font-modern text-xs md:text-sm">Status</TableHead>
+                <TableHead className="w-16 md:w-20 font-modern text-xs md:text-sm">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -208,28 +210,28 @@ export const BookingTable = ({
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 hover:bg-success/20 hover:text-success"
+                            className="h-6 w-6 md:h-8 md:w-8 p-0 hover:bg-success/20 hover:text-success"
                             onClick={() => onApprove(entry.id)}
                           >
-                            <Check className="h-4 w-4" />
+                            <Check className="h-3 w-3 md:h-4 md:w-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
+                            className="h-6 w-6 md:h-8 md:w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
                             onClick={() => onReject(entry.id)}
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-3 w-3 md:h-4 md:w-4" />
                           </Button>
                         </>
                       )}
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-primary/20"
+                        className="h-6 w-6 md:h-8 md:w-8 p-0 hover:bg-primary/20"
                         onClick={() => onEntrySelect(entry)}
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                     </div>
                   </TableCell>

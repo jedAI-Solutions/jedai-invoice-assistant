@@ -40,19 +40,19 @@ const Index = () => {
           onTimeframeChange={setSelectedTimeframe}
         />
         
-        <div className="max-w-7xl mx-auto p-6 space-y-8">
+        <div className="max-w-7xl mx-auto p-3 md:p-6 space-y-6 md:space-y-8">
           {/* Statistiken Übersicht */}
           <StatsOverview stats={dashboardStats} />
           
           {/* Optimized Layout: Upload smaller, Dashboard full width */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             {/* Upload Area - sehr klein */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 order-2 lg:order-1">
               <UploadArea />
             </div>
             
             {/* Unified Dashboard - maximale Breite */}
-            <div className="lg:col-span-4">
+            <div className="lg:col-span-4 order-1 lg:order-2">
               <UnifiedDashboard 
                 onStatsUpdate={setDashboardStats} 
                 selectedMandant={selectedMandant}
