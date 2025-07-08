@@ -153,7 +153,12 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     const pendingReviews = filteredEntries.filter(e => e.status === 'pending').length;
     const readyForExport = filteredEntries.filter(e => e.status === 'ready').length;
     const rejectedEntries = filteredEntries.filter(e => e.status === 'rejected').length;
-    const totalAmount = filteredEntries.reduce((sum, entry) => sum + entry.amount, 0);
+    
+    // Calculate saved time: assume manual review takes 5 minutes per document, AI-assisted takes 1 minute
+    const manualTimePerDocument = 5; // minutes
+    const aiAssistedTimePerDocument = 1; // minutes
+    const savedTime = filteredEntries.length * (manualTimePerDocument - aiAssistedTimePerDocument);
+    
     const avgConfidence = filteredEntries.length > 0 
       ? filteredEntries.reduce((sum, entry) => sum + entry.confidence, 0) / filteredEntries.length 
       : 0;
@@ -163,7 +168,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
       pendingReviews,
       readyForExport,
       rejectedEntries,
-      totalAmount,
+      savedTime,
       avgConfidence
     };
 

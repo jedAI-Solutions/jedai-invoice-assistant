@@ -27,6 +27,6 @@ export interface DashboardStats {
   pendingReviews: number;
   readyForExport: number;
   rejectedEntries: number;
-  totalAmount: number;
+  savedTime: number; // in minutes
   avgConfidence: number;
 }

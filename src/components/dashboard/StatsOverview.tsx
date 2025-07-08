@@ -37,11 +37,11 @@ export const StatsOverview = ({ stats }: StatsOverviewProps) => {
       description: "Manuelle Reviews"
     },
     {
-      title: "Gesamtbetrag",
-      value: new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', notation: 'compact' }).format(stats.totalAmount),
+      title: "Ersparte Zeit",
+      value: `${Math.round(stats.savedTime)} Min`,
       change: "+8,2%",
       trend: "up",
-      description: "Alle Belege"
+      description: "Vs. manuelle Prüfung"
     }
   ];
 

@@ -55,39 +55,6 @@ export const DashboardHeader = ({
             Intelligente Belegverarbeitung und Buchungsautomatisierung für Steuerberater
           </p>
         </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground font-modern">Mandant:</span>
-            <Select value={selectedMandant} onValueChange={onMandantChange}>
-              <SelectTrigger className="w-64 bg-white/10 backdrop-blur-glass border-white/20">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle Mandanten</SelectItem>
-                <SelectItem value="m1">Mustermann GmbH</SelectItem>
-                <SelectItem value="m2">Beispiel AG</SelectItem>
-                <SelectItem value="m3">Demo KG</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground font-modern">Zeitraum:</span>
-            <Select value={selectedTimeframe} onValueChange={onTimeframeChange}>
-              <SelectTrigger className="w-48 bg-white/10 backdrop-blur-glass border-white/20">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="heute">Heute</SelectItem>
-                <SelectItem value="diese-woche">Diese Woche</SelectItem>
-                <SelectItem value="aktueller-monat">Aktueller Monat</SelectItem>
-                <SelectItem value="letzter-monat">Letzter Monat</SelectItem>
-                <SelectItem value="quartal">Aktuelles Quartal</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -116,7 +116,22 @@ export const BookingTable = ({
       <CardHeader>
         <CardTitle className="flex items-center justify-between font-modern">
           <span>Buchungsübersicht</span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground font-modern">Mandant:</span>
+              <Select value={selectedMandant} onValueChange={onMandantChange}>
+                <SelectTrigger className="w-48 bg-white/10 backdrop-blur-glass border-white/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Mandanten</SelectItem>
+                  <SelectItem value="m1">Mustermann GmbH</SelectItem>
+                  <SelectItem value="m2">Beispiel AG</SelectItem>
+                  <SelectItem value="m3">Demo KG</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
             <Select value={confidenceFilter} onValueChange={onConfidenceFilterChange}>
               <SelectTrigger className="w-40 bg-white/10 backdrop-blur-glass border-white/20">
                 <SelectValue placeholder="KI-Filter" />
@@ -128,6 +143,7 @@ export const BookingTable = ({
                 <SelectItem value="red">🔴 Niedrig (&lt;70%)</SelectItem>
               </SelectContent>
             </Select>
+            
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-modern">
               {sortedEntries.length} Belege
             </Badge>

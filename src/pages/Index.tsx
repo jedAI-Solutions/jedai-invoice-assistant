@@ -12,7 +12,7 @@ const Index = () => {
     pendingReviews: 0,
     readyForExport: 0,
     rejectedEntries: 0,
-    totalAmount: 0,
+    savedTime: 0,
     avgConfidence: 0
   });
   
