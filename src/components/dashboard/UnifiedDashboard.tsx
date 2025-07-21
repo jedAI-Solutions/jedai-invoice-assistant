@@ -121,74 +121,111 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
   ]);
 
   const [selectedEntry, setSelectedEntry] = useState<BookingEntry | null>(null);
-  const [entries, setEntries] = useState<BookingEntry[]>(allEntries);
+  const [entries, setEntries] = useState<BookingEntry[]>([]);
   const [confidenceFilter, setConfidenceFilter] = useState<string>("all");
 
-  // Auto-add high confidence entries to export list on component mount
+  // Load entries from belege table
   useEffect(() => {
-    const addHighConfidenceEntries = async () => {
-      const highConfidenceEntries = entries.filter(entry => 
-        entry.confidence >= 90 && entry.status === 'ready'
-      );
+    const fetchEntries = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('belege')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      for (const entry of highConfidenceEntries) {
-        try {
-          // Check if entry already exists in export queue
-          const { data: existingEntry } = await supabase
-            .from('export_queue')
-            .select('export_id')
-            .eq('buchung_id', entry.id)
-            .single();
+        if (error) throw error;
 
-          if (!existingEntry) {
-            // Create buchungshistorie entry
-            const buchungUuid = crypto.randomUUID();
-            
-            const { error: buchungError } = await supabase
-              .from('buchungshistorie')
-              .insert({
-                buchung_id: buchungUuid,
-                buchungsdatum: entry.date,
-                betrag: entry.amount,
-                konto: entry.account,
-                gegenkonto: '9999',
-                buchungstext: entry.description,
-                name: entry.mandant,
-                belegnummer: entry.document
-              });
+        // Convert belege data to BookingEntry format
+        const convertedEntries: BookingEntry[] = (data || []).map(beleg => {
+          const buchungsvorschlag = beleg.ki_buchungsvorschlag as any;
+          return {
+            id: beleg.beleg_id,
+            document: beleg.original_filename,
+            date: beleg.belegdatum || new Date().toISOString().split('T')[0],
+            amount: buchungsvorschlag?.betrag || 0,
+            description: buchungsvorschlag?.buchungstext || 'Unbekannt',
+            account: buchungsvorschlag?.konto || '0000',
+            taxRate: '19%', // Default, could be extracted from OCR data
+            confidence: beleg.konfidenz || 0,
+            status: beleg.status as any,
+            mandant: 'Standard', // Could be mapped from mandant_id
+            mandantId: beleg.mandant_id,
+            aiHints: [],
+            createdAt: beleg.created_at,
+            lastModified: beleg.updated_at
+          };
+        });
 
-            if (buchungError) throw buchungError;
+        setEntries(convertedEntries);
 
-            // Add to export list
-            const mandantUuid = crypto.randomUUID();
-            
-            const { error: exportError } = await supabase
+        // Auto-add high confidence entries to export list
+        const highConfidenceEntries = convertedEntries.filter(entry => 
+          entry.confidence >= 90 && (entry.status === 'ready' || entry.status === 'pending')
+        );
+
+        for (const entry of highConfidenceEntries) {
+          try {
+            // Check if entry already exists in export queue
+            const { data: existingEntry } = await supabase
               .from('export_queue')
-              .insert({
-                buchung_id: buchungUuid,
-                mandant_id: mandantUuid,
-                export_format: 'DATEV'
-              });
+              .select('export_id')
+              .eq('buchung_id', entry.id)
+              .maybeSingle();
 
-            if (exportError) throw exportError;
+            if (!existingEntry) {
+              // Create buchungshistorie entry
+              const buchungUuid = crypto.randomUUID();
+              
+              const { error: buchungError } = await supabase
+                .from('buchungshistorie')
+                .insert({
+                  buchung_id: buchungUuid,
+                  buchungsdatum: entry.date,
+                  betrag: entry.amount,
+                  konto: entry.account,
+                  gegenkonto: '9999',
+                  buchungstext: entry.description,
+                  name: entry.mandant,
+                  belegnummer: entry.document
+                });
 
-            // Update entry status
-            setEntries(prev => 
-              prev.map(e => 
-                e.id === entry.id 
-                  ? { ...e, status: 'exported' as const }
-                  : e
-              )
-            );
+              if (buchungError) throw buchungError;
+
+              // Add to export list
+              const { error: exportError } = await supabase
+                .from('export_queue')
+                .insert({
+                  buchung_id: buchungUuid,
+                  mandant_id: entry.mandantId,
+                  export_format: 'DATEV'
+                });
+
+              if (exportError) throw exportError;
+
+              // Update beleg status to exported
+              const { error: updateError } = await supabase
+                .from('belege')
+                .update({ status: 'exported' })
+                .eq('beleg_id', entry.id);
+
+              if (updateError) throw updateError;
+            }
+          } catch (error) {
+            console.error('Error auto-adding high confidence entry:', error);
           }
-        } catch (error) {
-          console.error('Error auto-adding high confidence entry:', error);
         }
+      } catch (error) {
+        console.error('Error fetching entries:', error);
+        toast({
+          title: "Fehler",
+          description: "Buchungseinträge konnten nicht geladen werden",
+          variant: "destructive",
+        });
       }
     };
 
-    addHighConfidenceEntries();
-  }, [entries]);
+    fetchEntries();
+  }, [toast]);
 
   // Filter entries based on selected mandant and confidence
   const filteredEntries = useMemo(() => {
@@ -249,20 +286,6 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
   }, [stats, onStatsUpdate]);
 
   const handleApprove = async (entryId: string) => {
-    // Update local state
-    setEntries(prevEntries => 
-      prevEntries.map(entry => 
-        entry.id === entryId 
-          ? { ...entry, status: 'approved' as const, lastModified: new Date().toISOString() }
-          : entry
-      )
-    );
-    
-    if (selectedEntry?.id === entryId) {
-      setSelectedEntry(prev => prev ? { ...prev, status: 'approved' } : null);
-    }
-
-    // Add to export queue
     try {
       const approvedEntry = entries.find(e => e.id === entryId);
       if (approvedEntry) {
@@ -285,17 +308,36 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         if (buchungError) throw buchungError;
 
         // Then add to export queue with the buchung_id
-        const mandantUuid = crypto.randomUUID(); // In real app, this should be actual mandant ID
-        
         const { error: exportError } = await supabase
           .from('export_queue')
           .insert({
             buchung_id: buchungUuid,
-            mandant_id: mandantUuid,
+            mandant_id: approvedEntry.mandantId,
             export_format: 'DATEV'
           });
 
         if (exportError) throw exportError;
+
+        // Update beleg status
+        const { error: updateError } = await supabase
+          .from('belege')
+          .update({ status: 'approved' })
+          .eq('beleg_id', entryId);
+
+        if (updateError) throw updateError;
+
+        // Update local state
+        setEntries(prevEntries => 
+          prevEntries.map(entry => 
+            entry.id === entryId 
+              ? { ...entry, status: 'approved' as const, lastModified: new Date().toISOString() }
+              : entry
+          )
+        );
+        
+        if (selectedEntry?.id === entryId) {
+          setSelectedEntry(prev => prev ? { ...prev, status: 'approved' } : null);
+        }
 
         toast({
           title: "Erfolg",
@@ -312,17 +354,35 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     }
   };
 
-  const handleReject = (entryId: string) => {
-    setEntries(prevEntries => 
-      prevEntries.map(entry => 
-        entry.id === entryId 
-          ? { ...entry, status: 'rejected' as const, lastModified: new Date().toISOString() }
-          : entry
-      )
-    );
-    
-    if (selectedEntry?.id === entryId) {
-      setSelectedEntry(prev => prev ? { ...prev, status: 'rejected' } : null);
+  const handleReject = async (entryId: string) => {
+    try {
+      // Update beleg status
+      const { error } = await supabase
+        .from('belege')
+        .update({ status: 'rejected' })
+        .eq('beleg_id', entryId);
+
+      if (error) throw error;
+
+      // Update local state
+      setEntries(prevEntries => 
+        prevEntries.map(entry => 
+          entry.id === entryId 
+            ? { ...entry, status: 'rejected' as const, lastModified: new Date().toISOString() }
+            : entry
+        )
+      );
+      
+      if (selectedEntry?.id === entryId) {
+        setSelectedEntry(prev => prev ? { ...prev, status: 'rejected' } : null);
+      }
+    } catch (error) {
+      console.error('Error rejecting entry:', error);
+      toast({
+        title: "Fehler",
+        description: "Status konnte nicht aktualisiert werden",
+        variant: "destructive",
+      });
     }
   };
 

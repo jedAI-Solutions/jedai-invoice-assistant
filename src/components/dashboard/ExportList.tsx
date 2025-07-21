@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -81,6 +80,29 @@ export const ExportList = () => {
 
   const handleRemoveFromList = async (exportId: string) => {
     try {
+      // Get the export entry details first
+      const exportEntry = exportList.find(item => item.export_id === exportId);
+      if (!exportEntry) throw new Error('Export entry not found');
+
+      // Add back to belege table with status 'pending'
+      const { error: belegeError } = await supabase
+        .from('belege')
+        .insert({
+          beleg_id: crypto.randomUUID(),
+          original_filename: exportEntry.belegnummer || 'unknown',
+          mandant_id: exportEntry.mandant_id,
+          belegdatum: exportEntry.buchungsdatum,
+          status: 'pending',
+          ki_buchungsvorschlag: {
+            konto: exportEntry.konto,
+            buchungstext: exportEntry.buchungstext,
+            betrag: exportEntry.betrag
+          }
+        });
+
+      if (belegeError) throw belegeError;
+
+      // Remove from export queue
       const { error } = await supabase
         .from('export_queue')
         .delete()
@@ -91,13 +113,13 @@ export const ExportList = () => {
       setExportList(prev => prev.filter(item => item.export_id !== exportId));
       toast({
         title: "Erfolg",
-        description: "Eintrag aus Export-Liste entfernt",
+        description: "Eintrag zurück zur Buchungsübersicht verschoben",
       });
     } catch (error) {
       console.error('Error removing from export list:', error);
       toast({
         title: "Fehler",
-        description: "Eintrag konnte nicht entfernt werden",
+        description: "Eintrag konnte nicht verschoben werden",
         variant: "destructive",
       });
     }
