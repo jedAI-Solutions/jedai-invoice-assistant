@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { BookingEntry } from "@/types/booking";
 
 interface BookingDetailsProps {
@@ -13,13 +14,15 @@ interface BookingDetailsProps {
   onApprove: (entryId: string) => void;
   onReject: (entryId: string) => void;
   onSaveChanges: (entryId: string, changes: Partial<BookingEntry>) => void;
+  onDelete?: (entryId: string) => void;
 }
 
 export const BookingDetails = ({
   selectedEntry,
   onApprove,
   onReject,
-  onSaveChanges
+  onSaveChanges,
+  onDelete
 }: BookingDetailsProps) => {
   const [editedEntry, setEditedEntry] = useState<BookingEntry | null>(null);
 
@@ -191,52 +194,50 @@ export const BookingDetails = ({
               </div>
             </div>
 
-            {/* Aktionsbuttons - Optimiert für mobile Ansicht */}
+            {/* Aktionsbuttons - Nur drei Optionen für Einträge mit Status "pending" */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 sticky bottom-0 bg-background/95 backdrop-blur-sm p-3 -mx-3 -mb-3 rounded-b-lg border-t border-white/10">
-              {(selectedEntry.status === 'pending' || selectedEntry.status === 'rejected') ? (
-                <>
-                  <Button 
-                    className="w-full sm:flex-1 bg-gradient-primary text-white border-0 h-10"
-                    onClick={() => onApprove(selectedEntry.id)}
-                  >
-                    Buchung genehmigen
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full sm:flex-1 bg-white/10 backdrop-blur-glass border-white/20 h-10"
-                    onClick={() => onSaveChanges(selectedEntry.id, editedEntry)}
-                  >
-                    Änderungen speichern
-                  </Button>
+              <Button 
+                className="w-full sm:flex-1 bg-gradient-primary text-white border-0 h-10"
+                onClick={() => onApprove(selectedEntry.id)}
+              >
+                Genehmigen
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full sm:flex-1 bg-white/10 backdrop-blur-glass border-white/20 h-10"
+                onClick={() => onSaveChanges(selectedEntry.id, editedEntry)}
+              >
+                Korrekturen speichern
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
                   <Button 
                     variant="destructive"
                     className="w-full sm:w-auto h-10"
-                    onClick={() => onReject(selectedEntry.id)}
                   >
-                    Ablehnen
+                    Löschen
                   </Button>
-                </>
-              ) : (
-                <>
-                  <Button className="w-full sm:flex-1 bg-gradient-primary text-white border-0 h-10">
-                    Als Agenda exportieren
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full sm:flex-1 bg-white/10 backdrop-blur-glass border-white/20 h-10"
-                    onClick={() => onSaveChanges(selectedEntry.id, editedEntry)}
-                  >
-                    Korrektion speichern
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full sm:w-auto bg-white/10 backdrop-blur-glass border-white/20 h-10"
-                    onClick={() => onReject(selectedEntry.id)}
-                  >
-                    Zur Prüfung verschieben
-                  </Button>
-                </>
-              )}
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-gradient-card backdrop-blur-glass border-white/20">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Eintrag löschen</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Sind Sie sicher, dass Sie diesen Buchungseintrag permanent löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="bg-white/10 backdrop-blur-glass border-white/20">
+                      Abbrechen
+                    </AlertDialogCancel>
+                    <AlertDialogAction 
+                      className="bg-destructive text-destructive-foreground"
+                      onClick={() => onDelete?.(selectedEntry.id)}
+                    >
+                      Endgültig löschen
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </TabsContent>
           

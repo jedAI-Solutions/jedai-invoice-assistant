@@ -250,9 +250,10 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     };
   }, []);
 
-  // Filter entries based on selected mandant and confidence
+  // Filter entries based on selected mandant and confidence - only show pending entries
   const filteredEntries = useMemo(() => {
-    let filtered = entries;
+    // Only show entries with status 'pending' in the booking overview
+    let filtered = entries.filter(entry => entry.status === 'pending');
     
     // Filter by mandant
     if (selectedMandant !== "all") {
@@ -366,17 +367,14 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
         if (updateError) throw updateError;
 
-        // Update local state
+        // Update local state - remove from entries since we only show pending entries
         setEntries(prevEntries => 
-          prevEntries.map(entry => 
-            entry.id === entryId 
-              ? { ...entry, status: 'approved' as const, lastModified: new Date().toISOString() }
-              : entry
-          )
+          prevEntries.filter(entry => entry.id !== entryId)
         );
         
+        // Clear selection if the approved entry was selected
         if (selectedEntry?.id === entryId) {
-          setSelectedEntry(prev => prev ? { ...prev, status: 'approved' } : null);
+          setSelectedEntry(null);
         }
 
         toast({
@@ -426,17 +424,82 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     }
   };
 
-  const handleSaveChanges = (entryId: string, changes: Partial<BookingEntry>) => {
-    setEntries(prevEntries => 
-      prevEntries.map(entry => 
-        entry.id === entryId 
-          ? { ...entry, ...changes, lastModified: new Date().toISOString() }
-          : entry
-      )
-    );
-    
-    if (selectedEntry?.id === entryId) {
-      setSelectedEntry(prev => prev ? { ...prev, ...changes } : null);
+  const handleSaveChanges = async (entryId: string, changes: Partial<BookingEntry>) => {
+    try {
+      // Update in database
+      const { error } = await supabase
+        .from('belege')
+        .update({
+          ki_buchungsvorschlag: {
+            betrag: changes.amount,
+            buchungstext: changes.description,
+            konto: changes.account
+          },
+          belegdatum: changes.date,
+          updated_at: new Date().toISOString()
+        })
+        .eq('beleg_id', entryId);
+
+      if (error) throw error;
+
+      // Update local state
+      setEntries(prevEntries => 
+        prevEntries.map(entry => 
+          entry.id === entryId 
+            ? { ...entry, ...changes, lastModified: new Date().toISOString() }
+            : entry
+        )
+      );
+      
+      if (selectedEntry?.id === entryId) {
+        setSelectedEntry(prev => prev ? { ...prev, ...changes } : null);
+      }
+
+      toast({
+        title: "Erfolg",
+        description: "Änderungen wurden gespeichert",
+      });
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      toast({
+        title: "Fehler",
+        description: "Änderungen konnten nicht gespeichert werden",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async (entryId: string) => {
+    try {
+      // Delete from database
+      const { error } = await supabase
+        .from('belege')
+        .delete()
+        .eq('beleg_id', entryId);
+
+      if (error) throw error;
+
+      // Update local state
+      setEntries(prevEntries => 
+        prevEntries.filter(entry => entry.id !== entryId)
+      );
+      
+      // Clear selection if the deleted entry was selected
+      if (selectedEntry?.id === entryId) {
+        setSelectedEntry(null);
+      }
+
+      toast({
+        title: "Erfolg",
+        description: "Eintrag wurde gelöscht",
+      });
+    } catch (error) {
+      console.error('Error deleting entry:', error);
+      toast({
+        title: "Fehler",
+        description: "Eintrag konnte nicht gelöscht werden",
+        variant: "destructive",
+      });
     }
   };
 
@@ -465,6 +528,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         onApprove={handleApprove}
         onReject={handleReject}
         onSaveChanges={handleSaveChanges}
+        onDelete={handleDelete}
       />
     </div>
   );
