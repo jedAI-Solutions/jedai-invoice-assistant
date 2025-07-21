@@ -22,11 +22,11 @@ export const DashboardHeader = ({
   
   const currentTab = location.pathname === '/agenda-import' ? 'agenda' : 'review';
   return (
-    <div className="bg-white/10 backdrop-blur-glass shadow-glass border-b border-white/20 p-4 md:p-8">
-      <div className="max-w-full mx-auto overflow-hidden">
-        <div className="flex flex-col lg:flex-row items-center justify-between mb-4 md:mb-6 gap-6">
-          <div className="flex items-center gap-4 md:gap-8 min-w-0 flex-shrink-0 w-full lg:w-auto">
-            <div className="flex items-center gap-3 md:gap-6 min-w-0 w-full lg:w-auto justify-center lg:justify-start">
+    <div className="bg-white/10 backdrop-blur-glass shadow-glass border-b border-white/20 p-4 md:p-8 min-h-[120px] md:min-h-[160px]">
+      <div className="max-w-full mx-auto h-full">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 h-full">
+          <div className="flex items-center gap-4 md:gap-8 flex-shrink-0 w-full lg:w-auto">
+            <div className="flex items-center gap-3 md:gap-6 w-full lg:w-auto justify-center lg:justify-start">
               <div className="flex-shrink-0">
                 <img 
                   src="/lovable-uploads/c7d57f27-5852-4101-a609-f621974a7b6a.png" 
@@ -34,11 +34,11 @@ export const DashboardHeader = ({
                   className="h-12 md:h-24 w-auto drop-shadow-xl object-contain"
                 />
               </div>
-              <div className="text-center md:text-left min-w-0 flex-1">
-                <h1 className="text-2xl md:text-5xl font-bold bg-gradient-logo bg-clip-text text-transparent font-modern whitespace-nowrap">
+              <div className="text-center lg:text-left">
+                <h1 className="text-2xl md:text-5xl font-bold bg-gradient-logo bg-clip-text text-transparent font-modern leading-tight pb-2">
                   Taxagent
                 </h1>
-                <p className="text-sm md:text-lg text-muted-foreground mt-1 font-modern whitespace-nowrap">Powered by jedAI Solutions</p>
+                <p className="text-sm md:text-lg text-muted-foreground font-modern">Powered by jedAI Solutions</p>
               </div>
             </div>
           </div>
