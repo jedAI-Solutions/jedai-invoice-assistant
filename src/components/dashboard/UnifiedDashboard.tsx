@@ -454,9 +454,11 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
           ki_buchungsvorschlag: {
             betrag: changes.amount,
             buchungstext: changes.description,
-            konto: changes.account
+            konto: changes.account,
+            steuersatz: changes.taxRate
           },
           belegdatum: changes.date,
+          mandant_id: changes.mandantId,
           updated_at: new Date().toISOString()
         })
         .eq('beleg_id', entryId);
@@ -476,9 +478,12 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         setSelectedEntry(prev => prev ? { ...prev, ...changes } : null);
       }
 
+      // Refresh data from database to ensure consistency
+      await fetchEntries();
+
       toast({
         title: "Erfolg",
-        description: "Änderungen wurden gespeichert",
+        description: "Änderungen wurden gespeichert und Übersicht aktualisiert",
       });
     } catch (error) {
       console.error('Error saving changes:', error);
