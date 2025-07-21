@@ -45,7 +45,9 @@ export const DashboardHeader = ({
       <div className="relative z-10 max-w-full mx-auto h-full">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 h-full">
           <div className="flex items-center gap-4 md:gap-8 flex-shrink-0 w-full lg:w-auto">
-            <div className="flex items-center gap-3 md:gap-6 w-full lg:w-auto justify-center lg:justify-start">
+            {/* Semi-transparent background only for text area */}
+            <div className="absolute left-0 top-0 bottom-0 w-2/3 lg:w-1/2 bg-white/70 backdrop-blur-sm"></div>
+            <div className="flex items-center gap-3 md:gap-6 w-full lg:w-auto justify-center lg:justify-start relative z-10">
               <div className="flex-shrink-0 relative group cursor-pointer">
                 <img 
                   src="/lovable-uploads/c7d57f27-5852-4101-a609-f621974a7b6a.png" 
@@ -61,14 +63,16 @@ export const DashboardHeader = ({
                               bg-gradient-radial from-blue-200/30 via-transparent to-transparent
                               blur-xl scale-150"></div>
               </div>
-              <div className="text-center lg:text-left relative group">
-                {/* Text shadow for better readability */}
-                <h1 className="text-2xl md:text-5xl font-bold bg-gradient-logo bg-clip-text text-transparent font-modern leading-tight pb-2 drop-shadow-lg
+              <div className="text-center lg:text-left relative">
+                {/* Enhanced text styling for better readability */}
+                <h1 className="text-2xl md:text-5xl font-bold bg-gradient-logo bg-clip-text text-transparent font-modern leading-tight pb-2 
+                             [text-shadow:_2px_2px_4px_rgb(255_255_255_/_0.8)] filter drop-shadow-lg
                              transition-all duration-500 ease-in-out hover:scale-[1.02] cursor-default">
                   Taxagent
                 </h1>
-                <p className="text-sm md:text-lg text-gray-800 font-modern font-semibold drop-shadow-md
-                             transition-all duration-300 ease-in-out hover:text-gray-600">Powered by jedAI Solutions</p>
+                <p className="text-sm md:text-lg text-gray-900 font-modern font-bold 
+                             [text-shadow:_1px_1px_2px_rgb(255_255_255_/_0.9)]
+                             transition-all duration-300 ease-in-out hover:text-gray-700">Powered by jedAI Solutions</p>
               </div>
             </div>
           </div>
@@ -83,7 +87,10 @@ export const DashboardHeader = ({
         </div>
         
         <div className="mb-4 relative z-10">
-          <p className="text-gray-700 text-sm md:text-base text-center lg:text-left font-medium drop-shadow-md">
+          {/* Background for description text */}
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-lg -mx-2 -my-1"></div>
+          <p className="relative text-gray-900 text-sm md:text-base text-center lg:text-left font-semibold 
+                       [text-shadow:_1px_1px_2px_rgb(255_255_255_/_0.7)] px-2 py-1">
             Intelligente Belegverarbeitung und Buchungsautomatisierung für Steuerberater
           </p>
         </div>
