@@ -147,7 +147,12 @@ export const BookingDetails = ({
                 <div>
                   <Label htmlFor="mandant">Mandant *</Label>
                   <Select 
-                    value={editedEntry.mandantId} 
+                    value={editedEntry.mandantId.includes('-') ? 
+                      (editedEntry.mandantId === "0c32475a-29e5-4132-88c0-021fcfc68f44" ? "m1" :
+                       editedEntry.mandantId === "27741e79-8d20-4fe4-90fb-cd20b7abc1bb" ? "m2" :
+                       editedEntry.mandantId === "7f678713-d266-42f0-b9c7-07f058a7fa75" ? "m3" : editedEntry.mandantId)
+                      : editedEntry.mandantId
+                    } 
                     onValueChange={(value) => {
                       const mandantNames = {
                         'm1': 'Mustermann GmbH',

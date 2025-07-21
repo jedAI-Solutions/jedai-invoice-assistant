@@ -14,12 +14,19 @@ interface UnifiedDashboardProps {
 
 export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimeframe }: UnifiedDashboardProps) => {
   const { toast } = useToast();
-  // Sample data - in real app this would come from API/database
+  // Mandant mapping from UI IDs to actual UUIDs in database
   const mandanten: Mandant[] = [
-    { id: "m1", name: "Mustermann GmbH", shortName: "MM", color: "#3b82f6" },
-    { id: "m2", name: "Beispiel AG", shortName: "BA", color: "#10b981" },
-    { id: "m3", name: "Demo KG", shortName: "DK", color: "#f59e0b" },
+    { id: "0c32475a-29e5-4132-88c0-021fcfc68f44", name: "Mustermann GmbH", shortName: "MM", color: "#3b82f6" },
+    { id: "27741e79-8d20-4fe4-90fb-cd20b7abc1bb", name: "Beispiel AG", shortName: "BA", color: "#10b981" },
+    { id: "7f678713-d266-42f0-b9c7-07f058a7fa75", name: "Demo KG", shortName: "DK", color: "#f59e0b" },
   ];
+
+  // UI mapping for dropdown selections
+  const mandantUIMapping = {
+    "m1": "0c32475a-29e5-4132-88c0-021fcfc68f44",
+    "m2": "27741e79-8d20-4fe4-90fb-cd20b7abc1bb", 
+    "m3": "7f678713-d266-42f0-b9c7-07f058a7fa75"
+  };
 
   const [allEntries] = useState<BookingEntry[]>([
     {
@@ -447,6 +454,9 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
   const handleSaveChanges = async (entryId: string, changes: Partial<BookingEntry>) => {
     try {
+      // Convert UI mandant ID to database UUID if needed
+      const actualMandantId = mandantUIMapping[changes.mandantId as keyof typeof mandantUIMapping] || changes.mandantId;
+      
       // Update in database
       const { error } = await supabase
         .from('belege')
@@ -458,7 +468,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
             steuersatz: changes.taxRate
           },
           belegdatum: changes.date,
-          mandant_id: changes.mandantId,
+          mandant_id: actualMandantId,
           updated_at: new Date().toISOString()
         })
         .eq('beleg_id', entryId);
