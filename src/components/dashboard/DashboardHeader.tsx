@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation, useNavigate } from "react-router-dom";
+import aiHeaderBg from "@/assets/ai-header-bg.jpg";
 
 interface DashboardHeaderProps {
   selectedMandant: string;
@@ -22,8 +23,18 @@ export const DashboardHeader = ({
   
   const currentTab = location.pathname === '/agenda-import' ? 'agenda' : 'review';
   return (
-    <div className="bg-white/10 backdrop-blur-glass shadow-glass border-b border-white/20 p-4 md:p-8 min-h-[120px] md:min-h-[160px]">
-      <div className="max-w-full mx-auto h-full">
+    <div 
+      className="relative bg-white/10 backdrop-blur-glass shadow-glass border-b border-white/20 p-4 md:p-8 min-h-[120px] md:min-h-[160px] overflow-hidden"
+      style={{
+        backgroundImage: `url(${aiHeaderBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Overlay for better text readability */}
+      <div className="absolute inset-0 bg-white/20 backdrop-blur-sm"></div>
+      <div className="relative z-10 max-w-full mx-auto h-full">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 h-full">
           <div className="flex items-center gap-4 md:gap-8 flex-shrink-0 w-full lg:w-auto">
             <div className="flex items-center gap-3 md:gap-6 w-full lg:w-auto justify-center lg:justify-start">
