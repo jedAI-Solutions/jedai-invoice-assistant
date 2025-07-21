@@ -1,7 +1,10 @@
 import { useState, useMemo } from "react";
 import { BookingTable } from "./BookingTable";
 import { BookingDetails } from "./BookingDetails";
+import { ExportQueue } from "./ExportQueue";
 import { BookingEntry, Mandant, DashboardStats } from "@/types/booking";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface UnifiedDashboardProps {
   onStatsUpdate: (stats: DashboardStats) => void;
@@ -10,6 +13,7 @@ interface UnifiedDashboardProps {
 }
 
 export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimeframe }: UnifiedDashboardProps) => {
+  const { toast } = useToast();
   // Sample data - in real app this would come from API/database
   const mandanten: Mandant[] = [
     { id: "m1", name: "Mustermann GmbH", shortName: "MM", color: "#3b82f6" },
@@ -176,7 +180,8 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     return newStats;
   }, [filteredEntries, onStatsUpdate]);
 
-  const handleApprove = (entryId: string) => {
+  const handleApprove = async (entryId: string) => {
+    // Update local state
     setEntries(prevEntries => 
       prevEntries.map(entry => 
         entry.id === entryId 
@@ -187,6 +192,34 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     
     if (selectedEntry?.id === entryId) {
       setSelectedEntry(prev => prev ? { ...prev, status: 'approved' } : null);
+    }
+
+    // Add to export queue
+    try {
+      const approvedEntry = entries.find(e => e.id === entryId);
+      if (approvedEntry) {
+        const { error } = await supabase
+          .from('export_queue')
+          .insert({
+            buchung_id: entryId,
+            mandant_id: approvedEntry.mandantId,
+            export_format: 'DATEV'
+          });
+
+        if (error) throw error;
+
+        toast({
+          title: "Erfolg",
+          description: "Buchung genehmigt und zur Export-Warteschlange hinzugefügt",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding to export queue:', error);
+      toast({
+        title: "Warnung",
+        description: "Buchung genehmigt, aber Export-Warteschlange konnte nicht aktualisiert werden",
+        variant: "destructive",
+      });
     }
   };
 
@@ -220,6 +253,9 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
   return (
     <div className="space-y-6">
+      {/* Export Queue */}
+      <ExportQueue />
+
       {/* Unified Booking Table */}
       <BookingTable
         entries={filteredEntries}
