@@ -195,15 +195,7 @@ export type Database = {
           vector_embedding?: string | null
           waehrung?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "buchungshistorie_beleg_id_fkey"
-            columns: ["beleg_id"]
-            isOneToOne: false
-            referencedRelation: "belege"
-            referencedColumns: ["beleg_id"]
-          },
-        ]
+        Relationships: []
       }
       export_queue: {
         Row: {
