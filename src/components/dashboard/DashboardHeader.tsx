@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation, useNavigate } from "react-router-dom";
 import aiHeaderBg from "@/assets/ai-header-bg.jpg";
 import { TransparentLogo } from "@/components/TransparentLogo";
-import jedaiLogoTransparent from "@/assets/jedai-logo-transparent.png";
+import jedaiLogoIcon from "@/assets/jedai-logo-icon.png";
 
 interface DashboardHeaderProps {
   selectedMandant: string;
@@ -51,7 +51,7 @@ export const DashboardHeader = ({
               {/* Logo Container */}
               <div className="flex-shrink-0 relative group cursor-pointer">
                 <TransparentLogo
-                  src={jedaiLogoTransparent}
+                  src={jedaiLogoIcon}
                   alt="jedAI Solutions Logo"
                   className="relative h-16 md:h-32 w-auto object-contain transition-all duration-700 ease-in-out
                            hover:scale-105 hover:brightness-110
