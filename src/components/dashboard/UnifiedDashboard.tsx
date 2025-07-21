@@ -198,11 +198,28 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     try {
       const approvedEntry = entries.find(e => e.id === entryId);
       if (approvedEntry) {
-        // Generate proper UUIDs for the database
+        // First create a buchungshistorie entry
         const buchungUuid = crypto.randomUUID();
-        const mandantUuid = crypto.randomUUID();
         
-        const { error } = await supabase
+        const { error: buchungError } = await supabase
+          .from('buchungshistorie')
+          .insert({
+            buchung_id: buchungUuid,
+            buchungsdatum: approvedEntry.date,
+            betrag: approvedEntry.amount,
+            konto: approvedEntry.account,
+            gegenkonto: '9999', // Default counter account
+            buchungstext: approvedEntry.description,
+            name: approvedEntry.mandant,
+            belegnummer: approvedEntry.document
+          });
+
+        if (buchungError) throw buchungError;
+
+        // Then add to export queue with the buchung_id
+        const mandantUuid = crypto.randomUUID(); // In real app, this should be actual mandant ID
+        
+        const { error: exportError } = await supabase
           .from('export_queue')
           .insert({
             buchung_id: buchungUuid,
@@ -210,7 +227,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
             export_format: 'DATEV'
           });
 
-        if (error) throw error;
+        if (exportError) throw exportError;
 
         toast({
           title: "Erfolg",
