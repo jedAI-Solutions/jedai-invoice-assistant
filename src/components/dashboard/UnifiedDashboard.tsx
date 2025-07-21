@@ -313,7 +313,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
       const approvedEntry = entries.find(e => e.id === entryId);
       if (approvedEntry) {
         // First create a buchungshistorie entry
-        const buchungUuid = crypto.randomUUID();
+        const buchungUuid = entryId; // Use same ID to maintain link
         
         const { error: buchungError } = await supabase
           .from('buchungshistorie')
@@ -325,7 +325,8 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
             gegenkonto: '9999', // Default counter account
             buchungstext: approvedEntry.description,
             name: approvedEntry.mandant,
-            belegnummer: approvedEntry.document
+            belegnummer: approvedEntry.document,
+            beleg_id: entryId // Store original beleg_id for reference
           });
 
         if (buchungError) throw buchungError;
@@ -341,7 +342,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
         if (exportError) throw exportError;
 
-        // Update beleg status
+        // Update beleg status to approved instead of deleting
         const { error: updateError } = await supabase
           .from('belege')
           .update({ status: 'approved' })

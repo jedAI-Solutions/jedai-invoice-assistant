@@ -84,23 +84,40 @@ export const ExportList = () => {
       const exportEntry = exportList.find(item => item.export_id === exportId);
       if (!exportEntry) throw new Error('Export entry not found');
 
-      // Add back to belege table with status 'pending'
-      const { error: belegeError } = await supabase
+      // Check if there's an existing beleg with the same buchung_id (beleg_id stored in buchungshistorie.beleg_id)
+      const { data: existingBeleg } = await supabase
         .from('belege')
-        .insert({
-          beleg_id: crypto.randomUUID(),
-          original_filename: exportEntry.belegnummer || 'unknown',
-          mandant_id: exportEntry.mandant_id,
-          belegdatum: exportEntry.buchungsdatum,
-          status: 'pending',
-          ki_buchungsvorschlag: {
-            konto: exportEntry.konto,
-            buchungstext: exportEntry.buchungstext,
-            betrag: exportEntry.betrag
-          }
-        });
+        .select('beleg_id')
+        .eq('beleg_id', exportEntry.buchung_id)
+        .maybeSingle();
 
-      if (belegeError) throw belegeError;
+      if (existingBeleg) {
+        // Update existing beleg status back to pending
+        const { error: updateError } = await supabase
+          .from('belege')
+          .update({ status: 'pending' })
+          .eq('beleg_id', exportEntry.buchung_id);
+
+        if (updateError) throw updateError;
+      } else {
+        // Create new beleg entry only if it doesn't exist
+        const { error: belegeError } = await supabase
+          .from('belege')
+          .insert({
+            beleg_id: exportEntry.buchung_id, // Use the same ID to maintain link
+            original_filename: exportEntry.belegnummer || 'unknown',
+            mandant_id: exportEntry.mandant_id,
+            belegdatum: exportEntry.buchungsdatum,
+            status: 'pending',
+            ki_buchungsvorschlag: {
+              konto: exportEntry.konto,
+              buchungstext: exportEntry.buchungstext,
+              betrag: exportEntry.betrag
+            }
+          });
+
+        if (belegeError) throw belegeError;
+      }
 
       // Remove from export queue
       const { error } = await supabase
