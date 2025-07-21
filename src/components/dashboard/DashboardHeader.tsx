@@ -40,19 +40,29 @@ export const DashboardHeader = ({
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 h-full">
           <div className="flex items-center gap-4 md:gap-8 flex-shrink-0 w-full lg:w-auto">
             <div className="flex items-center gap-3 md:gap-6 w-full lg:w-auto justify-center lg:justify-start">
-              <div className="flex-shrink-0 relative">
+              <div className="flex-shrink-0 relative group cursor-pointer">
                 <img 
                   src="/lovable-uploads/c7d57f27-5852-4101-a609-f621974a7b6a.png" 
                   alt="jed AI Solutions Logo" 
-                  className="relative h-12 md:h-24 w-auto object-contain"
+                  className="relative h-12 md:h-24 w-auto object-contain transition-all duration-700 ease-in-out
+                           hover:scale-105 hover:brightness-110
+                           animate-pulse-subtle group-hover:animate-none
+                           filter hover:drop-shadow-sm"
                 />
+                {/* Subtle glow effect on hover */}
+                <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-30 
+                              transition-opacity duration-500 ease-in-out
+                              bg-gradient-radial from-blue-200/30 via-transparent to-transparent
+                              blur-xl scale-150"></div>
               </div>
-              <div className="text-center lg:text-left relative">
+              <div className="text-center lg:text-left relative group">
                 {/* Text shadow for better readability */}
-                <h1 className="text-2xl md:text-5xl font-bold bg-gradient-logo bg-clip-text text-transparent font-modern leading-tight pb-2 drop-shadow-lg">
+                <h1 className="text-2xl md:text-5xl font-bold bg-gradient-logo bg-clip-text text-transparent font-modern leading-tight pb-2 drop-shadow-lg
+                             transition-all duration-500 ease-in-out hover:scale-[1.02] cursor-default">
                   Taxagent
                 </h1>
-                <p className="text-sm md:text-lg text-gray-800 font-modern font-semibold drop-shadow-md">Powered by jedAI Solutions</p>
+                <p className="text-sm md:text-lg text-gray-800 font-modern font-semibold drop-shadow-md
+                             transition-all duration-300 ease-in-out hover:text-gray-600">Powered by jedAI Solutions</p>
               </div>
             </div>
           </div>
