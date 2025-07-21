@@ -471,24 +471,23 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
   const handleDelete = async (entryId: string) => {
     try {
-      // First delete related entries in buchungshistorie table
-      const { error: buchungError } = await supabase
-        .from('buchungshistorie')
-        .delete()
-        .eq('beleg_id', entryId);
-
-      if (buchungError) throw buchungError;
-
-      // Then delete from export_queue if exists
-      const { error: exportError } = await supabase
+      // First delete related entries in export_queue table
+      await supabase
         .from('export_queue')
         .delete()
         .eq('buchung_id', entryId);
 
-      // Don't throw error if no export queue entry exists
-      if (exportError && !exportError.message.includes('No rows deleted')) {
-        console.warn('Export queue deletion warning:', exportError);
-      }
+      // Then delete related entries in buchungshistorie table that reference this beleg
+      await supabase
+        .from('buchungshistorie')
+        .delete()
+        .eq('beleg_id', entryId);
+
+      // Also delete buchungshistorie entries that use the entryId as buchung_id
+      await supabase
+        .from('buchungshistorie')
+        .delete()
+        .eq('buchung_id', entryId);
 
       // Finally delete from belege table
       const { error: belegError } = await supabase
