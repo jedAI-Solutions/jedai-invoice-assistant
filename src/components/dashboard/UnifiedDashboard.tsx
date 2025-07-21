@@ -154,6 +154,9 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         const aiReasoning = buchungsvorschlag?.begruendung || 
                            buchungsvorschlag?.entscheidungsgrundlage ||
                            buchungsvorschlag?.reasoning;
+                           
+        // AI determines mandant based on document content
+        const aiAssignedMandant = buchungsvorschlag?.mandant_id || beleg.mandant_id;
         
         return {
           id: beleg.beleg_id,
@@ -165,8 +168,8 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
           taxRate: buchungsvorschlag?.steuersatz || '19%',
           confidence: beleg.konfidenz || 0,
           status: beleg.status as any,
-          mandant: mandant?.name || 'Unbekannt',
-          mandantId: beleg.mandant_id,
+          mandant: mandant?.name || 'KI-Zuordnung ausstehend',
+          mandantId: aiAssignedMandant,
           aiReasoning: aiReasoning,
           createdAt: beleg.created_at,
           lastModified: beleg.updated_at
