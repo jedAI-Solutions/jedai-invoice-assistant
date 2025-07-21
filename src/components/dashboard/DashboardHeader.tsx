@@ -85,13 +85,6 @@ export const DashboardHeader = ({
             </Button>
           </div>
         </div>
-        
-        <div className="mb-4 relative z-10">
-          <p className="text-white text-sm md:text-base text-center lg:text-left font-semibold 
-                       [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.8)] px-2 py-1">
-            Intelligente Belegverarbeitung und Buchungsautomatisierung für Steuerberater
-          </p>
-        </div>
       </div>
     </div>
   );
