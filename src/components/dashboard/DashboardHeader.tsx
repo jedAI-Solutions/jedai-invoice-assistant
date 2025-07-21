@@ -70,7 +70,7 @@ export const DashboardHeader = ({
                 </h1>
                 <p className="text-sm md:text-lg text-white font-modern font-bold 
                              [text-shadow:_1px_1px_3px_rgb(0_0_0_/_0.9)]
-                             transition-all duration-300 ease-in-out hover:text-gray-100">Powered by jedAI Solutions</p>
+                             transition-all duration-300 ease-in-out hover:text-gray-100">-KI geschützte Belegverarbeitung</p>
               </div>
             </div>
           </div>
