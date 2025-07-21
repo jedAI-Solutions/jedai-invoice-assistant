@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { AlertTriangle } from "lucide-react";
 
 interface UploadFile {
   id: string;
@@ -17,6 +20,7 @@ interface UploadFile {
 export const UploadArea = () => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const [selectedMandant, setSelectedMandant] = useState<string>("");
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -39,6 +43,11 @@ export const UploadArea = () => {
   }, []);
 
   const handleFiles = (fileList: FileList) => {
+    if (!selectedMandant) {
+      alert("Bitte wählen Sie zuerst einen Mandanten aus.");
+      return;
+    }
+    
     console.log('handleFiles called with:', fileList.length, 'files');
     const fileArray = Array.from(fileList);
     const newFiles: UploadFile[] = fileArray.map((file, index) => ({
@@ -75,6 +84,7 @@ export const UploadArea = () => {
       formData.append('fileType', file.type);
       formData.append('mimeType', file.type);
       formData.append('fileSize', file.size.toString());
+      formData.append('mandantId', selectedMandant);
       
       console.log('FormData prepared with actual file');
       
@@ -166,6 +176,28 @@ export const UploadArea = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Mandant Selection */}
+        <div className="mb-4 p-4 bg-white/10 backdrop-blur-glass rounded-lg border border-white/20">
+          <Label htmlFor="mandant-select" className="text-sm font-semibold text-foreground mb-2 block">
+            Mandant auswählen *
+          </Label>
+          <Select value={selectedMandant} onValueChange={setSelectedMandant} required>
+            <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
+              <SelectValue placeholder="Bitte Mandant auswählen..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="m1">Mustermann GmbH</SelectItem>
+              <SelectItem value="m2">Beispiel AG</SelectItem>
+              <SelectItem value="m3">Demo KG</SelectItem>
+            </SelectContent>
+          </Select>
+          {!selectedMandant && (
+            <div className="flex items-center gap-2 mt-2 text-warning text-xs">
+              <AlertTriangle className="h-3 w-3" />
+              <span>Ein Mandant muss vor dem Upload ausgewählt werden</span>
+            </div>
+          )}
+        </div>
         <div
           className={`border-2 border-dashed rounded-lg p-4 text-center transition-all duration-300 ${
             dragActive 

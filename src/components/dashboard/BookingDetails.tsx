@@ -145,17 +145,21 @@ export const BookingDetails = ({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="mandant">Mandant</Label>
-                  <Select value={editedEntry.mandantId} onValueChange={(value) => {
-                    const mandantNames = {
-                      'm1': 'Mustermann GmbH',
-                      'm2': 'Beispiel AG', 
-                      'm3': 'Demo KG'
-                    };
-                    setEditedEntry(prev => prev ? {...prev, mandantId: value, mandant: mandantNames[value as keyof typeof mandantNames]} : null);
-                  }}>
+                  <Label htmlFor="mandant">Mandant *</Label>
+                  <Select 
+                    value={editedEntry.mandantId} 
+                    onValueChange={(value) => {
+                      const mandantNames = {
+                        'm1': 'Mustermann GmbH',
+                        'm2': 'Beispiel AG', 
+                        'm3': 'Demo KG'
+                      };
+                      setEditedEntry(prev => prev ? {...prev, mandantId: value, mandant: mandantNames[value as keyof typeof mandantNames]} : null);
+                    }}
+                    required
+                  >
                     <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
-                      <SelectValue />
+                      <SelectValue placeholder="Mandant auswählen..." />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="m1">Mustermann GmbH</SelectItem>
@@ -163,6 +167,9 @@ export const BookingDetails = ({
                       <SelectItem value="m3">Demo KG</SelectItem>
                     </SelectContent>
                   </Select>
+                  {!editedEntry.mandantId && (
+                    <p className="text-xs text-warning mt-1">Mandant ist erforderlich</p>
+                  )}
                 </div>
               </div>
 
