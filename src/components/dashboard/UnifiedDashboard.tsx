@@ -198,11 +198,15 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     try {
       const approvedEntry = entries.find(e => e.id === entryId);
       if (approvedEntry) {
+        // Generate proper UUIDs for the database
+        const buchungUuid = crypto.randomUUID();
+        const mandantUuid = crypto.randomUUID();
+        
         const { error } = await supabase
           .from('export_queue')
           .insert({
-            buchung_id: entryId,
-            mandant_id: approvedEntry.mandantId,
+            buchung_id: buchungUuid,
+            mandant_id: mandantUuid,
             export_format: 'DATEV'
           });
 
