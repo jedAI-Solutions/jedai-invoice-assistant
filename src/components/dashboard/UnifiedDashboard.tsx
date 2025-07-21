@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { BookingTable } from "./BookingTable";
 import { BookingDetails } from "./BookingDetails";
-import { ExportQueue } from "./ExportQueue";
+import { ExportList } from "./ExportList";
 import { BookingEntry, Mandant, DashboardStats } from "@/types/booking";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -124,6 +124,72 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
   const [entries, setEntries] = useState<BookingEntry[]>(allEntries);
   const [confidenceFilter, setConfidenceFilter] = useState<string>("all");
 
+  // Auto-add high confidence entries to export list on component mount
+  useEffect(() => {
+    const addHighConfidenceEntries = async () => {
+      const highConfidenceEntries = entries.filter(entry => 
+        entry.confidence >= 90 && entry.status === 'ready'
+      );
+
+      for (const entry of highConfidenceEntries) {
+        try {
+          // Check if entry already exists in export queue
+          const { data: existingEntry } = await supabase
+            .from('export_queue')
+            .select('export_id')
+            .eq('buchung_id', entry.id)
+            .single();
+
+          if (!existingEntry) {
+            // Create buchungshistorie entry
+            const buchungUuid = crypto.randomUUID();
+            
+            const { error: buchungError } = await supabase
+              .from('buchungshistorie')
+              .insert({
+                buchung_id: buchungUuid,
+                buchungsdatum: entry.date,
+                betrag: entry.amount,
+                konto: entry.account,
+                gegenkonto: '9999',
+                buchungstext: entry.description,
+                name: entry.mandant,
+                belegnummer: entry.document
+              });
+
+            if (buchungError) throw buchungError;
+
+            // Add to export list
+            const mandantUuid = crypto.randomUUID();
+            
+            const { error: exportError } = await supabase
+              .from('export_queue')
+              .insert({
+                buchung_id: buchungUuid,
+                mandant_id: mandantUuid,
+                export_format: 'DATEV'
+              });
+
+            if (exportError) throw exportError;
+
+            // Update entry status
+            setEntries(prev => 
+              prev.map(e => 
+                e.id === entry.id 
+                  ? { ...e, status: 'exported' as const }
+                  : e
+              )
+            );
+          }
+        } catch (error) {
+          console.error('Error auto-adding high confidence entry:', error);
+        }
+      }
+    };
+
+    addHighConfidenceEntries();
+  }, [entries]);
+
   // Filter entries based on selected mandant and confidence
   const filteredEntries = useMemo(() => {
     let filtered = entries;
@@ -233,14 +299,14 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
         toast({
           title: "Erfolg",
-          description: "Buchung genehmigt und zur Export-Warteschlange hinzugefügt",
+          description: "Buchung genehmigt und zur Export-Liste hinzugefügt",
         });
       }
     } catch (error) {
       console.error('Error adding to export queue:', error);
       toast({
         title: "Warnung",
-        description: "Buchung genehmigt, aber Export-Warteschlange konnte nicht aktualisiert werden",
+        description: "Buchung genehmigt, aber Export-Liste konnte nicht aktualisiert werden",
         variant: "destructive",
       });
     }
@@ -276,8 +342,8 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
   return (
     <div className="space-y-6">
-      {/* Export Queue */}
-      <ExportQueue />
+      {/* Export List */}
+      <ExportList />
 
       {/* Unified Booking Table */}
       <BookingTable

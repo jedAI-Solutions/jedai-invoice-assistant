@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { StatsOverview } from "@/components/dashboard/StatsOverview";
@@ -18,6 +19,7 @@ const Index = () => {
   
   const [selectedMandant, setSelectedMandant] = useState<string>("all");
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>("aktueller-monat");
+  
   return (
     <div 
       className="min-h-screen relative overflow-hidden"
