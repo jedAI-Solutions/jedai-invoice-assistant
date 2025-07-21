@@ -42,10 +42,6 @@ export const DashboardHeader = ({
           backgroundRepeat: 'no-repeat'
         }}
       ></div>
-      {/* Gradient overlay - extra bright white to completely hide logo borders */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-white/40"></div>
-      {/* Additional white overlay for logo area */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/100 via-white/80 to-transparent w-1/2"></div>
       <div className="relative z-10 max-w-full mx-auto h-full">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 h-full">
           <div className="flex items-center gap-4 md:gap-8 flex-shrink-0 w-full lg:w-auto">
