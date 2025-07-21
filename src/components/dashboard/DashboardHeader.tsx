@@ -45,8 +45,6 @@ export const DashboardHeader = ({
       <div className="relative z-10 max-w-full mx-auto h-full">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 h-full">
           <div className="flex items-center gap-4 md:gap-8 flex-shrink-0 w-full lg:w-auto">
-            {/* Semi-transparent background only for text area */}
-            <div className="absolute left-0 top-0 bottom-0 w-2/3 lg:w-1/2 bg-white/70 backdrop-blur-sm"></div>
             <div className="flex items-center gap-3 md:gap-6 w-full lg:w-auto justify-center lg:justify-start relative z-10">
               <div className="flex-shrink-0 relative group cursor-pointer">
                 <img 
@@ -64,15 +62,15 @@ export const DashboardHeader = ({
                               blur-xl scale-150"></div>
               </div>
               <div className="text-center lg:text-left relative">
-                {/* Enhanced text styling for better readability */}
-                <h1 className="text-2xl md:text-5xl font-bold bg-gradient-logo bg-clip-text text-transparent font-modern leading-tight pb-2 
-                             [text-shadow:_2px_2px_4px_rgb(255_255_255_/_0.8)] filter drop-shadow-lg
+                {/* White text with dark shadows for readability */}
+                <h1 className="text-2xl md:text-5xl font-bold text-white font-modern leading-tight pb-2 
+                             [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.8)] filter drop-shadow-lg
                              transition-all duration-500 ease-in-out hover:scale-[1.02] cursor-default">
                   Taxagent
                 </h1>
-                <p className="text-sm md:text-lg text-gray-900 font-modern font-bold 
-                             [text-shadow:_1px_1px_2px_rgb(255_255_255_/_0.9)]
-                             transition-all duration-300 ease-in-out hover:text-gray-700">Powered by jedAI Solutions</p>
+                <p className="text-sm md:text-lg text-white font-modern font-bold 
+                             [text-shadow:_1px_1px_3px_rgb(0_0_0_/_0.9)]
+                             transition-all duration-300 ease-in-out hover:text-gray-100">Powered by jedAI Solutions</p>
               </div>
             </div>
           </div>
@@ -80,17 +78,17 @@ export const DashboardHeader = ({
             <Badge className="bg-gradient-primary text-white border-0 text-xs md:text-sm shadow-lg">
               KI-System Online
             </Badge>
-            <Button variant="outline" className="border-white/50 hover:bg-white/20 text-xs md:text-sm px-2 md:px-4 bg-white/10 backdrop-blur-sm text-gray-800 font-semibold shadow-md">
+            <Button variant="outline" className="border-white/50 hover:bg-white/20 text-xs md:text-sm px-2 md:px-4 
+                                               bg-black/20 backdrop-blur-sm text-white font-semibold shadow-md
+                                               hover:text-white">
               Einstellungen
             </Button>
           </div>
         </div>
         
         <div className="mb-4 relative z-10">
-          {/* Background for description text */}
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-lg -mx-2 -my-1"></div>
-          <p className="relative text-gray-900 text-sm md:text-base text-center lg:text-left font-semibold 
-                       [text-shadow:_1px_1px_2px_rgb(255_255_255_/_0.7)] px-2 py-1">
+          <p className="text-white text-sm md:text-base text-center lg:text-left font-semibold 
+                       [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.8)] px-2 py-1">
             Intelligente Belegverarbeitung und Buchungsautomatisierung für Steuerberater
           </p>
         </div>
