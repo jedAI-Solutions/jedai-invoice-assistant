@@ -122,7 +122,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
   const [selectedEntry, setSelectedEntry] = useState<BookingEntry | null>(null);
   const [entries, setEntries] = useState<BookingEntry[]>([]);
-  const [confidenceFilter, setConfidenceFilter] = useState<string>("all");
+  const [confidenceFilter, setConfidenceFilter] = useState<string>("90");
 
   // Load entries from belege table
   const fetchEntries = async () => {
@@ -137,6 +137,19 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
       // Convert belege data to BookingEntry format
       const convertedEntries: BookingEntry[] = (data || []).map(beleg => {
         const buchungsvorschlag = beleg.ki_buchungsvorschlag as any;
+        
+        // Map mandant from mandant_id
+        const mandant = mandanten.find(m => m.id === beleg.mandant_id);
+        
+        // Extract AI hints from ki_buchungsvorschlag
+        const aiHints = [];
+        if (buchungsvorschlag?.hinweise) {
+          aiHints.push(...buchungsvorschlag.hinweise);
+        }
+        if (buchungsvorschlag?.kommentar) {
+          aiHints.push(buchungsvorschlag.kommentar);
+        }
+        
         return {
           id: beleg.beleg_id,
           document: beleg.original_filename,
@@ -144,12 +157,12 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
           amount: buchungsvorschlag?.betrag || 0,
           description: buchungsvorschlag?.buchungstext || 'Unbekannt',
           account: buchungsvorschlag?.konto || '0000',
-          taxRate: '19%', // Default, could be extracted from OCR data
+          taxRate: buchungsvorschlag?.steuersatz || '19%',
           confidence: beleg.konfidenz || 0,
           status: beleg.status as any,
-          mandant: 'Standard', // Could be mapped from mandant_id
+          mandant: mandant?.name || 'Unbekannt',
           mandantId: beleg.mandant_id,
-          aiHints: [],
+          aiHints: aiHints,
           createdAt: beleg.created_at,
           lastModified: beleg.updated_at
         };
