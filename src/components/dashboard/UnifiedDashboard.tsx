@@ -312,35 +312,51 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     try {
       const approvedEntry = entries.find(e => e.id === entryId);
       if (approvedEntry) {
-        // First create a buchungshistorie entry
-        const buchungUuid = entryId; // Use same ID to maintain link
-        
-        const { error: buchungError } = await supabase
+        // Check if buchungshistorie entry already exists
+        const { data: existingBuchung } = await supabase
           .from('buchungshistorie')
-          .insert({
-            buchung_id: buchungUuid,
-            buchungsdatum: approvedEntry.date,
-            betrag: approvedEntry.amount,
-            konto: approvedEntry.account,
-            gegenkonto: '9999', // Default counter account
-            buchungstext: approvedEntry.description,
-            name: approvedEntry.mandant,
-            belegnummer: approvedEntry.document,
-            beleg_id: entryId // Store original beleg_id for reference
-          });
+          .select('buchung_id')
+          .eq('buchung_id', entryId)
+          .single();
 
-        if (buchungError) throw buchungError;
+        // Only create buchungshistorie entry if it doesn't exist
+        if (!existingBuchung) {
+          const { error: buchungError } = await supabase
+            .from('buchungshistorie')
+            .insert({
+              buchung_id: entryId,
+              buchungsdatum: approvedEntry.date,
+              betrag: approvedEntry.amount,
+              konto: approvedEntry.account,
+              gegenkonto: '9999', // Default counter account
+              buchungstext: approvedEntry.description,
+              name: approvedEntry.mandant,
+              belegnummer: approvedEntry.document,
+              beleg_id: entryId // Store original beleg_id for reference
+            });
 
-        // Then add to export queue with the buchung_id
-        const { error: exportError } = await supabase
+          if (buchungError) throw buchungError;
+        }
+
+        // Check if export queue entry already exists
+        const { data: existingExport } = await supabase
           .from('export_queue')
-          .insert({
-            buchung_id: buchungUuid,
-            mandant_id: approvedEntry.mandantId,
-            export_format: 'DATEV'
-          });
+          .select('export_id')
+          .eq('buchung_id', entryId)
+          .single();
 
-        if (exportError) throw exportError;
+        // Only add to export queue if it doesn't exist
+        if (!existingExport) {
+          const { error: exportError } = await supabase
+            .from('export_queue')
+            .insert({
+              buchung_id: entryId,
+              mandant_id: approvedEntry.mandantId,
+              export_format: 'DATEV'
+            });
+
+          if (exportError) throw exportError;
+        }
 
         // Update beleg status to approved instead of deleting
         const { error: updateError } = await supabase
