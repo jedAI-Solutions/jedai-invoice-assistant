@@ -71,22 +71,40 @@ export const BookingDetails = ({
           </TabsList>
           
           <TabsContent value="buchung" className="space-y-6">
+            {/* KI-Entscheidungsgrundlage */}
+            <div className="p-4 bg-white/10 backdrop-blur-glass rounded-lg border border-white/20">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-8 h-8 rounded-full bg-primary/80 flex items-center justify-center">
+                  <span className="text-sm text-white font-bold">KI</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-1">KI-Entscheidungsgrundlage</h4>
+                  <p className="text-sm text-muted-foreground">Begründung für die automatische Klassifizierung</p>
+                </div>
+              </div>
+              <div className="ml-11 p-3 bg-white/5 rounded-lg border border-white/10">
+                <p className="text-sm text-foreground leading-relaxed">
+                  {selectedEntry.aiReasoning || "Basierend auf dem Beleginhalt wurde eine automatische Kategorisierung vorgenommen. Die KI hat Datum, Betrag und Beschreibung analysiert und entsprechend dem Wahrscheinlichkeitsmodell klassifiziert."}
+                </p>
+              </div>
+            </div>
+
             {/* KI-Prüfhinweise */}
             {selectedEntry.aiHints && selectedEntry.aiHints.length > 0 && (
               <div className="p-4 bg-white/10 backdrop-blur-glass rounded-lg border border-white/20">
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/80 flex items-center justify-center">
-                    <span className="text-sm text-white font-bold">KI</span>
+                  <div className="w-8 h-8 rounded-full bg-warning/80 flex items-center justify-center">
+                    <span className="text-sm text-white font-bold">!</span>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-foreground mb-1">KI-Analyse & Prüfhinweise</h4>
-                    <p className="text-sm text-muted-foreground">Automatische Bewertung der Belegdaten</p>
+                    <h4 className="font-semibold text-foreground mb-1">KI-Prüfhinweise</h4>
+                    <p className="text-sm text-muted-foreground">Wichtige Hinweise zur manuellen Überprüfung</p>
                   </div>
                 </div>
                 <ul className="space-y-2 ml-11">
                   {selectedEntry.aiHints.map((hint, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <span className="text-primary mt-1 text-sm">•</span>
+                      <span className="text-warning mt-1 text-sm">•</span>
                       <span className="text-sm text-foreground">{hint}</span>
                     </li>
                   ))}

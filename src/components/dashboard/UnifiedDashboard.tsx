@@ -150,6 +150,11 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
           aiHints.push(buchungsvorschlag.kommentar);
         }
         
+        // Extract AI reasoning
+        const aiReasoning = buchungsvorschlag?.begruendung || 
+                           buchungsvorschlag?.entscheidungsgrundlage ||
+                           buchungsvorschlag?.reasoning;
+        
         return {
           id: beleg.beleg_id,
           document: beleg.original_filename,
@@ -162,7 +167,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
           status: beleg.status as any,
           mandant: mandant?.name || 'Unbekannt',
           mandantId: beleg.mandant_id,
-          aiHints: aiHints,
+          aiReasoning: aiReasoning,
           createdAt: beleg.created_at,
           lastModified: beleg.updated_at
         };

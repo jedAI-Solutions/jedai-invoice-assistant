@@ -11,6 +11,7 @@ export interface BookingEntry {
   mandant: string;
   mandantId: string;
   aiHints?: string[];
+  aiReasoning?: string;
   createdAt: string;
   lastModified: string;
 }
