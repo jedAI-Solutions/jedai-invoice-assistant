@@ -44,7 +44,7 @@ export const DashboardHeader = ({
                 <img 
                   src="/lovable-uploads/c7d57f27-5852-4101-a609-f621974a7b6a.png" 
                   alt="jed AI Solutions Logo" 
-                  className="relative h-16 md:h-32 w-auto object-contain transition-all duration-700 ease-in-out
+                  className="relative h-20 md:h-40 w-auto object-contain transition-all duration-700 ease-in-out
                            hover:scale-105 hover:brightness-110
                            animate-pulse-subtle group-hover:animate-none
                            filter hover:drop-shadow-sm"
