@@ -30,13 +30,13 @@ export const DashboardHeader = ({
               <img 
                 src="/lovable-uploads/c7d57f27-5852-4101-a609-f621974a7b6a.png" 
                 alt="jed AI Solutions Logo" 
-                className="h-12 md:h-24 w-auto drop-shadow-xl"
+                className="h-8 md:h-12 w-auto drop-shadow-xl"
               />
               <div className="text-center md:text-left">
-                <h1 className="text-2xl md:text-5xl font-bold bg-gradient-logo bg-clip-text text-transparent font-modern">
+                <h1 className="text-xl md:text-3xl font-bold bg-gradient-logo bg-clip-text text-transparent font-modern">
                   Taxagent
                 </h1>
-                <p className="text-sm md:text-lg text-muted-foreground mt-1 font-modern">Powered by jedAI Solutions</p>
+                <p className="text-xs md:text-sm text-muted-foreground mt-1 font-modern">Powered by jedAI Solutions</p>
               </div>
             </div>
           </div>
