@@ -32,8 +32,8 @@ export const DashboardHeader = ({
         backgroundRepeat: 'no-repeat'
       }}
     >
-      {/* Gradient overlay for logo area harmony - starts completely white */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent"></div>
+      {/* Gradient overlay - very bright white start to hide logo frame */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-white/20"></div>
       {/* Additional overlay for better readability */}
       <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]"></div>
       <div className="relative z-10 max-w-full mx-auto h-full">
@@ -41,8 +41,6 @@ export const DashboardHeader = ({
           <div className="flex items-center gap-4 md:gap-8 flex-shrink-0 w-full lg:w-auto">
             <div className="flex items-center gap-3 md:gap-6 w-full lg:w-auto justify-center lg:justify-start">
               <div className="flex-shrink-0 relative">
-                {/* White background circle for logo to blend better */}
-                <div className="absolute inset-0 bg-white/90 rounded-lg blur-sm scale-110"></div>
                 <img 
                   src="/lovable-uploads/c7d57f27-5852-4101-a609-f621974a7b6a.png" 
                   alt="jed AI Solutions Logo" 
