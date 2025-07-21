@@ -120,13 +120,14 @@ export const ExportList = () => {
       }
 
       // Remove from export queue
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('export_queue')
         .delete()
         .eq('export_id', exportId);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
 
+      // Only update local state after successful database operation
       setExportList(prev => prev.filter(item => item.export_id !== exportId));
       toast({
         title: "Erfolg",
