@@ -44,7 +44,7 @@ export const DashboardHeader = ({
                 <img 
                   src="/lovable-uploads/c7d57f27-5852-4101-a609-f621974a7b6a.png" 
                   alt="jed AI Solutions Logo" 
-                  className="relative h-12 md:h-24 w-auto drop-shadow-xl object-contain"
+                  className="relative h-12 md:h-24 w-auto object-contain"
                 />
               </div>
               <div className="text-center lg:text-left relative">
