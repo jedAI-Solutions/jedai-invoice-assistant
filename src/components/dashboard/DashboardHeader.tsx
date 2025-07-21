@@ -32,8 +32,8 @@ export const DashboardHeader = ({
         backgroundRepeat: 'no-repeat'
       }}
     >
-      {/* Gradient overlay for logo area harmony - stronger fade from left to right */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/40 to-transparent"></div>
+      {/* Gradient overlay for logo area harmony - starts completely white */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent"></div>
       {/* Additional overlay for better readability */}
       <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]"></div>
       <div className="relative z-10 max-w-full mx-auto h-full">
