@@ -78,6 +78,29 @@ export const ExportList = () => {
     fetchExportList();
   }, []);
 
+  // Set up real-time updates for export_queue table
+  useEffect(() => {
+    const channel = supabase
+      .channel('export-queue-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'export_queue'
+        },
+        () => {
+          // Refresh export list when export_queue table changes
+          fetchExportList();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const handleRemoveFromList = async (exportId: string) => {
     try {
       // Get the export entry details first
