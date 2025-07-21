@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { BookingTable } from "./BookingTable";
 import { BookingDetails } from "./BookingDetails";
 import { ExportQueue } from "./ExportQueue";
@@ -167,7 +167,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
       ? filteredEntries.reduce((sum, entry) => sum + entry.confidence, 0) / filteredEntries.length 
       : 0;
 
-    const newStats: DashboardStats = {
+    return {
       totalEntries,
       pendingReviews,
       readyForExport,
@@ -175,10 +175,12 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
       savedTime,
       avgConfidence
     };
+  }, [filteredEntries]);
 
-    onStatsUpdate(newStats);
-    return newStats;
-  }, [filteredEntries, onStatsUpdate]);
+  // Update stats in parent component using useEffect to avoid render phase updates
+  useEffect(() => {
+    onStatsUpdate(stats);
+  }, [stats, onStatsUpdate]);
 
   const handleApprove = async (entryId: string) => {
     // Update local state
