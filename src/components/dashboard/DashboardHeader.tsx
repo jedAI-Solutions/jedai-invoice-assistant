@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation, useNavigate } from "react-router-dom";
 import aiHeaderBg from "@/assets/ai-header-bg.jpg";
+import { TransparentLogo } from "@/components/TransparentLogo";
 
 interface DashboardHeaderProps {
   selectedMandant: string;
@@ -47,9 +48,9 @@ export const DashboardHeader = ({
           <div className="flex items-center gap-4 md:gap-8 flex-shrink-0 w-full lg:w-auto">
             <div className="flex items-center gap-3 md:gap-6 w-full lg:w-auto justify-center lg:justify-start relative z-10">
               <div className="flex-shrink-0 relative group cursor-pointer">
-                <img 
-                  src="/lovable-uploads/c7d57f27-5852-4101-a609-f621974a7b6a.png" 
-                  alt="jed AI Solutions Logo" 
+                <TransparentLogo
+                  src="/lovable-uploads/c7d57f27-5852-4101-a609-f621974a7b6a.png"
+                  alt="jed AI Solutions Logo"
                   className="relative h-20 md:h-40 w-auto object-contain transition-all duration-700 ease-in-out
                            hover:scale-105 hover:brightness-110
                            animate-pulse-subtle group-hover:animate-none
