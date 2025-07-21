@@ -146,6 +146,24 @@ Alle Farben MÜSSEN HSL sein.
   }
 }
 
+@keyframes bg-pan {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  25% {
+    transform: scale(1.02) translate(-1%, -0.5%);
+  }
+  50% {
+    transform: scale(1.01) translate(-0.5%, 1%);
+  }
+  75% {
+    transform: scale(1.02) translate(1%, 0.5%);
+  }
+  100% {
+    transform: scale(1) translate(0, 0);
+  }
+}
+
 @layer utilities {
   .animate-pulse-subtle {
     animation: pulse-subtle 4s ease-in-out infinite;
@@ -153,6 +171,10 @@ Alle Farben MÜSSEN HSL sein.
   
   .animate-glow-pulse {
     animation: glow-pulse 3s ease-in-out infinite;
+  }
+  
+  .animate-bg-pan {
+    animation: bg-pan 20s ease-in-out infinite;
   }
   
   .bg-gradient-radial {

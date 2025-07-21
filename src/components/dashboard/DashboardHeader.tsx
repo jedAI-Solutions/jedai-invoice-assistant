@@ -27,11 +27,21 @@ export const DashboardHeader = ({
       className="relative bg-white/10 backdrop-blur-glass shadow-glass border-b border-white/20 p-4 md:p-8 min-h-[120px] md:min-h-[160px] overflow-hidden"
       style={{
         backgroundImage: `url(${aiHeaderBg})`,
-        backgroundSize: 'cover',
+        backgroundSize: '120%',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
       }}
     >
+      {/* Animated background layer */}
+      <div 
+        className="absolute inset-0 animate-bg-pan"
+        style={{
+          backgroundImage: `url(${aiHeaderBg})`,
+          backgroundSize: '130%',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      ></div>
       {/* Gradient overlay - extra bright white to completely hide logo borders */}
       <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-white/40"></div>
       {/* Additional white overlay for logo area */}
