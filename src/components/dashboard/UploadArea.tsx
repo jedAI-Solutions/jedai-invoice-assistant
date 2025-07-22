@@ -1,8 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UploadFile {
   id: string;
@@ -14,9 +17,42 @@ interface UploadFile {
   confidence?: number;
 }
 
+interface Mandant {
+  firmenname: string;
+}
+
 export const UploadArea = () => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const [mandanten, setMandanten] = useState<Mandant[]>([]);
+  const [selectedMandant, setSelectedMandant] = useState<string>("");
+  const [loadingMandanten, setLoadingMandanten] = useState(false);
+
+  // Lade Mandanten beim Komponenten-Start
+  useEffect(() => {
+    loadMandanten();
+  }, []);
+
+  const loadMandanten = async () => {
+    setLoadingMandanten(true);
+    try {
+      const { data, error } = await supabase
+        .from('agenda_mandanten')
+        .select('firmenname')
+        .not('firmenname', 'is', null)
+        .order('firmenname');
+      
+      if (error) {
+        console.error('Error loading mandanten:', error);
+      } else {
+        setMandanten(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading mandanten:', error);
+    } finally {
+      setLoadingMandanten(false);
+    }
+  };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -75,6 +111,14 @@ export const UploadArea = () => {
       formData.append('fileType', file.type);
       formData.append('mimeType', file.type);
       formData.append('fileSize', file.size.toString());
+      
+      // Mandanten-Information hinzufügen
+      if (selectedMandant) {
+        formData.append('mandant', selectedMandant);
+        formData.append('mandantAssigned', 'true');
+      } else {
+        formData.append('mandantAssigned', 'false');
+      }
       
       console.log('FormData prepared with actual file');
       
@@ -166,6 +210,34 @@ export const UploadArea = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Mandanten-Auswahl */}
+        <div className="mb-4 space-y-2">
+          <Label htmlFor="mandant-select" className="text-xs font-semibold text-foreground">
+            Mandant zuordnen (optional)
+          </Label>
+          <Select value={selectedMandant} onValueChange={setSelectedMandant}>
+            <SelectTrigger className="h-8 text-xs bg-white/10 border-white/20">
+              <SelectValue placeholder={loadingMandanten ? "Lade Mandanten..." : "Mandant wählen (KI bestimmt automatisch)"} />
+            </SelectTrigger>
+            <SelectContent>
+              {mandanten.map((mandant) => (
+                <SelectItem key={mandant.firmenname} value={mandant.firmenname || ""}>
+                  {mandant.firmenname}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedMandant && (
+            <p className="text-xs text-primary">
+              Ausgewählt: {selectedMandant}
+            </p>
+          )}
+          {!selectedMandant && (
+            <p className="text-xs text-muted-foreground">
+              Kein Mandant → KI erkennt automatisch anhand des Belegs
+            </p>
+          )}
+        </div>
         <div
           className={`border-2 border-dashed rounded-lg p-4 text-center transition-all duration-300 ${
             dragActive 
