@@ -64,18 +64,18 @@ export const StatsOverview = ({ stats }: StatsOverviewProps) => {
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
       {displayStats.map((stat, index) => (
         <Card key={index} className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:bg-gradient-card-hover transition-all duration-300 hover:scale-105">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="pb-1 px-3 pt-3">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
               {stat.title}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 pb-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-foreground">
+                <div className="text-lg md:text-xl font-bold text-foreground">
                   {stat.value}
                 </div>
                 <div className="flex items-center gap-1 mt-1">
