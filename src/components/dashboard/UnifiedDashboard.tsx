@@ -131,55 +131,39 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
   const [entries, setEntries] = useState<BookingEntry[]>([]);
   const [confidenceFilter, setConfidenceFilter] = useState<string>("90");
 
-  // Load entries from belege table
+  // Load entries from classified_invoices table using raw SQL query
   const fetchEntries = async () => {
     try {
-      const { data, error } = await supabase
-        .from('belege')
+      // Use raw SQL query to fetch from classified_invoices table
+      const { data: rawData, error } = await supabase
+        .from('classified_invoices' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Convert belege data to BookingEntry format
-      const convertedEntries: BookingEntry[] = (data || []).map(beleg => {
-        const buchungsvorschlag = beleg.ki_buchungsvorschlag as any;
-        
-        // Map mandant from mandant_id
-        const mandant = mandanten.find(m => m.id === beleg.mandant_id);
-        
-        // Extract AI hints from ki_buchungsvorschlag
-        const aiHints = [];
-        if (buchungsvorschlag?.hinweise) {
-          aiHints.push(...buchungsvorschlag.hinweise);
-        }
-        if (buchungsvorschlag?.kommentar) {
-          aiHints.push(buchungsvorschlag.kommentar);
-        }
-        
-        // Extract AI reasoning
-        const aiReasoning = buchungsvorschlag?.begruendung || 
-                           buchungsvorschlag?.entscheidungsgrundlage ||
-                           buchungsvorschlag?.reasoning;
-                           
-        // AI determines mandant based on document content
-        const aiAssignedMandant = buchungsvorschlag?.mandant_id || beleg.mandant_id;
+      // Convert classified_invoices data to BookingEntry format
+      const convertedEntries: BookingEntry[] = (rawData || []).map((invoice: any) => {
+        // Map mandant from mandant_nr to find the corresponding mandant info
+        const mandant = mandanten.find(m => m.shortName === invoice.mandant_nr) || 
+                       { id: invoice.mandant_nr, name: invoice.mandant, shortName: invoice.mandant_nr, color: "#6b7280" };
         
         return {
-          id: beleg.beleg_id,
-          document: beleg.original_filename,
-          date: beleg.belegdatum || new Date().toISOString().split('T')[0],
-          amount: buchungsvorschlag?.betrag || 0,
-          description: buchungsvorschlag?.buchungstext || 'Unbekannt',
-          account: buchungsvorschlag?.konto || '0000',
-          taxRate: buchungsvorschlag?.steuersatz || '19%',
-          confidence: beleg.konfidenz || 0,
-          status: beleg.status as any,
-          mandant: mandant?.name || 'KI-Zuordnung ausstehend',
-          mandantId: aiAssignedMandant,
-          aiReasoning: aiReasoning,
-          createdAt: beleg.created_at,
-          lastModified: beleg.updated_at
+          id: invoice.id.toString(),
+          document: invoice.belegnummer || 'Unbekannter Beleg',
+          date: invoice.belegdatum ? new Date(invoice.belegdatum).toLocaleDateString('de-DE') : new Date().toLocaleDateString('de-DE'),
+          amount: invoice.betrag || 0,
+          description: invoice.buchungstext || 'Keine Beschreibung',
+          account: invoice.konto || '0000',
+          taxRate: invoice.uststeuerzahl || '19%',
+          confidence: Math.round((invoice.konfidenz || 0) * 100),
+          status: 'pending' as BookingEntry['status'], // All classified invoices start as pending
+          mandant: invoice.mandant || 'Unbekannt',
+          mandantId: invoice.mandant_nr || '',
+          aiHints: invoice.pruefhinweise || [],
+          aiReasoning: invoice.begruendung || '',
+          createdAt: invoice.created_at || new Date().toISOString(),
+          lastModified: invoice.created_at || new Date().toISOString()
         };
       });
 
@@ -187,7 +171,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
       // Auto-add high confidence entries to export list
       const highConfidenceEntries = convertedEntries.filter(entry => 
-        entry.confidence >= 90 && (entry.status === 'ready' || entry.status === 'pending')
+        entry.confidence >= 90 && entry.status === 'pending'
       );
 
       for (const entry of highConfidenceEntries) {
@@ -210,7 +194,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
                 buchungsdatum: entry.date,
                 betrag: entry.amount,
                 konto: entry.account,
-                gegenkonto: '9999',
+                gegenkonto: entry.account.startsWith('6') ? '1200' : '9999', // Basic logic for counter account
                 buchungstext: entry.description,
                 name: entry.mandant,
                 belegnummer: entry.document
@@ -228,14 +212,6 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
               });
 
             if (exportError) throw exportError;
-
-            // Update beleg status to exported
-            const { error: updateError } = await supabase
-              .from('belege')
-              .update({ status: 'exported' })
-              .eq('beleg_id', entry.id);
-
-            if (updateError) throw updateError;
           }
         } catch (error) {
           console.error('Error auto-adding high confidence entry:', error);
@@ -255,19 +231,19 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     fetchEntries();
   }, [toast]);
 
-  // Set up real-time updates for belege table
+  // Set up real-time updates for classified_invoices table
   useEffect(() => {
     const channel = supabase
-      .channel('belege-changes')
+      .channel('classified-invoices-changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'belege'
+          table: 'classified_invoices'
         },
         () => {
-          // Refresh data when belege table changes
+          // Refresh data when classified_invoices table changes
           fetchEntries();
         }
       )
