@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import type { Mandantenstammdaten } from "@/types/mandantenstammdaten";
 
 interface UploadFile {
   id: string;
@@ -17,10 +18,7 @@ interface UploadFile {
   confidence?: number;
 }
 
-interface Mandant {
-  name1: string;
-  mandant_nr: string;
-}
+type Mandant = Pick<Mandantenstammdaten, 'name1' | 'mandant_nr'>;
 
 export const UploadArea = () => {
   const [files, setFiles] = useState<UploadFile[]>([]);
@@ -37,7 +35,7 @@ export const UploadArea = () => {
   const loadMandanten = async () => {
     setLoadingMandanten(true);
     try {
-      // Verwende agenda_mandanten da agenda.mandantenstammdaten nicht in TypeScript verfügbar
+      // Verwende agenda_mandanten Tabelle (fallback für agenda.mandantenstammdaten)
       const { data, error } = await supabase
         .from('agenda_mandanten')
         .select('firmenname, mandantennummer')
