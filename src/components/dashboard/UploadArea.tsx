@@ -18,7 +18,8 @@ interface UploadFile {
 }
 
 interface Mandant {
-  firmenname: string;
+  name1: string;
+  mandant_nr: string;
 }
 
 export const UploadArea = () => {
@@ -36,16 +37,21 @@ export const UploadArea = () => {
   const loadMandanten = async () => {
     setLoadingMandanten(true);
     try {
+      // Verwende agenda_mandanten da agenda.mandantenstammdaten nicht in TypeScript verfügbar
       const { data, error } = await supabase
         .from('agenda_mandanten')
-        .select('firmenname')
+        .select('firmenname, mandantennummer')
         .not('firmenname', 'is', null)
         .order('firmenname');
       
       if (error) {
         console.error('Error loading mandanten:', error);
       } else {
-        setMandanten(data || []);
+        const mappedData = (data || []).map(item => ({
+          name1: item.firmenname || '',
+          mandant_nr: item.mandantennummer || ''
+        }));
+        setMandanten(mappedData);
       }
     } catch (error) {
       console.error('Error loading mandanten:', error);
@@ -221,8 +227,8 @@ export const UploadArea = () => {
             </SelectTrigger>
             <SelectContent>
               {mandanten.map((mandant) => (
-                <SelectItem key={mandant.firmenname} value={mandant.firmenname || ""}>
-                  {mandant.firmenname}
+                <SelectItem key={mandant.name1} value={mandant.name1 || ""}>
+                  {mandant.name1}
                 </SelectItem>
               ))}
             </SelectContent>
