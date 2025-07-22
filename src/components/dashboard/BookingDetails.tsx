@@ -8,6 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { BookingEntry } from "@/types/booking";
+import { supabase } from "@/integrations/supabase/client";
+import type { Mandantenstammdaten } from "@/types/mandantenstammdaten";
+
+type Mandant = Pick<Mandantenstammdaten, 'name1' | 'mandant_nr'>;
 
 interface BookingDetailsProps {
   selectedEntry: BookingEntry | null;
@@ -25,10 +29,36 @@ export const BookingDetails = ({
   onDelete
 }: BookingDetailsProps) => {
   const [editedEntry, setEditedEntry] = useState<BookingEntry | null>(null);
+  const [mandanten, setMandanten] = useState<Mandant[]>([]);
+  const [loadingMandanten, setLoadingMandanten] = useState(false);
+
+  // Lade Mandanten beim Komponenten-Start
+  useEffect(() => {
+    loadMandanten();
+  }, []);
 
   useEffect(() => {
     setEditedEntry(selectedEntry);
   }, [selectedEntry]);
+
+  const loadMandanten = async () => {
+    setLoadingMandanten(true);
+    try {
+      // Direkte RPC-Funktion für agenda.mandantenstammdaten
+      const { data, error } = await supabase.rpc('get_mandantenstammdaten');
+      
+      if (error) {
+        console.error('Error loading mandanten via RPC:', error);
+      } else {
+        console.log('Successfully loaded mandanten from agenda.mandantenstammdaten:', data);
+        setMandanten(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading mandanten:', error);
+    } finally {
+      setLoadingMandanten(false);
+    }
+  };
   if (!selectedEntry || !editedEntry) {
     return (
       <Card className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass">
@@ -147,32 +177,34 @@ export const BookingDetails = ({
                 <div>
                   <Label htmlFor="mandant">Mandant *</Label>
                   <Select 
-                    value={editedEntry.mandantId.includes('-') ? 
-                      (editedEntry.mandantId === "0c32475a-29e5-4132-88c0-021fcfc68f44" ? "m1" :
-                       editedEntry.mandantId === "27741e79-8d20-4fe4-90fb-cd20b7abc1bb" ? "m2" :
-                       editedEntry.mandantId === "7f678713-d266-42f0-b9c7-07f058a7fa75" ? "m3" : editedEntry.mandantId)
-                      : editedEntry.mandantId
-                    } 
+                    value={editedEntry.mandant || ""} 
                     onValueChange={(value) => {
-                      const mandantNames = {
-                        'm1': 'Mustermann GmbH',
-                        'm2': 'Beispiel AG', 
-                        'm3': 'Demo KG'
-                      };
-                      setEditedEntry(prev => prev ? {...prev, mandantId: value, mandant: mandantNames[value as keyof typeof mandantNames]} : null);
+                      const selectedMandant = mandanten.find(m => m.name1 === value);
+                      setEditedEntry(prev => prev ? {
+                        ...prev, 
+                        mandant: value,
+                        mandantId: selectedMandant?.mandant_nr || value
+                      } : null);
                     }}
+                    disabled={loadingMandanten}
                     required
                   >
-                    <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
-                      <SelectValue placeholder="Mandant auswählen..." />
+                    <SelectTrigger className="bg-white border border-gray-300 hover:bg-gray-50">
+                      <SelectValue placeholder={loadingMandanten ? "Lade Mandanten..." : "Mandant auswählen..."} />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="m1">Mustermann GmbH</SelectItem>
-                      <SelectItem value="m2">Beispiel AG</SelectItem>
-                      <SelectItem value="m3">Demo KG</SelectItem>
+                    <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
+                      {mandanten.map((mandant) => (
+                        <SelectItem 
+                          key={mandant.name1} 
+                          value={mandant.name1 || ""}
+                          className="hover:bg-gray-100 cursor-pointer"
+                        >
+                          {mandant.name1}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                  {!editedEntry.mandantId && (
+                  {!editedEntry.mandant && (
                     <p className="text-xs text-warning mt-1">Mandant ist erforderlich</p>
                   )}
                 </div>
