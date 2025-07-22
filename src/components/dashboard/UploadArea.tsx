@@ -35,21 +35,27 @@ export const UploadArea = () => {
   const loadMandanten = async () => {
     setLoadingMandanten(true);
     try {
-      // Verwende agenda_mandanten Tabelle (fallback für agenda.mandantenstammdaten)
-      const { data, error } = await supabase
-        .from('agenda_mandanten')
-        .select('firmenname, mandantennummer')
-        .not('firmenname', 'is', null)
-        .order('firmenname');
+      // Verwende Edge Function für Zugriff auf agenda.mandantenstammdaten
+      const { data, error } = await supabase.functions.invoke('get-mandanten');
       
       if (error) {
-        console.error('Error loading mandanten:', error);
-      } else {
-        const mappedData = (data || []).map(item => ({
-          name1: item.firmenname || '',
-          mandant_nr: item.mandantennummer || ''
-        }));
-        setMandanten(mappedData);
+        console.error('Error loading mandanten from edge function:', error);
+        // Fallback auf agenda_mandanten Tabelle
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('agenda_mandanten')
+          .select('firmenname, mandantennummer')
+          .not('firmenname', 'is', null)
+          .order('firmenname');
+        
+        if (!fallbackError && fallbackData) {
+          const mappedData = fallbackData.map(item => ({
+            name1: item.firmenname || '',
+            mandant_nr: item.mandantennummer || ''
+          }));
+          setMandanten(mappedData);
+        }
+      } else if (data?.data) {
+        setMandanten(data.data);
       }
     } catch (error) {
       console.error('Error loading mandanten:', error);
