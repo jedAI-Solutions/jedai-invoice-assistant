@@ -111,13 +111,12 @@ export const UploadArea = () => {
       
       // Mandanten-Information hinzufügen
       if (selectedMandant && selectedMandant !== 'nicht-definiert') {
-        formData.append('mandant', selectedMandant);
-        formData.append('mandantAssigned', 'true');
+        // Finde den vollständigen Mandantennamen
+        const mandantInfo = mandanten.find(m => m.mandant_nr === selectedMandant);
+        const mandantName = mandantInfo ? mandantInfo.name1 : selectedMandant;
+        formData.append('mandant', mandantName);
       } else {
-        formData.append('mandantAssigned', 'false');
-        if (selectedMandant === 'nicht-definiert') {
-          formData.append('mandant', 'nicht-definiert');
-        }
+        formData.append('mandant', 'nicht zugeordnet');
       }
       
       console.log('FormData prepared with actual file');
