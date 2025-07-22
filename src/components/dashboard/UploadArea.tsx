@@ -110,11 +110,14 @@ export const UploadArea = () => {
       formData.append('fileSize', file.size.toString());
       
       // Mandanten-Information hinzufügen
-      if (selectedMandant) {
+      if (selectedMandant && selectedMandant !== 'nicht-definiert') {
         formData.append('mandant', selectedMandant);
         formData.append('mandantAssigned', 'true');
       } else {
         formData.append('mandantAssigned', 'false');
+        if (selectedMandant === 'nicht-definiert') {
+          formData.append('mandant', 'nicht-definiert');
+        }
       }
       
       console.log('FormData prepared with actual file');
@@ -217,6 +220,12 @@ export const UploadArea = () => {
               <SelectValue placeholder={loadingMandanten ? "Lade Mandanten..." : "Mandant wählen (KI bestimmt automatisch)"} />
             </SelectTrigger>
             <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
+              <SelectItem 
+                value="nicht-definiert"
+                className="hover:bg-gray-100 cursor-pointer text-gray-600 italic"
+              >
+                Nicht definiert
+              </SelectItem>
               {mandanten.map((mandant) => (
                 <SelectItem 
                   key={mandant.name1} 
@@ -228,9 +237,14 @@ export const UploadArea = () => {
               ))}
             </SelectContent>
           </Select>
-          {selectedMandant && (
+          {selectedMandant && selectedMandant !== 'nicht-definiert' && (
             <p className="text-xs text-primary">
               Ausgewählt: {selectedMandant}
+            </p>
+          )}
+          {selectedMandant === 'nicht-definiert' && (
+            <p className="text-xs text-muted-foreground">
+              Nicht definiert → KI erkennt automatisch anhand des Belegs
             </p>
           )}
           {!selectedMandant && (

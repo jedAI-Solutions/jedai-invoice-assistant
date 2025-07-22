@@ -193,6 +193,12 @@ export const BookingDetails = ({
                       <SelectValue placeholder={loadingMandanten ? "Lade Mandanten..." : "Mandant auswählen..."} />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
+                      <SelectItem 
+                        value="nicht-definiert"
+                        className="hover:bg-gray-100 cursor-pointer text-gray-600 italic"
+                      >
+                        Nicht definiert
+                      </SelectItem>
                       {mandanten.map((mandant) => (
                         <SelectItem 
                           key={mandant.name1} 
@@ -204,8 +210,10 @@ export const BookingDetails = ({
                       ))}
                     </SelectContent>
                   </Select>
-                  {!editedEntry.mandant && (
-                    <p className="text-xs text-warning mt-1">Mandant ist erforderlich</p>
+                  {(!editedEntry.mandant || editedEntry.mandant === 'nicht-definiert') && (
+                    <p className="text-xs text-warning mt-1">
+                      {editedEntry.mandant === 'nicht-definiert' ? 'Mandant nicht definiert' : 'Mandant ist erforderlich'}
+                    </p>
                   )}
                 </div>
               </div>
