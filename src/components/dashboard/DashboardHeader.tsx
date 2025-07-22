@@ -77,8 +77,8 @@ export const DashboardHeader = ({
           </div>
         </div>
 
-        {/* Action Section - Bottom Right */}
-        <div className="flex flex-col sm:flex-row items-end gap-1 self-end ml-auto mt-2">
+        {/* Action Section - Centered Bottom */}
+        <div className="flex flex-row items-center justify-center gap-2 mt-2">
           <Badge className="bg-gradient-primary text-white border-0 text-[10px] md:text-xs shadow-lg px-2 py-0.5">
             KI-System Online
           </Badge>
