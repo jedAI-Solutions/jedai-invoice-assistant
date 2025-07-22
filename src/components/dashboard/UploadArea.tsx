@@ -35,27 +35,22 @@ export const UploadArea = () => {
   const loadMandanten = async () => {
     setLoadingMandanten(true);
     try {
-      // Verwende Edge Function für Zugriff auf agenda.mandantenstammdaten
-      const { data, error } = await supabase.functions.invoke('get-mandanten');
+      // Direkt agenda_mandanten Tabelle verwenden
+      const { data, error } = await supabase
+        .from('agenda_mandanten')
+        .select('firmenname, mandantennummer')
+        .not('firmenname', 'is', null)
+        .order('firmenname');
       
       if (error) {
-        console.error('Error loading mandanten from edge function:', error);
-        // Fallback auf agenda_mandanten Tabelle
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('agenda_mandanten')
-          .select('firmenname, mandantennummer')
-          .not('firmenname', 'is', null)
-          .order('firmenname');
-        
-        if (!fallbackError && fallbackData) {
-          const mappedData = fallbackData.map(item => ({
-            name1: item.firmenname || '',
-            mandant_nr: item.mandantennummer || ''
-          }));
-          setMandanten(mappedData);
-        }
-      } else if (data?.data) {
-        setMandanten(data.data);
+        console.error('Error loading mandanten:', error);
+      } else {
+        console.log('Loaded mandanten:', data);
+        const mappedData = (data || []).map(item => ({
+          name1: item.firmenname || '',
+          mandant_nr: item.mandantennummer || ''
+        }));
+        setMandanten(mappedData);
       }
     } catch (error) {
       console.error('Error loading mandanten:', error);
@@ -226,12 +221,16 @@ export const UploadArea = () => {
             Mandant zuordnen (optional)
           </Label>
           <Select value={selectedMandant} onValueChange={setSelectedMandant}>
-            <SelectTrigger className="h-8 text-xs bg-white/10 border-white/20">
+            <SelectTrigger className="h-8 text-xs bg-white border border-gray-300 hover:bg-gray-50">
               <SelectValue placeholder={loadingMandanten ? "Lade Mandanten..." : "Mandant wählen (KI bestimmt automatisch)"} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
               {mandanten.map((mandant) => (
-                <SelectItem key={mandant.name1} value={mandant.name1 || ""}>
+                <SelectItem 
+                  key={mandant.name1} 
+                  value={mandant.name1 || ""}
+                  className="hover:bg-gray-100 cursor-pointer"
+                >
                   {mandant.name1}
                 </SelectItem>
               ))}
