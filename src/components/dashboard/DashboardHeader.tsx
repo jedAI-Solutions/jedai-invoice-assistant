@@ -44,15 +44,15 @@ export const DashboardHeader = ({
           backgroundRepeat: 'no-repeat'
         }}
       ></div>
-      <div className="relative z-10 max-w-full mx-auto h-full">
-        {/* Centered Logo and App Name */}
-        <div className="flex items-center justify-center gap-3 md:gap-6 h-full">
+      <div className="relative z-10 max-w-full mx-auto h-full flex flex-col">
+        {/* Main content area with padding for bottom elements */}
+        <div className="flex-1 flex items-center justify-center gap-3 md:gap-6 pb-8">
           {/* Logo Container */}
           <div className="flex-shrink-0 relative group cursor-pointer">
             <TransparentLogo
               src={jedaiLogoIcon}
               alt="jedAI Solutions Logo"
-              className="relative h-16 md:h-32 w-auto object-contain transition-all duration-700 ease-in-out
+              className="relative h-12 md:h-24 w-auto object-contain transition-all duration-700 ease-in-out
                        hover:scale-105 hover:brightness-110
                        animate-pulse-subtle group-hover:animate-none
                        filter hover:drop-shadow-sm"
@@ -66,12 +66,12 @@ export const DashboardHeader = ({
           
           {/* Text Container */}
           <div className="text-center">
-            <h1 className="text-xl md:text-4xl font-bold text-white font-modern leading-tight
+            <h1 className="text-lg md:text-3xl font-bold text-white font-modern leading-tight
                          [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.8)] filter drop-shadow-lg
                          transition-all duration-500 ease-in-out hover:scale-[1.02] cursor-default">
               Taxagent
             </h1>
-            <p className="text-xs md:text-base text-white font-modern font-semibold mt-1
+            <p className="text-xs md:text-sm text-white font-modern font-semibold mt-1
                          [text-shadow:_1px_1px_3px_rgb(0_0_0_/_0.9)]
                          transition-all duration-300 ease-in-out hover:text-gray-100">KI-gestützte Belegverarbeitung</p>
           </div>
