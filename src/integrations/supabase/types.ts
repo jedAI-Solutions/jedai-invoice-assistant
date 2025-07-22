@@ -294,6 +294,117 @@ export type Database = {
           },
         ]
       }
+      mandantenstammdaten: {
+        Row: {
+          angelegt: string | null
+          bankname: string | null
+          bearbeiter: string | null
+          bic: string | null
+          created_at: string | null
+          email: string | null
+          fa_nr: string | null
+          finanzamt: string | null
+          geaendert: string | null
+          geschaeftsfuehrer: string | null
+          hrb_nr: string | null
+          iban: string | null
+          id: number
+          internet: string | null
+          kontenrahmen: string | null
+          land: string | null
+          mandant_nr: string
+          mandantentyp: string
+          name1: string
+          name2: string | null
+          ort: string
+          plz: string | null
+          rechtsform: string | null
+          registergericht: string | null
+          steuer_nr: string | null
+          strasse: string | null
+          telefon: string | null
+          updated_at: string | null
+          ust_idnr: string | null
+          ust_zeitraum: string | null
+          versteuerung: string | null
+          wj_beginn: string | null
+          wj_ende: string | null
+          zusatz: string | null
+        }
+        Insert: {
+          angelegt?: string | null
+          bankname?: string | null
+          bearbeiter?: string | null
+          bic?: string | null
+          created_at?: string | null
+          email?: string | null
+          fa_nr?: string | null
+          finanzamt?: string | null
+          geaendert?: string | null
+          geschaeftsfuehrer?: string | null
+          hrb_nr?: string | null
+          iban?: string | null
+          id?: never
+          internet?: string | null
+          kontenrahmen?: string | null
+          land?: string | null
+          mandant_nr: string
+          mandantentyp: string
+          name1: string
+          name2?: string | null
+          ort: string
+          plz?: string | null
+          rechtsform?: string | null
+          registergericht?: string | null
+          steuer_nr?: string | null
+          strasse?: string | null
+          telefon?: string | null
+          updated_at?: string | null
+          ust_idnr?: string | null
+          ust_zeitraum?: string | null
+          versteuerung?: string | null
+          wj_beginn?: string | null
+          wj_ende?: string | null
+          zusatz?: string | null
+        }
+        Update: {
+          angelegt?: string | null
+          bankname?: string | null
+          bearbeiter?: string | null
+          bic?: string | null
+          created_at?: string | null
+          email?: string | null
+          fa_nr?: string | null
+          finanzamt?: string | null
+          geaendert?: string | null
+          geschaeftsfuehrer?: string | null
+          hrb_nr?: string | null
+          iban?: string | null
+          id?: never
+          internet?: string | null
+          kontenrahmen?: string | null
+          land?: string | null
+          mandant_nr?: string
+          mandantentyp?: string
+          name1?: string
+          name2?: string | null
+          ort?: string
+          plz?: string | null
+          rechtsform?: string | null
+          registergericht?: string | null
+          steuer_nr?: string | null
+          strasse?: string | null
+          telefon?: string | null
+          updated_at?: string | null
+          ust_idnr?: string | null
+          ust_zeitraum?: string | null
+          versteuerung?: string | null
+          wj_beginn?: string | null
+          wj_ende?: string | null
+          zusatz?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
