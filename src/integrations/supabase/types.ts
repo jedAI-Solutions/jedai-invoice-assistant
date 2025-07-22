@@ -23,7 +23,8 @@ export type Database = {
           firmenname: string | null
           hausnummer: string | null
           iban: string | null
-          id: number
+          mandant_id: number
+          mandant_id_uuid: string | null
           mandantennummer: string | null
           name: string | null
           ort: string | null
@@ -41,7 +42,8 @@ export type Database = {
           firmenname?: string | null
           hausnummer?: string | null
           iban?: string | null
-          id?: number
+          mandant_id?: number
+          mandant_id_uuid?: string | null
           mandantennummer?: string | null
           name?: string | null
           ort?: string | null
@@ -59,7 +61,8 @@ export type Database = {
           firmenname?: string | null
           hausnummer?: string | null
           iban?: string | null
-          id?: number
+          mandant_id?: number
+          mandant_id_uuid?: string | null
           mandantennummer?: string | null
           name?: string | null
           ort?: string | null
@@ -109,6 +112,7 @@ export type Database = {
           ki_buchungsvorschlag: Json | null
           konfidenz: number | null
           mandant_id: string
+          mandant_id_uuid: string | null
           ocr_data: Json | null
           original_filename: string
           status: string
@@ -122,6 +126,7 @@ export type Database = {
           ki_buchungsvorschlag?: Json | null
           konfidenz?: number | null
           mandant_id: string
+          mandant_id_uuid?: string | null
           ocr_data?: Json | null
           original_filename: string
           status?: string
@@ -135,6 +140,7 @@ export type Database = {
           ki_buchungsvorschlag?: Json | null
           konfidenz?: number | null
           mandant_id?: string
+          mandant_id_uuid?: string | null
           ocr_data?: Json | null
           original_filename?: string
           status?: string
@@ -158,7 +164,6 @@ export type Database = {
           name: string | null
           steuerkennzeichen: string | null
           uststeuerzahl: string | null
-          vector_embedding: string | null
           waehrung: string | null
         }
         Insert: {
@@ -175,7 +180,6 @@ export type Database = {
           name?: string | null
           steuerkennzeichen?: string | null
           uststeuerzahl?: string | null
-          vector_embedding?: string | null
           waehrung?: string | null
         }
         Update: {
@@ -192,8 +196,28 @@ export type Database = {
           name?: string | null
           steuerkennzeichen?: string | null
           uststeuerzahl?: string | null
-          vector_embedding?: string | null
           waehrung?: string | null
+        }
+        Relationships: []
+      }
+      embeddings: {
+        Row: {
+          content: string
+          created_at: string | null
+          embedding: string
+          id: number
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          embedding: string
+          id?: never
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          embedding?: string
+          id?: never
         }
         Relationships: []
       }
@@ -204,6 +228,7 @@ export type Database = {
           export_format: string
           export_id: string
           mandant_id: string
+          mandant_id_uuid: string | null
           status: string
         }
         Insert: {
@@ -212,6 +237,7 @@ export type Database = {
           export_format: string
           export_id?: string
           mandant_id: string
+          mandant_id_uuid?: string | null
           status?: string
         }
         Update: {
@@ -220,6 +246,7 @@ export type Database = {
           export_format?: string
           export_id?: string
           mandant_id?: string
+          mandant_id_uuid?: string | null
           status?: string
         }
         Relationships: [
@@ -238,6 +265,7 @@ export type Database = {
           created_at: string
           feedback: Json
           mandant_id: string
+          mandant_id_uuid: string | null
           training_id: string
         }
         Insert: {
@@ -245,6 +273,7 @@ export type Database = {
           created_at?: string
           feedback: Json
           mandant_id: string
+          mandant_id_uuid?: string | null
           training_id?: string
         }
         Update: {
@@ -252,6 +281,7 @@ export type Database = {
           created_at?: string
           feedback?: Json
           mandant_id?: string
+          mandant_id_uuid?: string | null
           training_id?: string
         }
         Relationships: [
@@ -269,97 +299,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      binary_quantize: {
-        Args: { "": string } | { "": unknown }
-        Returns: unknown
-      }
-      halfvec_avg: {
-        Args: { "": number[] }
-        Returns: unknown
-      }
-      halfvec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      halfvec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      halfvec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
-      hnsw_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_sparsevec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnswhandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflathandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      l2_norm: {
-        Args: { "": unknown } | { "": unknown }
-        Returns: number
-      }
-      l2_normalize: {
-        Args: { "": string } | { "": unknown } | { "": unknown }
-        Returns: unknown
-      }
-      sparsevec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      sparsevec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      sparsevec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
-      vector_avg: {
-        Args: { "": number[] }
-        Returns: string
-      }
-      vector_dims: {
-        Args: { "": string } | { "": unknown }
-        Returns: number
-      }
-      vector_norm: {
-        Args: { "": string }
-        Returns: number
-      }
-      vector_out: {
-        Args: { "": string }
-        Returns: unknown
-      }
-      vector_send: {
-        Args: { "": string }
-        Returns: string
-      }
-      vector_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
+      get_mandantenstammdaten: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          name1: string
+          mandant_nr: string
+        }[]
       }
     }
     Enums: {

@@ -35,14 +35,14 @@ export const UploadArea = () => {
   const loadMandanten = async () => {
     setLoadingMandanten(true);
     try {
-      // Verwende Edge Function für agenda.mandantenstammdaten
-      const { data, error } = await supabase.functions.invoke('get-mandantenstammdaten');
+      // Direkte RPC-Funktion für agenda.mandantenstammdaten
+      const { data, error } = await supabase.rpc('get_mandantenstammdaten');
       
       if (error) {
-        console.error('Error loading mandanten:', error);
-      } else if (data?.data) {
-        console.log('Loaded mandanten from agenda.mandantenstammdaten:', data.data);
-        setMandanten(data.data);
+        console.error('Error loading mandanten via RPC:', error);
+      } else {
+        console.log('Successfully loaded mandanten from agenda.mandantenstammdaten:', data);
+        setMandanten(data || []);
       }
     } catch (error) {
       console.error('Error loading mandanten:', error);
