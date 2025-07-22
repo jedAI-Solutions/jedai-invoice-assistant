@@ -35,22 +35,14 @@ export const UploadArea = () => {
   const loadMandanten = async () => {
     setLoadingMandanten(true);
     try {
-      // Direkt agenda_mandanten Tabelle verwenden
-      const { data, error } = await supabase
-        .from('agenda_mandanten')
-        .select('firmenname, mandantennummer')
-        .not('firmenname', 'is', null)
-        .order('firmenname');
+      // Verwende Edge Function für agenda.mandantenstammdaten
+      const { data, error } = await supabase.functions.invoke('get-mandantenstammdaten');
       
       if (error) {
         console.error('Error loading mandanten:', error);
-      } else {
-        console.log('Loaded mandanten:', data);
-        const mappedData = (data || []).map(item => ({
-          name1: item.firmenname || '',
-          mandant_nr: item.mandantennummer || ''
-        }));
-        setMandanten(mappedData);
+      } else if (data?.data) {
+        console.log('Loaded mandanten from agenda.mandantenstammdaten:', data.data);
+        setMandanten(data.data);
       }
     } catch (error) {
       console.error('Error loading mandanten:', error);
