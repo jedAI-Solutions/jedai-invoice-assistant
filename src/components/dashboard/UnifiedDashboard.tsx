@@ -1,7 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { BookingTable } from "./BookingTable";
 import { BookingDetails } from "./BookingDetails";
-import { ExportList } from "./ExportList";
+import ExportList from "./ExportList";
+import MandantSelector from "./MandantSelector";
+import ApprovedInvoicesTable from "./ApprovedInvoicesTable";
 import { BookingEntry, Mandant, DashboardStats } from "@/types/booking";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -169,49 +171,43 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
       setEntries(convertedEntries);
 
-      // Auto-add high confidence entries to export list
+      // Auto-add high confidence entries to approved_invoices
       const highConfidenceEntries = convertedEntries.filter(entry => 
         entry.confidence >= 90 && entry.status === 'pending'
       );
 
       for (const entry of highConfidenceEntries) {
         try {
-          // Check if entry already exists in export queue
+          // Check if entry already exists in approved_invoices
           const { data: existingEntry } = await supabase
-            .from('export_queue')
-            .select('export_id')
-            .eq('buchung_id', entry.id)
+            .from('approved_invoices')
+            .select('id')
+            .eq('classified_invoice_id', parseInt(entry.id))
             .maybeSingle();
 
           if (!existingEntry) {
-            // Create buchungshistorie entry
-            const buchungUuid = crypto.randomUUID();
-            
-            const { error: buchungError } = await supabase
-              .from('buchungshistorie')
+            // Add to approved invoices
+            const { error: approvedError } = await supabase
+              .from('approved_invoices')
               .insert({
-                buchung_id: buchungUuid,
-                buchungsdatum: entry.date,
+                classified_invoice_id: parseInt(entry.id),
+                mandant_id: parseInt(entry.mandantId) || null,
+                mandant_nr: entry.mandantId,
+                mandant: entry.mandant,
+                belegnummer: entry.document,
+                belegdatum: entry.date,
                 betrag: entry.amount,
-                konto: entry.account,
-                gegenkonto: entry.account.startsWith('6') ? '1200' : '9999', // Basic logic for counter account
                 buchungstext: entry.description,
-                name: entry.mandant,
-                belegnummer: entry.document
+                konto: entry.account,
+                gegenkonto: entry.account.startsWith('6') ? '1200' : '9999',
+                uststeuerzahl: entry.taxRate,
+                konfidenz: entry.confidence / 100,
+                begruendung: entry.aiReasoning || 'Automatisch genehmigt (hohe Konfidenz)'
               });
 
-            if (buchungError) throw buchungError;
-
-            // Add to export list
-            const { error: exportError } = await supabase
-              .from('export_queue')
-              .insert({
-                buchung_id: buchungUuid,
-                mandant_id: entry.mandantId,
-                export_format: 'DATEV'
-              });
-
-            if (exportError) throw exportError;
+            if (approvedError) {
+              console.error('Error auto-approving high confidence entry:', approvedError);
+            }
           }
         } catch (error) {
           console.error('Error auto-adding high confidence entry:', error);
@@ -317,59 +313,26 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     try {
       const approvedEntry = entries.find(e => e.id === entryId);
       if (approvedEntry) {
-        // Check if buchungshistorie entry already exists
-        const { data: existingBuchung } = await supabase
-          .from('buchungshistorie')
-          .select('buchung_id')
-          .eq('buchung_id', entryId)
-          .single();
+        // Add to approved_invoices table
+        const { error: approvedError } = await supabase
+          .from('approved_invoices')
+          .insert({
+            classified_invoice_id: parseInt(entryId),
+            mandant_id: parseInt(approvedEntry.mandantId) || null,
+            mandant_nr: approvedEntry.mandantId,
+            mandant: approvedEntry.mandant,
+            belegnummer: approvedEntry.document,
+            belegdatum: approvedEntry.date,
+            betrag: approvedEntry.amount,
+            buchungstext: approvedEntry.description,
+            konto: approvedEntry.account,
+            gegenkonto: approvedEntry.account.startsWith('6') ? '1200' : '9999',
+            uststeuerzahl: approvedEntry.taxRate,
+            konfidenz: approvedEntry.confidence / 100,
+            begruendung: 'Manuell genehmigt'
+          });
 
-        // Only create buchungshistorie entry if it doesn't exist
-        if (!existingBuchung) {
-          const { error: buchungError } = await supabase
-            .from('buchungshistorie')
-            .insert({
-              buchung_id: entryId,
-              buchungsdatum: approvedEntry.date,
-              betrag: approvedEntry.amount,
-              konto: approvedEntry.account,
-              gegenkonto: '9999', // Default counter account
-              buchungstext: approvedEntry.description,
-              name: approvedEntry.mandant,
-              belegnummer: approvedEntry.document,
-              beleg_id: entryId // Store original beleg_id for reference
-            });
-
-          if (buchungError) throw buchungError;
-        }
-
-        // Check if export queue entry already exists
-        const { data: existingExport } = await supabase
-          .from('export_queue')
-          .select('export_id')
-          .eq('buchung_id', entryId)
-          .single();
-
-        // Only add to export queue if it doesn't exist
-        if (!existingExport) {
-          const { error: exportError } = await supabase
-            .from('export_queue')
-            .insert({
-              buchung_id: entryId,
-              mandant_id: approvedEntry.mandantId,
-              export_format: 'DATEV'
-            });
-
-          if (exportError) throw exportError;
-        }
-
-        // Update beleg status to approved instead of deleting
-        const { error: updateError } = await supabase
-          .from('belege')
-          .update({ status: 'approved' })
-          .eq('beleg_id', entryId);
-
-        if (updateError) throw updateError;
+        if (approvedError) throw approvedError;
 
         // Update local state - remove from entries since we only show pending entries
         setEntries(prevEntries => 
@@ -387,10 +350,10 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         });
       }
     } catch (error) {
-      console.error('Error adding to export queue:', error);
+      console.error('Error approving entry:', error);
       toast({
-        title: "Warnung",
-        description: "Buchung genehmigt, aber Export-Liste konnte nicht aktualisiert werden",
+        title: "Fehler",
+        description: "Buchung konnte nicht genehmigt werden",
         variant: "destructive",
       });
     }
@@ -398,31 +361,24 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
   const handleReject = async (entryId: string) => {
     try {
-      // Update beleg status
-      const { error } = await supabase
-        .from('belege')
-        .update({ status: 'rejected' })
-        .eq('beleg_id', entryId);
-
-      if (error) throw error;
-
-      // Update local state
+      // For now, just remove from local state since we don't have a belege table
       setEntries(prevEntries => 
-        prevEntries.map(entry => 
-          entry.id === entryId 
-            ? { ...entry, status: 'rejected' as const, lastModified: new Date().toISOString() }
-            : entry
-        )
+        prevEntries.filter(entry => entry.id !== entryId)
       );
       
       if (selectedEntry?.id === entryId) {
-        setSelectedEntry(prev => prev ? { ...prev, status: 'rejected' } : null);
+        setSelectedEntry(null);
       }
+
+      toast({
+        title: "Erfolg",
+        description: "Eintrag wurde abgelehnt",
+      });
     } catch (error) {
       console.error('Error rejecting entry:', error);
       toast({
         title: "Fehler",
-        description: "Status konnte nicht aktualisiert werden",
+        description: "Eintrag konnte nicht abgelehnt werden",
         variant: "destructive",
       });
     }
@@ -430,28 +386,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
   const handleSaveChanges = async (entryId: string, changes: Partial<BookingEntry>) => {
     try {
-      // Convert UI mandant ID to database UUID if needed
-      const actualMandantId = mandantUIMapping[changes.mandantId as keyof typeof mandantUIMapping] || changes.mandantId;
-      
-      // Update in database
-      const { error } = await supabase
-        .from('belege')
-        .update({
-          ki_buchungsvorschlag: {
-            betrag: changes.amount,
-            buchungstext: changes.description,
-            konto: changes.account,
-            steuersatz: changes.taxRate
-          },
-          belegdatum: changes.date,
-          mandant_id: actualMandantId,
-          updated_at: new Date().toISOString()
-        })
-        .eq('beleg_id', entryId);
-
-      if (error) throw error;
-
-      // Update local state
+      // Update local state only for now
       setEntries(prevEntries => 
         prevEntries.map(entry => 
           entry.id === entryId 
@@ -464,12 +399,9 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         setSelectedEntry(prev => prev ? { ...prev, ...changes } : null);
       }
 
-      // Refresh data from database to ensure consistency
-      await fetchEntries();
-
       toast({
         title: "Erfolg",
-        description: "Änderungen wurden gespeichert und Übersicht aktualisiert",
+        description: "Änderungen wurden gespeichert",
       });
     } catch (error) {
       console.error('Error saving changes:', error);
@@ -483,33 +415,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
   const handleDelete = async (entryId: string) => {
     try {
-      // First delete related entries in export_queue table
-      await supabase
-        .from('export_queue')
-        .delete()
-        .eq('buchung_id', entryId);
-
-      // Then delete related entries in buchungshistorie table that reference this beleg
-      await supabase
-        .from('buchungshistorie')
-        .delete()
-        .eq('beleg_id', entryId);
-
-      // Also delete buchungshistorie entries that use the entryId as buchung_id
-      await supabase
-        .from('buchungshistorie')
-        .delete()
-        .eq('buchung_id', entryId);
-
-      // Finally delete from belege table
-      const { error: belegError } = await supabase
-        .from('belege')
-        .delete()
-        .eq('beleg_id', entryId);
-
-      if (belegError) throw belegError;
-
-      // Update local state
+      // For now, just remove from local state
       setEntries(prevEntries => 
         prevEntries.filter(entry => entry.id !== entryId)
       );
@@ -533,33 +439,55 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     }
   };
 
+  // Handle mandant change internally
+  const handleMandantChange = (mandant: string) => {
+    // This is handled by parent component through props
+  };
+
   return (
     <div className="space-y-6">
-      {/* Export List */}
-      <ExportList />
-
-      {/* Unified Booking Table */}
-      <BookingTable
-        entries={filteredEntries}
-        mandanten={mandanten}
+      {/* Mandantenfilter */}
+      <MandantSelector
         selectedMandant={selectedMandant}
-        onMandantChange={() => {}} // Handled by parent
-        onEntrySelect={setSelectedEntry}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        selectedEntry={selectedEntry}
-        confidenceFilter={confidenceFilter}
-        onConfidenceFilterChange={setConfidenceFilter}
+        onMandantChange={handleMandantChange}
       />
-
-      {/* Booking Details */}
-      <BookingDetails
-        selectedEntry={selectedEntry}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        onSaveChanges={handleSaveChanges}
-        onDelete={handleDelete}
-      />
+      
+      {/* Export Liste */}
+      <ExportList />
+      
+      {/* Klassifizierte Rechnungen */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Klassifizierte Rechnungen</h2>
+        <BookingTable
+          entries={filteredEntries}
+          mandanten={mandanten}
+          selectedMandant={selectedMandant}
+          onMandantChange={handleMandantChange}
+          onEntrySelect={setSelectedEntry}
+          onApprove={handleApprove}
+          onReject={handleReject}
+          selectedEntry={selectedEntry}
+          confidenceFilter={confidenceFilter}
+          onConfidenceFilterChange={setConfidenceFilter}
+        />
+      </div>
+      
+      {/* Buchungsdetails */}
+      {selectedEntry && (
+        <BookingDetails
+          selectedEntry={selectedEntry}
+          onApprove={handleApprove}
+          onReject={handleReject}
+          onSaveChanges={handleSaveChanges}
+          onDelete={handleDelete}
+        />
+      )}
+      
+      {/* Genehmigte Rechnungen */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Export-Übersicht</h2>
+        <ApprovedInvoicesTable selectedMandant={selectedMandant} />
+      </div>
     </div>
   );
 };

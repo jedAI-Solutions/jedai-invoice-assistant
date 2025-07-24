@@ -14,65 +14,80 @@ export type Database = {
   }
   public: {
     Tables: {
-      agenda_mandanten: {
+      approved_invoices: {
         Row: {
-          ansprechpartner: string | null
-          bank: string | null
-          bic: string | null
-          email: string | null
-          firmenname: string | null
-          hausnummer: string | null
-          iban: string | null
-          mandant_id: number
-          mandant_id_uuid: string | null
-          mandantennummer: string | null
-          name: string | null
-          ort: string | null
-          plz: string | null
-          steuernummer: string | null
-          strasse: string | null
-          telefon: string | null
-          ust_pflichtig: boolean | null
+          begruendung: string | null
+          belegdatum: string
+          belegnummer: string
+          betrag: number
+          buchungstext: string
+          classified_invoice_id: number | null
+          created_at: string | null
+          gegenkonto: string
+          id: number
+          konfidenz: number
+          konto: string
+          lernfeedback: string | null
+          mandant: string
+          mandant_id: number | null
+          mandant_nr: string
+          pruefhinweise: string[] | null
+          uststeuerzahl: string
         }
         Insert: {
-          ansprechpartner?: string | null
-          bank?: string | null
-          bic?: string | null
-          email?: string | null
-          firmenname?: string | null
-          hausnummer?: string | null
-          iban?: string | null
-          mandant_id?: number
-          mandant_id_uuid?: string | null
-          mandantennummer?: string | null
-          name?: string | null
-          ort?: string | null
-          plz?: string | null
-          steuernummer?: string | null
-          strasse?: string | null
-          telefon?: string | null
-          ust_pflichtig?: boolean | null
+          begruendung?: string | null
+          belegdatum: string
+          belegnummer: string
+          betrag: number
+          buchungstext: string
+          classified_invoice_id?: number | null
+          created_at?: string | null
+          gegenkonto: string
+          id?: never
+          konfidenz: number
+          konto: string
+          lernfeedback?: string | null
+          mandant: string
+          mandant_id?: number | null
+          mandant_nr: string
+          pruefhinweise?: string[] | null
+          uststeuerzahl: string
         }
         Update: {
-          ansprechpartner?: string | null
-          bank?: string | null
-          bic?: string | null
-          email?: string | null
-          firmenname?: string | null
-          hausnummer?: string | null
-          iban?: string | null
-          mandant_id?: number
-          mandant_id_uuid?: string | null
-          mandantennummer?: string | null
-          name?: string | null
-          ort?: string | null
-          plz?: string | null
-          steuernummer?: string | null
-          strasse?: string | null
-          telefon?: string | null
-          ust_pflichtig?: boolean | null
+          begruendung?: string | null
+          belegdatum?: string
+          belegnummer?: string
+          betrag?: number
+          buchungstext?: string
+          classified_invoice_id?: number | null
+          created_at?: string | null
+          gegenkonto?: string
+          id?: never
+          konfidenz?: number
+          konto?: string
+          lernfeedback?: string | null
+          mandant?: string
+          mandant_id?: number | null
+          mandant_nr?: string
+          pruefhinweise?: string[] | null
+          uststeuerzahl?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "approved_invoices_classified_invoice_id_fkey"
+            columns: ["classified_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "classified_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approved_invoices_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
+            referencedRelation: "mandantenstammdaten"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       audit_trails: {
         Row: {
@@ -104,101 +119,126 @@ export type Database = {
         }
         Relationships: []
       }
-      belege: {
+      booking_history: {
         Row: {
-          beleg_id: string
-          belegdatum: string | null
-          created_at: string
-          ki_buchungsvorschlag: Json | null
-          konfidenz: number | null
-          mandant_id: string
-          mandant_id_uuid: string | null
-          ocr_data: Json | null
-          original_filename: string
-          status: string
-          updated_at: string
-          upload_date: string
+          belegdatum: string
+          belegnummer: string
+          betrag: number
+          buchungstext: string
+          created_at: string | null
+          gegenkonto: string
+          id: number
+          konto: string
+          mandant: string
+          mandant_id: number | null
+          mandant_nr: string
+          updated_at: string | null
+          uststeuerzahl: string
         }
         Insert: {
-          beleg_id?: string
-          belegdatum?: string | null
-          created_at?: string
-          ki_buchungsvorschlag?: Json | null
-          konfidenz?: number | null
-          mandant_id: string
-          mandant_id_uuid?: string | null
-          ocr_data?: Json | null
-          original_filename: string
-          status?: string
-          updated_at?: string
-          upload_date?: string
+          belegdatum: string
+          belegnummer: string
+          betrag: number
+          buchungstext: string
+          created_at?: string | null
+          gegenkonto: string
+          id?: never
+          konto: string
+          mandant: string
+          mandant_id?: number | null
+          mandant_nr: string
+          updated_at?: string | null
+          uststeuerzahl: string
         }
         Update: {
-          beleg_id?: string
-          belegdatum?: string | null
-          created_at?: string
-          ki_buchungsvorschlag?: Json | null
-          konfidenz?: number | null
-          mandant_id?: string
-          mandant_id_uuid?: string | null
-          ocr_data?: Json | null
-          original_filename?: string
-          status?: string
-          updated_at?: string
-          upload_date?: string
-        }
-        Relationships: []
-      }
-      buchungshistorie: {
-        Row: {
-          beleg_id: string | null
-          belegart: string | null
-          belegnummer: string | null
-          betrag: number
-          buchung_id: string
-          buchungsdatum: string
-          buchungstext: string | null
-          created_at: string
-          gegenkonto: string
-          konto: string
-          name: string | null
-          steuerkennzeichen: string | null
-          uststeuerzahl: string | null
-          waehrung: string | null
-        }
-        Insert: {
-          beleg_id?: string | null
-          belegart?: string | null
-          belegnummer?: string | null
-          betrag: number
-          buchung_id?: string
-          buchungsdatum: string
-          buchungstext?: string | null
-          created_at?: string
-          gegenkonto: string
-          konto: string
-          name?: string | null
-          steuerkennzeichen?: string | null
-          uststeuerzahl?: string | null
-          waehrung?: string | null
-        }
-        Update: {
-          beleg_id?: string | null
-          belegart?: string | null
-          belegnummer?: string | null
+          belegdatum?: string
+          belegnummer?: string
           betrag?: number
-          buchung_id?: string
-          buchungsdatum?: string
-          buchungstext?: string | null
-          created_at?: string
+          buchungstext?: string
+          created_at?: string | null
           gegenkonto?: string
+          id?: never
           konto?: string
-          name?: string | null
-          steuerkennzeichen?: string | null
-          uststeuerzahl?: string | null
-          waehrung?: string | null
+          mandant?: string
+          mandant_id?: number | null
+          mandant_nr?: string
+          updated_at?: string | null
+          uststeuerzahl?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "booking_history_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
+            referencedRelation: "mandantenstammdaten"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classified_invoices: {
+        Row: {
+          begruendung: string | null
+          belegdatum: string
+          belegnummer: string
+          betrag: number
+          buchungstext: string
+          created_at: string | null
+          gegenkonto: string
+          id: number
+          konfidenz: number
+          konto: string
+          lernfeedback: string | null
+          mandant: string
+          mandant_id: number | null
+          mandant_nr: string
+          pruefhinweise: string[]
+          uststeuerzahl: string
+        }
+        Insert: {
+          begruendung?: string | null
+          belegdatum: string
+          belegnummer: string
+          betrag: number
+          buchungstext: string
+          created_at?: string | null
+          gegenkonto: string
+          id?: never
+          konfidenz: number
+          konto: string
+          lernfeedback?: string | null
+          mandant: string
+          mandant_id?: number | null
+          mandant_nr: string
+          pruefhinweise: string[]
+          uststeuerzahl: string
+        }
+        Update: {
+          begruendung?: string | null
+          belegdatum?: string
+          belegnummer?: string
+          betrag?: number
+          buchungstext?: string
+          created_at?: string | null
+          gegenkonto?: string
+          id?: never
+          konfidenz?: number
+          konto?: string
+          lernfeedback?: string | null
+          mandant?: string
+          mandant_id?: number | null
+          mandant_nr?: string
+          pruefhinweise?: string[]
+          uststeuerzahl?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classified_invoices_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
+            referencedRelation: "mandantenstammdaten"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       embeddings: {
         Row: {
@@ -220,44 +260,6 @@ export type Database = {
           id?: never
         }
         Relationships: []
-      }
-      export_queue: {
-        Row: {
-          buchung_id: string
-          created_at: string
-          export_format: string
-          export_id: string
-          mandant_id: string
-          mandant_id_uuid: string | null
-          status: string
-        }
-        Insert: {
-          buchung_id: string
-          created_at?: string
-          export_format: string
-          export_id?: string
-          mandant_id: string
-          mandant_id_uuid?: string | null
-          status?: string
-        }
-        Update: {
-          buchung_id?: string
-          created_at?: string
-          export_format?: string
-          export_id?: string
-          mandant_id?: string
-          mandant_id_uuid?: string | null
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "export_queue_buchung_id_fkey"
-            columns: ["buchung_id"]
-            isOneToOne: false
-            referencedRelation: "buchungshistorie"
-            referencedColumns: ["buchung_id"]
-          },
-        ]
       }
       ki_trainingsdaten: {
         Row: {
@@ -284,15 +286,7 @@ export type Database = {
           mandant_id_uuid?: string | null
           training_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "ki_trainingsdaten_beleg_id_fkey"
-            columns: ["beleg_id"]
-            isOneToOne: false
-            referencedRelation: "belege"
-            referencedColumns: ["beleg_id"]
-          },
-        ]
+        Relationships: []
       }
       mandantenstammdaten: {
         Row: {
@@ -344,7 +338,7 @@ export type Database = {
           geschaeftsfuehrer?: string | null
           hrb_nr?: string | null
           iban?: string | null
-          id?: never
+          id?: number
           internet?: string | null
           kontenrahmen?: string | null
           land?: string | null
@@ -380,7 +374,7 @@ export type Database = {
           geschaeftsfuehrer?: string | null
           hrb_nr?: string | null
           iban?: string | null
-          id?: never
+          id?: number
           internet?: string | null
           kontenrahmen?: string | null
           land?: string | null
