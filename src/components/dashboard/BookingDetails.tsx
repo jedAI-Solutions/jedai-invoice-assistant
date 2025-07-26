@@ -223,17 +223,20 @@ export const BookingDetails = ({
                   <Label htmlFor="konto">SKR-Konto</Label>
                   <Select value={editedEntry.account} onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, account: value} : null)}>
                     <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
-                      <SelectValue />
+                      <SelectValue placeholder="SKR-Konto auswählen" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="6400">6400 - Strom/Gas/Wasser</SelectItem>
-                      <SelectItem value="6815">6815 - Büromaterial</SelectItem>
-                      <SelectItem value="6320">6320 - Kommunikation</SelectItem>
-                      <SelectItem value="6670">6670 - Fahrzeugkosten</SelectItem>
+                      <SelectItem value="4900">4900 - Sonstige Erträge</SelectItem>
+                      <SelectItem value="4930">4930 - Dienstleistungserträge</SelectItem>
                       <SelectItem value="6030">6030 - Mieten</SelectItem>
-                      <SelectItem value="6720">6720 - Versicherungen</SelectItem>
                       <SelectItem value="6200">6200 - Werbekosten</SelectItem>
                       <SelectItem value="6300">6300 - Bewirtung</SelectItem>
+                      <SelectItem value="6320">6320 - Kommunikation</SelectItem>
+                      <SelectItem value="6400">6400 - Strom/Gas/Wasser</SelectItem>
+                      <SelectItem value="6670">6670 - Fahrzeugkosten</SelectItem>
+                      <SelectItem value="6720">6720 - Versicherungen</SelectItem>
+                      <SelectItem value="6815">6815 - Büromaterial</SelectItem>
+                      <SelectItem value="8400">8400 - Erlöse</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
