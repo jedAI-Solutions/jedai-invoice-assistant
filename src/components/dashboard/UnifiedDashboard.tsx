@@ -239,6 +239,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
           table: 'classified_invoices'
         },
         () => {
+          console.log('Classified invoices updated, automatically refreshing booking overview...');
           // Refresh data when classified_invoices table changes
           fetchEntries();
         }
