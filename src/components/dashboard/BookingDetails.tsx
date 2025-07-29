@@ -44,15 +44,9 @@ export const BookingDetails = ({
   const loadMandanten = async () => {
     setLoadingMandanten(true);
     try {
-      // Direkte RPC-Funktion für agenda.mandantenstammdaten
-      const { data, error } = await supabase.rpc('get_mandantenstammdaten');
-      
-      if (error) {
-        console.error('Error loading mandanten via RPC:', error);
-      } else {
-        console.log('Successfully loaded mandanten from agenda.mandantenstammdaten:', data);
-        setMandanten(data || []);
-      }
+      // Temporarily disabled - no database integration
+      setMandanten([]);
+      setLoadingMandanten(false);
     } catch (error) {
       console.error('Error loading mandanten:', error);
     } finally {

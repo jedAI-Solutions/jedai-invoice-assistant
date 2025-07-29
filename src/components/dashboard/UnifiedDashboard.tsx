@@ -136,83 +136,8 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
   // Load entries from classified_invoices table using raw SQL query
   const fetchEntries = async () => {
     try {
-      // Use raw SQL query to fetch from classified_invoices table
-      const { data: rawData, error } = await supabase
-        .from('classified_invoices' as any)
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Convert classified_invoices data to BookingEntry format
-      const convertedEntries: BookingEntry[] = (rawData || []).map((invoice: any) => {
-        // Map mandant from mandant_nr to find the corresponding mandant info
-        const mandant = mandanten.find(m => m.shortName === invoice.mandant_nr) || 
-                       { id: invoice.mandant_nr, name: invoice.mandant, shortName: invoice.mandant_nr, color: "#6b7280" };
-        
-        return {
-          id: invoice.id.toString(),
-          document: invoice.belegnummer || 'Unbekannter Beleg',
-          date: invoice.belegdatum ? new Date(invoice.belegdatum).toLocaleDateString('de-DE') : new Date().toLocaleDateString('de-DE'),
-          amount: invoice.betrag || 0,
-          description: invoice.buchungstext || 'Keine Beschreibung',
-          account: invoice.konto || '0000',
-          taxRate: invoice.uststeuerzahl || '19%',
-          confidence: Math.round((invoice.konfidenz || 0) * 100),
-          status: 'pending' as BookingEntry['status'], // All classified invoices start as pending
-          mandant: invoice.mandant || 'Unbekannt',
-          mandantId: invoice.mandant_nr || '',
-          aiHints: invoice.pruefhinweise || [],
-          aiReasoning: invoice.begruendung || '',
-          createdAt: invoice.created_at || new Date().toISOString(),
-          lastModified: invoice.created_at || new Date().toISOString()
-        };
-      });
-
-      setEntries(convertedEntries);
-
-      // Auto-add high confidence entries to approved_invoices
-      const highConfidenceEntries = convertedEntries.filter(entry => 
-        entry.confidence >= 90 && entry.status === 'pending'
-      );
-
-      for (const entry of highConfidenceEntries) {
-        try {
-          // Check if entry already exists in approved_invoices
-          const { data: existingEntry } = await supabase
-            .from('approved_invoices')
-            .select('id')
-            .eq('classified_invoice_id', parseInt(entry.id))
-            .maybeSingle();
-
-          if (!existingEntry) {
-            // Add to approved invoices
-            const { error: approvedError } = await supabase
-              .from('approved_invoices')
-              .insert({
-                classified_invoice_id: parseInt(entry.id),
-                mandant_id: parseInt(entry.mandantId) || null,
-                mandant_nr: entry.mandantId,
-                mandant: entry.mandant,
-                belegnummer: entry.document,
-                belegdatum: entry.date,
-                betrag: entry.amount,
-                buchungstext: entry.description,
-                konto: entry.account,
-                gegenkonto: entry.account.startsWith('6') ? '1200' : '9999',
-                uststeuerzahl: entry.taxRate,
-                konfidenz: entry.confidence / 100,
-                begruendung: entry.aiReasoning || 'Automatisch genehmigt (hohe Konfidenz)'
-              });
-
-            if (approvedError) {
-              console.error('Error auto-approving high confidence entry:', approvedError);
-            }
-          }
-        } catch (error) {
-          console.error('Error auto-adding high confidence entry:', error);
-        }
-      }
+      // Temporarily disabled - no database integration
+      setEntries(allEntries);
     } catch (error) {
       console.error('Error fetching entries:', error);
       toast({

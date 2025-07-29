@@ -22,20 +22,9 @@ export const ExportQueue = () => {
 
   const fetchExportQueue = async () => {
     try {
-      const { data, error } = await supabase
-        .from('approved_invoices')
-        .select('id, belegnummer, mandant_nr, betrag, created_at')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      
-      const mappedData = data?.map(item => ({
-        ...item,
-        status: 'exported'
-      })) || [];
-      
-      setExportQueue(mappedData);
+      // Temporarily disabled - no database integration
+      setExportQueue([]);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching export queue:', error);
       toast({
