@@ -1,12 +1,8 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
-import type { Mandantenstammdaten } from "@/types/mandantenstammdaten";
 
 interface UploadFile {
   id: string;
@@ -18,38 +14,9 @@ interface UploadFile {
   confidence?: number;
 }
 
-type Mandant = Pick<Mandantenstammdaten, 'name1' | 'mandant_nr'>;
-
 export const UploadArea = () => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
-  const [mandanten, setMandanten] = useState<Mandant[]>([]);
-  const [selectedMandant, setSelectedMandant] = useState<string>("");
-  const [loadingMandanten, setLoadingMandanten] = useState(false);
-
-  // Lade Mandanten beim Komponenten-Start
-  useEffect(() => {
-    loadMandanten();
-  }, []);
-
-  const loadMandanten = async () => {
-    setLoadingMandanten(true);
-    try {
-      // Direkte RPC-Funktion für agenda.mandantenstammdaten
-      const { data, error } = await supabase.rpc('get_mandantenstammdaten');
-      
-      if (error) {
-        console.error('Error loading mandanten via RPC:', error);
-      } else {
-        console.log('Successfully loaded mandanten from agenda.mandantenstammdaten:', data);
-        setMandanten(data || []);
-      }
-    } catch (error) {
-      console.error('Error loading mandanten:', error);
-    } finally {
-      setLoadingMandanten(false);
-    }
-  };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -108,16 +75,6 @@ export const UploadArea = () => {
       formData.append('fileType', file.type);
       formData.append('mimeType', file.type);
       formData.append('fileSize', file.size.toString());
-      
-      // Mandanten-Information hinzufügen
-      if (selectedMandant && selectedMandant !== 'nicht-definiert') {
-        // Finde den vollständigen Mandantennamen
-        const mandantInfo = mandanten.find(m => m.mandant_nr === selectedMandant);
-        const mandantName = mandantInfo ? mandantInfo.name1 : selectedMandant;
-        formData.append('mandant', mandantName);
-      } else {
-        formData.append('mandant', 'nicht zugeordnet');
-      }
       
       console.log('FormData prepared with actual file');
       
@@ -209,49 +166,6 @@ export const UploadArea = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Mandanten-Auswahl */}
-        <div className="mb-4 space-y-2">
-          <Label htmlFor="mandant-select" className="text-xs font-semibold text-foreground">
-            Mandant zuordnen (optional)
-          </Label>
-          <Select value={selectedMandant} onValueChange={setSelectedMandant}>
-            <SelectTrigger className="h-8 text-xs bg-white border border-gray-300 hover:bg-gray-50">
-              <SelectValue placeholder={loadingMandanten ? "Lade Mandanten..." : "Mandant wählen (KI bestimmt automatisch)"} />
-            </SelectTrigger>
-            <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
-              <SelectItem 
-                value="nicht-definiert"
-                className="hover:bg-gray-100 cursor-pointer text-gray-600 italic"
-              >
-                Nicht definiert
-              </SelectItem>
-              {mandanten.map((mandant) => (
-                <SelectItem 
-                  key={mandant.name1} 
-                  value={mandant.name1 || ""}
-                  className="hover:bg-gray-100 cursor-pointer"
-                >
-                  {mandant.name1}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {selectedMandant && selectedMandant !== 'nicht-definiert' && (
-            <p className="text-xs text-primary">
-              Ausgewählt: {selectedMandant}
-            </p>
-          )}
-          {selectedMandant === 'nicht-definiert' && (
-            <p className="text-xs text-muted-foreground">
-              Nicht definiert → KI erkennt automatisch anhand des Belegs
-            </p>
-          )}
-          {!selectedMandant && (
-            <p className="text-xs text-muted-foreground">
-              Kein Mandant → KI erkennt automatisch anhand des Belegs
-            </p>
-          )}
-        </div>
         <div
           className={`border-2 border-dashed rounded-lg p-4 text-center transition-all duration-300 ${
             dragActive 
