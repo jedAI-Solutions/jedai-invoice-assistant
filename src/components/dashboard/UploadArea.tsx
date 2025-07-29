@@ -94,7 +94,7 @@ export const UploadArea = () => {
   };
 
   const uploadFileToWebhook = async (file: File, fileId: string) => {
-    const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook-test/beleg-upload';
+    const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook-test/beleg-upload-fixed';
     
     console.log('Starting upload to:', webhookUrl);
     console.log('File details:', { name: file.name, size: file.size, type: file.type });
