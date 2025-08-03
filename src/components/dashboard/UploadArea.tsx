@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import MandantSelector from "./MandantSelector";
 
 interface UploadFile {
   id: string;
@@ -17,6 +18,7 @@ interface UploadFile {
 export const UploadArea = () => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const [selectedMandant, setSelectedMandant] = useState<string>("all");
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -61,7 +63,7 @@ export const UploadArea = () => {
   };
 
   const uploadFileToWebhook = async (file: File, fileId: string) => {
-    const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook-test/beleg-upload-fixed';
+    const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook-test/a5a3e1e6-dccf-48de-93bb-19b907f6af83';
     
     console.log('Starting upload to:', webhookUrl);
     console.log('File details:', { name: file.name, size: file.size, type: file.type });
@@ -75,6 +77,7 @@ export const UploadArea = () => {
       formData.append('fileType', file.type);
       formData.append('mimeType', file.type);
       formData.append('fileSize', file.size.toString());
+      formData.append('mandant_nr', selectedMandant);
       
       console.log('FormData prepared with actual file');
       
@@ -166,6 +169,12 @@ export const UploadArea = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="mb-4">
+          <MandantSelector 
+            selectedMandant={selectedMandant} 
+            onMandantChange={setSelectedMandant} 
+          />
+        </div>
         <div
           className={`border-2 border-dashed rounded-lg p-4 text-center transition-all duration-300 ${
             dragActive 

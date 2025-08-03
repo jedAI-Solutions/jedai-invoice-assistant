@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Mandant {
-  id: string;
   mandant_nr: string;
   name1: string;
 }
@@ -22,8 +22,11 @@ export default function MandantSelector({ selectedMandant, onMandantChange }: Ma
   const fetchMandanten = async () => {
     try {
       setLoading(true);
-      // Temporarily disabled - no database integration
-      setMandanten([]);
+      const { data, error } = await supabase
+        .rpc('get_mandantenstammdaten');
+      
+      if (error) throw error;
+      setMandanten(data || []);
     } catch (error) {
       console.error('Error fetching mandanten:', error);
       toast({
@@ -50,8 +53,8 @@ export default function MandantSelector({ selectedMandant, onMandantChange }: Ma
         <SelectContent>
           <SelectItem value="all">Alle Mandanten</SelectItem>
           {mandanten.map((mandant) => (
-            <SelectItem key={mandant.id} value={mandant.mandant_nr}>
-              {mandant.name1}
+            <SelectItem key={mandant.mandant_nr} value={mandant.mandant_nr}>
+              {mandant.name1} ({mandant.mandant_nr})
             </SelectItem>
           ))}
         </SelectContent>
