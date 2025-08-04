@@ -204,7 +204,7 @@ serve(async (req) => {
         if (mandantId) {
           const { data: mandant, error: mandantError } = await supabase
             .from('mandants')
-            .select('mandant_nr, name1, name2, ort, email, telefon, kontenrahmen, mandantentyp, rechtsform')
+            .select('mandant_nr, name1')
             .eq('id', mandantId)
             .single();
           
@@ -237,13 +237,6 @@ serve(async (req) => {
           n8nFormData.append('mandant_id', mandantId);
           n8nFormData.append('mandant_nr', mandantInfo.mandant_nr);
           n8nFormData.append('mandant_name1', mandantInfo.name1);
-          n8nFormData.append('mandant_name2', mandantInfo.name2 || '');
-          n8nFormData.append('mandant_ort', mandantInfo.ort || '');
-          n8nFormData.append('mandant_email', mandantInfo.email || '');
-          n8nFormData.append('mandant_telefon', mandantInfo.telefon || '');
-          n8nFormData.append('mandant_kontenrahmen', mandantInfo.kontenrahmen || '');
-          n8nFormData.append('mandant_typ', mandantInfo.mandantentyp || '');
-          n8nFormData.append('mandant_rechtsform', mandantInfo.rechtsform || '');
         } else {
           n8nFormData.append('mandant_id', '');
           n8nFormData.append('mandant_nr', '');
