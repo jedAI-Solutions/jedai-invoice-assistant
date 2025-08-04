@@ -44,11 +44,18 @@ export const BookingDetails = ({
   const loadMandanten = async () => {
     setLoadingMandanten(true);
     try {
-      // Temporarily disabled - no database integration
-      setMandanten([]);
-      setLoadingMandanten(false);
+      const { data, error } = await supabase
+        .from('mandants')
+        .select('name1, mandant_nr')
+        .eq('status', 'active')
+        .order('name1');
+
+      if (error) throw error;
+
+      setMandanten(data || []);
     } catch (error) {
       console.error('Error loading mandanten:', error);
+      setMandanten([]);
     } finally {
       setLoadingMandanten(false);
     }
@@ -195,11 +202,14 @@ export const BookingDetails = ({
                       </SelectItem>
                       {mandanten.map((mandant) => (
                         <SelectItem 
-                          key={mandant.name1} 
+                          key={mandant.mandant_nr} 
                           value={mandant.name1 || ""}
                           className="hover:bg-gray-100 cursor-pointer"
                         >
-                          {mandant.name1}
+                          <div className="flex justify-between items-center w-full">
+                            <span>{mandant.name1}</span>
+                            <span className="text-xs text-gray-500 ml-2">({mandant.mandant_nr})</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
