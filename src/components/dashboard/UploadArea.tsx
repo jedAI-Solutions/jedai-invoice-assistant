@@ -66,6 +66,11 @@ export const UploadArea = () => {
     setFiles(newFiles);
   };
 
+  const removeSelectedFile = (indexToRemove: number) => {
+    setSelectedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
+    setFiles(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
       toast({
@@ -258,7 +263,32 @@ export const UploadArea = () => {
         </div>
 
         {selectedFiles.length > 0 && (
-          <div className="mt-4">
+          <div className="mt-4 space-y-3">
+            <h4 className="font-semibold text-foreground text-sm">Ausgewählte Dateien ({selectedFiles.length})</h4>
+            <div className="space-y-2">
+              {selectedFiles.map((file, index) => (
+                <div key={`selected-${index}`} className="flex items-center justify-between p-3 border border-white/20 rounded-lg bg-white/5 backdrop-blur-glass">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{file.name}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{formatFileSize(file.size)}</span>
+                      <span>•</span>
+                      <span>{file.type}</span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeSelectedFile(index)}
+                    className="ml-2 text-muted-foreground hover:text-destructive h-8 w-8 p-0"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </Button>
+                </div>
+              ))}
+            </div>
             <Button 
               onClick={handleUpload}
               disabled={isUploading}
