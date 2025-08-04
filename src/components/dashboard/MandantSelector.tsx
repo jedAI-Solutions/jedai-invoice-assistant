@@ -28,7 +28,6 @@ export default function MandantSelector({ selectedMandant, onMandantChange }: Ma
       if (error) throw error;
       setMandanten(data || []);
     } catch (error) {
-      console.error('Error fetching mandanten:', error);
       toast({
         title: "Fehler",
         description: "Mandanten konnten nicht geladen werden",

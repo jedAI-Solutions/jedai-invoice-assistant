@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import aiHeaderBg from "@/assets/ai-header-bg.jpg";
 import { TransparentLogo } from "@/components/TransparentLogo";
 import jedaiLogoIcon from "@/assets/jedai-logo-icon.png";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardHeaderProps {
   selectedMandant: string;
@@ -22,8 +23,13 @@ export const DashboardHeader = ({
 }: DashboardHeaderProps) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   
   const currentTab = location.pathname === '/agenda-import' ? 'agenda' : 'review';
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
   return (
     <div 
       className="relative bg-white/10 backdrop-blur-glass shadow-glass border-b border-white/20 p-4 md:p-8 min-h-[120px] md:min-h-[160px] overflow-hidden"
@@ -82,10 +88,17 @@ export const DashboardHeader = ({
           <Badge className="bg-gradient-primary text-white border-0 text-[10px] md:text-xs shadow-lg px-2 py-0.5">
             KI-System Online
           </Badge>
-          <Button variant="outline" className="border-white/50 hover:bg-white/20 text-[10px] md:text-xs px-2 py-1
-                                             bg-black/20 backdrop-blur-sm text-white font-semibold shadow-md
-                                             hover:text-white transition-all duration-300 h-auto">
-            Einstellungen
+          <div className="text-right text-white text-[10px] md:text-xs">
+            <p>{user?.email}</p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={handleSignOut}
+            className="border-white/50 hover:bg-white/20 text-[10px] md:text-xs px-2 py-1
+                       bg-black/20 backdrop-blur-sm text-white font-semibold shadow-md
+                       hover:text-white transition-all duration-300 h-auto"
+          >
+            Abmelden
           </Button>
         </div>
       </div>

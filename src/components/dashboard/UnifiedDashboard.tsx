@@ -239,14 +239,13 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     try {
       const approvedEntry = entries.find(e => e.id === entryId);
       if (approvedEntry) {
-        // Add to approved_invoices table
+        // Add to approved_bookings table
         const { error: approvedError } = await supabase
-          .from('approved_invoices')
+          .from('approved_bookings')
           .insert({
-            classified_invoice_id: parseInt(entryId),
-            mandant_id: parseInt(approvedEntry.mandantId) || null,
+            mandant_id: approvedEntry.mandantId,
             mandant_nr: approvedEntry.mandantId,
-            mandant: approvedEntry.mandant,
+            mandant_name: approvedEntry.mandant,
             belegnummer: approvedEntry.document,
             belegdatum: approvedEntry.date,
             betrag: approvedEntry.amount,
@@ -254,8 +253,8 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
             konto: approvedEntry.account,
             gegenkonto: approvedEntry.account.startsWith('6') ? '1200' : '9999',
             uststeuerzahl: approvedEntry.taxRate,
-            konfidenz: approvedEntry.confidence / 100,
-            begruendung: 'Manuell genehmigt'
+            final_confidence: approvedEntry.confidence / 100,
+            approved_by: 'manual'
           });
 
         if (approvedError) throw approvedError;

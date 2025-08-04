@@ -65,9 +65,6 @@ export const UploadArea = () => {
   const uploadFileToWebhook = async (file: File, fileId: string) => {
     const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook-test/a5a3e1e6-dccf-48de-93bb-19b907f6af83';
     
-    console.log('Starting upload to:', webhookUrl);
-    console.log('File details:', { name: file.name, size: file.size, type: file.type });
-    
     try {
       // Create FormData to send the actual file
       const formData = new FormData();
@@ -123,7 +120,6 @@ export const UploadArea = () => {
         ));
       }
     } catch (error) {
-      console.error('Upload error:', error);
       setFiles(prev => prev.map(f => 
         f.id === fileId 
           ? { ...f, status: 'error', progress: 0 } 
