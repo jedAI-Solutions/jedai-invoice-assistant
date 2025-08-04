@@ -55,7 +55,7 @@ export const DashboardHeader = ({
         <div className="flex-1 flex items-center justify-center gap-3 md:gap-6 pb-8">
           {/* Logo Container */}
           <div className="flex-shrink-0 relative group cursor-pointer">
-            <TransparentLogo
+            <img
               src={jedaiLogoIcon}
               alt="jedAI Solutions Logo"
               className="relative h-12 md:h-24 w-auto object-contain transition-all duration-700 ease-in-out
