@@ -45,20 +45,9 @@ export const UploadArea = () => {
     }
   }, []);
 
-  const handleFiles = async (fileList: FileList) => {
+  const handleFiles = (fileList: FileList) => {
     console.log('handleFiles called with:', fileList.length, 'files');
     const fileArray = Array.from(fileList);
-    
-    // Check for duplicate files against previously failed uploads
-    const duplicateFiles = await checkForDuplicateFiles(fileArray);
-    if (duplicateFiles.length > 0) {
-      toast({
-        title: "Duplikate erkannt",
-        description: `Die folgenden Dateien wurden bereits hochgeladen: ${duplicateFiles.join(', ')}`,
-        variant: "destructive",
-      });
-      return;
-    }
     
     setSelectedFiles(fileArray);
     
@@ -73,40 +62,6 @@ export const UploadArea = () => {
 
     console.log('New files selected:', newFiles);
     setFiles(prev => [...prev, ...newFiles]);
-  };
-
-  const checkForDuplicateFiles = async (fileArray: File[]): Promise<string[]> => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return [];
-      
-      const duplicates: string[] = [];
-      
-      for (const file of fileArray) {
-        // Create file hash for comparison
-        const arrayBuffer = await file.arrayBuffer();
-        const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        
-        // Check if this file hash exists with error status
-        const { data: existingDoc } = await supabase
-          .from('document_registry')
-          .select('id, original_filename, processing_status')
-          .eq('file_hash', fileHash)
-          .eq('processing_status', 'error')
-          .single();
-          
-        if (existingDoc) {
-          duplicates.push(file.name);
-        }
-      }
-      
-      return duplicates;
-    } catch (error) {
-      console.error('Error checking duplicates:', error);
-      return [];
-    }
   };
 
   const handleUpload = async () => {
