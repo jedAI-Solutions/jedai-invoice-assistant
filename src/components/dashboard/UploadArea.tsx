@@ -21,6 +21,8 @@ export const UploadArea = () => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [selectedMandant, setSelectedMandant] = useState<string>("all");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -43,9 +45,23 @@ export const UploadArea = () => {
     }
   }, []);
 
-  const handleFiles = (fileList: FileList) => {
+  const handleFiles = async (fileList: FileList) => {
     console.log('handleFiles called with:', fileList.length, 'files');
     const fileArray = Array.from(fileList);
+    
+    // Check for duplicate files against previously failed uploads
+    const duplicateFiles = await checkForDuplicateFiles(fileArray);
+    if (duplicateFiles.length > 0) {
+      toast({
+        title: "Duplikate erkannt",
+        description: `Die folgenden Dateien wurden bereits hochgeladen: ${duplicateFiles.join(', ')}`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setSelectedFiles(fileArray);
+    
     const newFiles: UploadFile[] = fileArray.map((file, index) => ({
       id: `file-${Date.now()}-${index}`,
       name: file.name,
@@ -55,11 +71,59 @@ export const UploadArea = () => {
       progress: 0
     }));
 
-    console.log('New files created:', newFiles);
+    console.log('New files selected:', newFiles);
     setFiles(prev => [...prev, ...newFiles]);
+  };
 
-    // Upload all files together in a single batch
-    uploadFilesToWebhook(fileArray, newFiles);
+  const checkForDuplicateFiles = async (fileArray: File[]): Promise<string[]> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return [];
+      
+      const duplicates: string[] = [];
+      
+      for (const file of fileArray) {
+        // Create file hash for comparison
+        const arrayBuffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        // Check if this file hash exists with error status
+        const { data: existingDoc } = await supabase
+          .from('document_registry')
+          .select('id, original_filename, processing_status')
+          .eq('file_hash', fileHash)
+          .eq('processing_status', 'error')
+          .single();
+          
+        if (existingDoc) {
+          duplicates.push(file.name);
+        }
+      }
+      
+      return duplicates;
+    } catch (error) {
+      console.error('Error checking duplicates:', error);
+      return [];
+    }
+  };
+
+  const handleUpload = async () => {
+    if (selectedFiles.length === 0) {
+      toast({
+        title: "Keine Dateien ausgewählt",
+        description: "Bitte wählen Sie erst Dateien aus, bevor Sie den Upload starten.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsUploading(true);
+    const uploadFiles = files.filter(f => f.status === 'uploading');
+    await uploadFilesToWebhook(selectedFiles, uploadFiles);
+    setSelectedFiles([]);
+    setIsUploading(false);
   };
 
   const uploadFilesToWebhook = async (fileArray: File[], uploadFiles: UploadFile[]) => {
@@ -234,6 +298,19 @@ export const UploadArea = () => {
             onChange={(e) => e.target.files && handleFiles(e.target.files)}
           />
         </div>
+
+        {selectedFiles.length > 0 && (
+          <div className="mt-4">
+            <Button 
+              onClick={handleUpload}
+              disabled={isUploading}
+              className="w-full"
+              variant="gradient"
+            >
+              {isUploading ? "Wird hochgeladen..." : `${selectedFiles.length} Datei(en) hochladen`}
+            </Button>
+          </div>
+        )}
 
         {files.length > 0 && (
           <div className="mt-6 space-y-3">

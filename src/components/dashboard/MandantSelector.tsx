@@ -47,10 +47,10 @@ export default function MandantSelector({ selectedMandant, onMandantChange }: Ma
       <Label htmlFor="mandant-select">Mandant filtern</Label>
       <Select value={selectedMandant} onValueChange={onMandantChange}>
         <SelectTrigger className="w-full">
-          <SelectValue placeholder={loading ? "Lade Mandanten..." : "Alle Mandanten"} />
+          <SelectValue placeholder={loading ? "Lade Mandanten..." : "Mandant nicht definiert"} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Alle Mandanten</SelectItem>
+          <SelectItem value="all">Mandant nicht definiert</SelectItem>
           {mandanten.map((mandant) => (
             <SelectItem key={mandant.mandant_nr} value={mandant.mandant_nr}>
               {mandant.name1} ({mandant.mandant_nr})
