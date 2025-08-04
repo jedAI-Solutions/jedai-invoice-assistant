@@ -38,6 +38,13 @@ export const BookingDetails = ({
   }, []);
 
   useEffect(() => {
+    console.log('BookingDetails received selectedEntry:', {
+      account: selectedEntry?.account,
+      taxRate: selectedEntry?.taxRate,
+      konto: selectedEntry?.konto,
+      uststeuerzahl: selectedEntry?.uststeuerzahl,
+      fullEntry: selectedEntry
+    });
     setEditedEntry(selectedEntry);
   }, [selectedEntry]);
 

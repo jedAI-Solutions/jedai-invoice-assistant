@@ -48,37 +48,46 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
       if (error) throw error;
 
-      const mappedEntries: BookingEntry[] = classifications?.map((item: any) => ({
-        id: item.id,
-        document: item.belegnummer || 'Unbekannter Beleg',
-        date: item.belegdatum || new Date().toISOString().split('T')[0],
-        amount: item.betrag || 0,
-        description: item.buchungstext || 'Keine Beschreibung',
-        account: item.konto || '',
-        taxRate: item.uststeuerzahl || '19%',
-        confidence: Math.round((item.overall_confidence || 0) * 100),
-        status: (item.status === 'approved' ? 'ready' : item.status || 'pending') as any,
-        mandant: item.mandants?.name1 || item.mandant_resolved || 'Unbekannt',
-        mandantId: item.mandant_id || '',
-        aiHints: item.check_notes || [],
-        aiReasoning: item.reasoning || '',
-        createdAt: item.created_at || new Date().toISOString(),
-        lastModified: item.updated_at || new Date().toISOString(),
-        // Additional AI classification fields
-        belegnummer: item.belegnummer,
-        belegdatum: item.belegdatum,
-        betrag: item.betrag,
-        buchungstext: item.buchungstext,
-        konto: item.konto,
-        gegenkonto: item.gegenkonto,
-        uststeuerzahl: item.uststeuerzahl,
-        mandant_resolved: item.mandant_resolved,
-        overall_confidence: item.overall_confidence,
-        ai_result: item.ai_result,
-        reasoning: item.reasoning,
-        uncertainty_factors: item.uncertainty_factors,
-        check_notes: item.check_notes
-      })) || [];
+      const mappedEntries: BookingEntry[] = classifications?.map((item: any) => {
+        console.log('Mapping item:', {
+          id: item.id,
+          konto: item.konto,
+          uststeuerzahl: item.uststeuerzahl,
+          fullItem: item
+        });
+        
+        return {
+          id: item.id,
+          document: item.belegnummer || 'Unbekannter Beleg',
+          date: item.belegdatum || new Date().toISOString().split('T')[0],
+          amount: item.betrag || 0,
+          description: item.buchungstext || 'Keine Beschreibung',
+          account: item.konto || '',
+          taxRate: item.uststeuerzahl || '19%',
+          confidence: Math.round((item.overall_confidence || 0) * 100),
+          status: (item.status === 'approved' ? 'ready' : item.status || 'pending') as any,
+          mandant: item.mandants?.name1 || item.mandant_resolved || 'Unbekannt',
+          mandantId: item.mandant_id || '',
+          aiHints: item.check_notes || [],
+          aiReasoning: item.reasoning || '',
+          createdAt: item.created_at || new Date().toISOString(),
+          lastModified: item.updated_at || new Date().toISOString(),
+          // Additional AI classification fields
+          belegnummer: item.belegnummer,
+          belegdatum: item.belegdatum,
+          betrag: item.betrag,
+          buchungstext: item.buchungstext,
+          konto: item.konto,
+          gegenkonto: item.gegenkonto,
+          uststeuerzahl: item.uststeuerzahl,
+          mandant_resolved: item.mandant_resolved,
+          overall_confidence: item.overall_confidence,
+          ai_result: item.ai_result,
+          reasoning: item.reasoning,
+          uncertainty_factors: item.uncertainty_factors,
+          check_notes: item.check_notes
+        };
+      }) || [];
 
       setEntries(mappedEntries);
       setAllEntries(mappedEntries);
