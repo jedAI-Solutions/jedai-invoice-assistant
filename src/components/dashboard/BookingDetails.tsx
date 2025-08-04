@@ -96,9 +96,10 @@ export const BookingDetails = ({
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="buchung" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-white/10 backdrop-blur-glass border border-white/20">
+          <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-glass border border-white/20">
             <TabsTrigger value="buchung" className="data-[state=active]:bg-white/20">Buchungsdaten</TabsTrigger>
             <TabsTrigger value="beleg" className="data-[state=active]:bg-white/20">Belegansicht</TabsTrigger>
+            <TabsTrigger value="pdf" className="data-[state=active]:bg-white/20">Original PDF</TabsTrigger>
           </TabsList>
           
           <TabsContent value="buchung" className="space-y-6">
@@ -336,6 +337,30 @@ export const BookingDetails = ({
                 </div>
                 <Button variant="outline" className="bg-white/10 backdrop-blur-glass border-white/20">
                   Beleg öffnen
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="pdf" className="mt-6">
+            <div className="border border-white/20 rounded-lg p-6 bg-white/10 backdrop-blur-glass">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 rounded-lg bg-destructive/10 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <h4 className="font-semibold text-foreground">Original PDF-Ansicht</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Das ursprüngliche PDF-Dokument wird hier angezeigt
+                  </p>
+                </div>
+                <div className="w-full max-w-2xl h-96 border border-white/20 rounded-lg bg-white/5 flex items-center justify-center">
+                  <p className="text-muted-foreground">PDF-Viewer wird hier eingebettet</p>
+                </div>
+                <Button variant="outline" className="bg-white/10 backdrop-blur-glass border-white/20">
+                  PDF herunterladen
                 </Button>
               </div>
             </div>

@@ -117,17 +117,7 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
 
   const handleDelete = async (invoice: ApprovedInvoice) => {
     try {
-      // Instead of deleting completely, move back to ai_classifications with pending status
-      if (invoice.classification_id) {
-        const { error: updateError } = await supabase
-          .from('ai_classifications')
-          .update({ status: 'pending' })
-          .eq('id', invoice.classification_id);
-
-        if (updateError) throw updateError;
-      }
-
-      // Remove from approved_bookings
+      // Completely delete from approved_bookings
       const { error: deleteError } = await supabase
         .from('approved_bookings')
         .delete()
@@ -137,15 +127,47 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
 
       toast({
         title: "Erfolg",
-        description: "Rechnung wurde zurück in die klassifizierten Rechnungen verschoben",
+        description: "Rechnung wurde gelöscht",
       });
 
       fetchApprovedInvoices();
     } catch (error) {
-      console.error('Error moving invoice back to classified:', error);
+      console.error('Error deleting invoice:', error);
       toast({
         title: "Fehler",
-        description: "Rechnung konnte nicht zurück verschoben werden",
+        description: "Rechnung konnte nicht gelöscht werden",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownload = async (invoice: ApprovedInvoice) => {
+    try {
+      // Create CSV content
+      const csvHeader = "Belegnummer,Mandant,Betrag,Datum,Konto,Gegenkonto,Buchungstext,Steuersatz\n";
+      const csvRow = `"${invoice.belegnummer}","${invoice.mandant}","${invoice.betrag}","${invoice.created_at}","","","",""\n`;
+      const csvContent = csvHeader + csvRow;
+      
+      // Create and download CSV file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `rechnung_${invoice.belegnummer}_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Erfolg",
+        description: "CSV-Datei wurde heruntergeladen",
+      });
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      toast({
+        title: "Fehler",
+        description: "Download fehlgeschlagen",
         variant: "destructive",
       });
     }
@@ -196,7 +218,12 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
                     <div className="text-xs text-muted-foreground">Genehmigt</div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDownload(invoice)}
+                      title="Als CSV herunterladen"
+                    >
                       <Download className="h-4 w-4" />
                     </Button>
                     <Button
@@ -211,7 +238,7 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(invoice)}
-                      title="Zurück zu klassifizierten Rechnungen"
+                      title="Rechnung löschen"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
