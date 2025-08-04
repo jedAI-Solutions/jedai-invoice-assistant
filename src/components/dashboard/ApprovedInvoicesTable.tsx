@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2, Download } from "lucide-react";
+import { Trash2, Download, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,6 +12,8 @@ interface ApprovedInvoice {
   mandant: string;
   betrag: number;
   created_at: string;
+  classification_id?: string;
+  document_id?: string;
 }
 
 export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMandant: string }) {
@@ -42,7 +44,9 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
         belegnummer: item.belegnummer || 'Unbekannt',
         mandant: item.mandant_name || 'Unbekannt',
         betrag: item.betrag || 0,
-        created_at: item.created_at || new Date().toISOString()
+        created_at: item.created_at || new Date().toISOString(),
+        classification_id: item.classification_id,
+        document_id: item.document_id
       })) || [];
 
       setApprovedInvoices(mappedInvoices);
@@ -73,12 +77,66 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
     }).format(amount);
   };
 
+  const handleSendBackForReview = async (invoice: ApprovedInvoice) => {
+    try {
+      // Update status in ai_classifications table back to pending if classification_id exists
+      if (invoice.classification_id) {
+        const { error: updateError } = await supabase
+          .from('ai_classifications')
+          .update({ status: 'pending' })
+          .eq('id', invoice.classification_id);
+
+        if (updateError) throw updateError;
+      }
+
+      // Remove from approved_bookings
+      const { error: deleteError } = await supabase
+        .from('approved_bookings')
+        .delete()
+        .eq('id', invoice.id);
+
+      if (deleteError) throw deleteError;
+
+      toast({
+        title: "Erfolg",
+        description: "Rechnung wurde zur erneuten Prüfung gesendet",
+      });
+
+      // Refresh the list
+      fetchApprovedInvoices();
+    } catch (error) {
+      console.error('Error sending back for review:', error);
+      toast({
+        title: "Fehler",
+        description: "Rechnung konnte nicht zur Prüfung gesendet werden",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDelete = async (id: string) => {
-    // Disabled - no database integration
-    toast({
-      title: "Info",
-      description: "Database-Integration ist deaktiviert",
-    });
+    try {
+      const { error } = await supabase
+        .from('approved_bookings')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Erfolg",
+        description: "Rechnung wurde gelöscht",
+      });
+
+      fetchApprovedInvoices();
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      toast({
+        title: "Fehler",
+        description: "Rechnung konnte nicht gelöscht werden",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
@@ -128,6 +186,14 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
                   <div className="flex gap-2">
                     <Button variant="ghost" size="sm">
                       <Download className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleSendBackForReview(invoice)}
+                      title="Zur erneuten Prüfung senden"
+                    >
+                      <RotateCcw className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
