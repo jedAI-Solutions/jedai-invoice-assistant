@@ -58,14 +58,11 @@ export const UploadArea = () => {
     console.log('New files created:', newFiles);
     setFiles(prev => [...prev, ...newFiles]);
 
-    // Upload zu Webhook
-    newFiles.forEach((uploadFile, index) => {
-      console.log('Starting upload for file:', uploadFile.name);
-      uploadFileToWebhook(fileArray[index], uploadFile.id);
-    });
+    // Upload all files together in a single batch
+    uploadFilesToWebhook(fileArray, newFiles);
   };
 
-  const uploadFileToWebhook = async (file: File, fileId: string) => {
+  const uploadFilesToWebhook = async (fileArray: File[], uploadFiles: UploadFile[]) => {
     try {
       // Get authentication session
       const { data: { session } } = await supabase.auth.getSession();
@@ -74,21 +71,27 @@ export const UploadArea = () => {
         throw new Error('Authentication required');
       }
 
-      // Create FormData to send the actual file
+      // Create FormData to send all files together
       const formData = new FormData();
-      formData.append('file', file);
+      
+      // Add all files to the form data
+      fileArray.forEach((file, index) => {
+        formData.append('file', file); // Edge function will handle multiple files with same key
+      });
       
       // Add mandant information if selected
       if (selectedMandant && selectedMandant !== 'all') {
         formData.append('mandant_id', selectedMandant);
       }
       
+      console.log(`Uploading ${fileArray.length} files together`);
+      
       // Update progress to show upload starting
       setFiles(prev => prev.map(f => 
-        f.id === fileId ? { ...f, progress: 10 } : f
+        uploadFiles.some(uf => uf.id === f.id) ? { ...f, progress: 10 } : f
       ));
 
-      // Use secure edge function instead of hardcoded webhook
+      // Use secure edge function 
       const response = await fetch(`https://awrduehwnyxbwtjbbrhw.supabase.co/functions/v1/secure-file-upload`, {
         method: 'POST',
         headers: {
@@ -99,15 +102,17 @@ export const UploadArea = () => {
       
       if (response.ok) {
         const result = await response.json();
+        console.log('Batch upload result:', result);
         
+        // Update all uploaded files to processing
         setFiles(prev => prev.map(f => 
-          f.id === fileId ? { ...f, status: 'processing', progress: 100 } : f
+          uploadFiles.some(uf => uf.id === f.id) ? { ...f, status: 'processing', progress: 100 } : f
         ));
 
         // Complete after processing time
         setTimeout(() => {
           setFiles(prev => prev.map(f => 
-            f.id === fileId 
+            uploadFiles.some(uf => uf.id === f.id)
               ? { 
                   ...f, 
                   status: 'completed', 
@@ -119,18 +124,19 @@ export const UploadArea = () => {
 
         // Show success message
         toast({
-          title: "File uploaded successfully",
-          description: `${file.name} has been processed and registered.`,
+          title: "Files uploaded successfully",
+          description: `${fileArray.length} files have been processed and forwarded to workflow.`,
         });
       } else {
         const errorData = await response.json().catch(() => ({ error: response.statusText }));
         throw new Error(errorData.error || `Upload failed: ${response.statusText}`);
       }
     } catch (error) {
+      console.error('Batch upload error:', error);
+      
+      // Update all files to error state
       setFiles(prev => prev.map(f => 
-        f.id === fileId 
-          ? { ...f, status: 'error', progress: 0 } 
-          : f
+        uploadFiles.some(uf => uf.id === f.id) ? { ...f, status: 'error', progress: 0 } : f
       ));
       
       // Show error message
