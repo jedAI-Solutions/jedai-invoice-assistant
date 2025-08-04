@@ -149,36 +149,78 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     return filtered;
   }, [entries, selectedMandant, confidenceFilter]);
 
-  // Calculate stats based on filtered entries
-  const stats = useMemo(() => {
-    const totalEntries = filteredEntries.length;
-    const pendingReviews = filteredEntries.filter(e => e.status === 'pending').length;
-    const readyForExport = filteredEntries.filter(e => e.status === 'ready').length;
-    const rejectedEntries = filteredEntries.filter(e => e.status === 'rejected').length;
-    
-    // Calculate saved time: assume manual review takes 5 minutes per document, AI-assisted takes 1 minute
-    const manualTimePerDocument = 5; // minutes
-    const aiAssistedTimePerDocument = 1; // minutes
-    const savedTime = filteredEntries.length * (manualTimePerDocument - aiAssistedTimePerDocument);
-    
-    const avgConfidence = filteredEntries.length > 0 
-      ? filteredEntries.reduce((sum, entry) => sum + entry.confidence, 0) / filteredEntries.length 
-      : 0;
+  const [stats, setStats] = useState<DashboardStats>({
+    totalEntries: 0,
+    pendingReviews: 0,
+    approvedBookings: 0,
+    rejectedEntries: 0,
+    savedTime: 0,
+    avgConfidence: 0
+  });
 
-    return {
-      totalEntries,
-      pendingReviews,
-      readyForExport,
-      rejectedEntries,
-      savedTime,
-      avgConfidence
-    };
+  // Calculate stats based on database data
+  const calculateStats = async () => {
+    try {
+      // Count total entries from ai_classifications
+      const { count: totalEntries } = await supabase
+        .from('ai_classifications')
+        .select('*', { count: 'exact', head: true });
+
+      // Count pending reviews from ai_classifications  
+      const { count: pendingReviews } = await supabase
+        .from('ai_classifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      // Count approved bookings from approved_bookings table
+      const { count: approvedBookings } = await supabase
+        .from('approved_bookings')
+        .select('*', { count: 'exact', head: true });
+
+      // Count rejected entries
+      const { count: rejectedEntries } = await supabase
+        .from('ai_classifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'rejected');
+
+      // Calculate saved time: 10 minutes per approved booking
+      const savedTime = (approvedBookings || 0) * 10;
+
+      // Calculate average confidence from current filtered entries
+      const avgConfidence = filteredEntries.length > 0 
+        ? filteredEntries.reduce((sum, entry) => sum + entry.confidence, 0) / filteredEntries.length 
+        : 0;
+
+      const newStats = {
+        totalEntries: totalEntries || 0,
+        pendingReviews: pendingReviews || 0,
+        approvedBookings: approvedBookings || 0,
+        rejectedEntries: rejectedEntries || 0,
+        savedTime,
+        avgConfidence
+      };
+
+      setStats(newStats);
+      onStatsUpdate(newStats);
+    } catch (error) {
+      console.error('Error calculating stats:', error);
+      const fallbackStats = {
+        totalEntries: 0,
+        pendingReviews: 0,
+        approvedBookings: 0,
+        rejectedEntries: 0,
+        savedTime: 0,
+        avgConfidence: 0
+      };
+      setStats(fallbackStats);
+      onStatsUpdate(fallbackStats);
+    }
+  };
+
+  useEffect(() => {
+    calculateStats();
   }, [filteredEntries]);
 
-  // Update stats in parent component using useEffect to avoid render phase updates
-  useEffect(() => {
-    onStatsUpdate(stats);
-  }, [stats, onStatsUpdate]);
 
   const handleApprove = async (entryId: string) => {
     try {
@@ -339,9 +381,6 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         <h2 className="text-xl font-semibold">Klassifizierte Rechnungen</h2>
         <BookingTable
           entries={filteredEntries}
-          mandanten={mandanten}
-          selectedMandant={selectedMandant}
-          onMandantChange={handleMandantChange}
           onEntrySelect={setSelectedEntry}
           onApprove={handleApprove}
           onReject={handleReject}

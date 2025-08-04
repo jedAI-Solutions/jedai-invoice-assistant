@@ -40,7 +40,7 @@ export interface Mandant {
 export interface DashboardStats {
   totalEntries: number;
   pendingReviews: number;
-  readyForExport: number;
+  approvedBookings: number;
   rejectedEntries: number;
   savedTime: number; // in minutes
   avgConfidence: number;

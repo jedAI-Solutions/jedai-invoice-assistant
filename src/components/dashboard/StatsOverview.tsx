@@ -23,11 +23,11 @@ export const StatsOverview = ({ stats }: StatsOverviewProps) => {
       description: `KI-Konfidenz ⌀ ${stats.avgConfidence}%`
     },
     {
-      title: "Exportbereit",
-      value: stats.readyForExport.toString(),
+      title: "Genehmigte Rechnungen",
+      value: stats.approvedBookings.toString(),
       change: "0",
       trend: "neutral",
-      description: "Bereit für Agenda"
+      description: "Bereit für Export"
     },
     {
       title: "Ausstehende Prüfungen",

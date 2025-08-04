@@ -11,7 +11,7 @@ const Index = () => {
   const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
     totalEntries: 0,
     pendingReviews: 0,
-    readyForExport: 0,
+    approvedBookings: 0,
     rejectedEntries: 0,
     savedTime: 0,
     avgConfidence: 0

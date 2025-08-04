@@ -9,9 +9,6 @@ import { BookingEntry, Mandant } from "@/types/booking";
 
 interface BookingTableProps {
   entries: BookingEntry[];
-  mandanten: Mandant[];
-  selectedMandant: string;
-  onMandantChange: (mandant: string) => void;
   onEntrySelect: (entry: BookingEntry) => void;
   onApprove: (entryId: string) => void;
   onReject: (entryId: string) => void;
@@ -22,9 +19,6 @@ interface BookingTableProps {
 
 export const BookingTable = ({
   entries,
-  mandanten,
-  selectedMandant,
-  onMandantChange,
   onEntrySelect,
   onApprove,
   onReject,
@@ -116,23 +110,7 @@ export const BookingTable = ({
       <CardHeader className="p-3 md:p-6">
         <CardTitle className="flex flex-col md:flex-row md:items-center justify-between font-modern gap-3">
           <span className="text-lg md:text-xl">Buchungsübersicht</span>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs md:text-sm font-medium text-muted-foreground font-modern whitespace-nowrap">Mandant:</span>
-                <Select value={selectedMandant} onValueChange={onMandantChange}>
-                  <SelectTrigger className="w-full sm:w-40 md:w-48 bg-white/10 backdrop-blur-glass border-white/20 text-xs md:text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Alle Mandanten</SelectItem>
-                    {mandanten.map((mandant) => (
-                      <SelectItem key={mandant.id} value={mandant.id}>{mandant.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <Select value={confidenceFilter} onValueChange={onConfidenceFilterChange}>
                 <SelectTrigger className="w-full sm:w-32 md:w-40 bg-white/10 backdrop-blur-glass border-white/20 text-xs md:text-sm">
                   <SelectValue placeholder="KI-Filter" />
@@ -144,12 +122,11 @@ export const BookingTable = ({
                   <SelectItem value="red">🔴 Niedrig (&lt;70%)</SelectItem>
                 </SelectContent>
               </Select>
+              
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-modern text-xs sm:text-sm self-center">
+                {sortedEntries.length} Belege
+              </Badge>
             </div>
-            
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-modern text-xs sm:text-sm self-center">
-              {sortedEntries.length} Belege
-            </Badge>
-          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
