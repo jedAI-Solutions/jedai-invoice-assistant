@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import MandantSelector from "./MandantSelector";
 
 interface UploadFile {
@@ -19,6 +21,7 @@ export const UploadArea = () => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [selectedMandant, setSelectedMandant] = useState<string>("all");
+  const { toast } = useToast();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -63,38 +66,39 @@ export const UploadArea = () => {
   };
 
   const uploadFileToWebhook = async (file: File, fileId: string) => {
-    const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook-test/a5a3e1e6-dccf-48de-93bb-19b907f6af83';
-    
     try {
+      // Get authentication session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
       // Create FormData to send the actual file
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('filename', file.name);
-      formData.append('fileId', fileId);
-      formData.append('fileType', file.type);
-      formData.append('mimeType', file.type);
-      formData.append('fileSize', file.size.toString());
-      formData.append('mandant_nr', selectedMandant);
       
-      console.log('FormData prepared with actual file');
+      // Add mandant information if selected
+      if (selectedMandant && selectedMandant !== 'all') {
+        formData.append('mandant_id', selectedMandant);
+      }
       
       // Update progress to show upload starting
       setFiles(prev => prev.map(f => 
         f.id === fileId ? { ...f, progress: 10 } : f
       ));
 
-      console.log('Making request to:', webhookUrl);
-      
-      const response = await fetch(webhookUrl, {
+      // Use secure edge function instead of hardcoded webhook
+      const response = await fetch(`https://awrduehwnyxbwtjbbrhw.supabase.co/functions/v1/secure-file-upload`, {
         method: 'POST',
-        body: formData, // Send FormData directly, don't set Content-Type header
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: formData,
       });
-
-      console.log('Response received:', response.status, response.statusText);
       
       if (response.ok) {
-        const responseData = await response.text();
-        console.log('Response data:', responseData);
+        const result = await response.json();
         
         setFiles(prev => prev.map(f => 
           f.id === fileId ? { ...f, status: 'processing', progress: 100 } : f
@@ -111,13 +115,16 @@ export const UploadArea = () => {
                 } 
               : f
           ));
-          console.log('File completed:', fileId);
         }, 2000);
+
+        // Show success message
+        toast({
+          title: "File uploaded successfully",
+          description: `${file.name} has been processed and registered.`,
+        });
       } else {
-        console.error('Upload failed:', response.status, response.statusText);
-        setFiles(prev => prev.map(f => 
-          f.id === fileId ? { ...f, status: 'error', progress: 0 } : f
-        ));
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `Upload failed: ${response.statusText}`);
       }
     } catch (error) {
       setFiles(prev => prev.map(f => 
@@ -125,6 +132,13 @@ export const UploadArea = () => {
           ? { ...f, status: 'error', progress: 0 } 
           : f
       ));
+      
+      // Show error message
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
     }
   };
 
