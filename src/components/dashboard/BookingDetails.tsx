@@ -38,13 +38,6 @@ export const BookingDetails = ({
   }, []);
 
   useEffect(() => {
-    console.log('BookingDetails received selectedEntry:', {
-      account: selectedEntry?.account,
-      taxRate: selectedEntry?.taxRate,
-      konto: selectedEntry?.konto,
-      uststeuerzahl: selectedEntry?.uststeuerzahl,
-      fullEntry: selectedEntry
-    });
     setEditedEntry(selectedEntry);
   }, [selectedEntry]);
 
@@ -259,6 +252,7 @@ export const BookingDetails = ({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="19%">19% - Regelsteuersatz</SelectItem>
+                      <SelectItem value="9%">9% - Ermäßigter Satz (Bücher etc.)</SelectItem>
                       <SelectItem value="7%">7% - Ermäßigter Satz</SelectItem>
                       <SelectItem value="0%">0% - Steuerfrei</SelectItem>
                     </SelectContent>
