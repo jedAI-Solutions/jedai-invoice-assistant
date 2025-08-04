@@ -230,6 +230,7 @@ export const BookingDetails = ({
                       <SelectValue placeholder="SKR-Konto auswählen" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="0084">0084 - Betriebs- und Geschäftsausstattung</SelectItem>
                       <SelectItem value="4900">4900 - Sonstige Erträge</SelectItem>
                       <SelectItem value="4930">4930 - Dienstleistungserträge</SelectItem>
                       <SelectItem value="6030">6030 - Mieten</SelectItem>
