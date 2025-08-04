@@ -196,82 +196,75 @@ serve(async (req) => {
       );
     }
 
-    // Send files to n8n workflow in background
-    const forwardToN8n = async () => {
-      try {
-        // Fetch mandant information if specified
-        let mandantInfo = null;
-        if (mandantId) {
-          const { data: mandant, error: mandantError } = await supabase
-            .from('mandants')
-            .select('mandant_nr, name1')
-            .eq('id', mandantId)
-            .single();
-          
-          if (!mandantError && mandant) {
-            mandantInfo = mandant;
-          }
-        }
-
-        // Create form data for n8n with all files
-        const n8nFormData = new FormData();
+    // Forward to n8n synchronously to ensure delivery
+    try {
+      // Fetch mandant information if specified
+      let mandantInfo = null;
+      if (mandantId) {
+        const { data: mandant, error: mandantError } = await supabase
+          .from('mandants')
+          .select('mandant_nr, name1')
+          .eq('id', mandantId)
+          .single();
         
-        // Add each file to the form data
-        for (let i = 0; i < processedFiles.length; i++) {
-          const { file, documentId, registryId } = processedFiles[i];
-          n8nFormData.append(`file_${i}`, file);
-          n8nFormData.append(`filename_${i}`, file.name);
-          n8nFormData.append(`fileType_${i}`, file.type);
-          n8nFormData.append(`fileSize_${i}`, file.size.toString());
-          n8nFormData.append(`documentId_${i}`, documentId);
-          n8nFormData.append(`registryId_${i}`, registryId);
+        if (!mandantError && mandant) {
+          mandantInfo = mandant;
         }
+      }
+
+      // Create form data for n8n with all files
+      const n8nFormData = new FormData();
+      
+      // Add each file to the form data
+      for (let i = 0; i < processedFiles.length; i++) {
+        const { file, documentId, registryId } = processedFiles[i];
+        n8nFormData.append(`file_${i}`, file);
+        n8nFormData.append(`filename_${i}`, file.name);
+        n8nFormData.append(`fileType_${i}`, file.type);
+        n8nFormData.append(`fileSize_${i}`, file.size.toString());
+        n8nFormData.append(`documentId_${i}`, documentId);
+        n8nFormData.append(`registryId_${i}`, registryId);
+      }
+      
+      // Add batch metadata
+      n8nFormData.append('batch_size', processedFiles.length.toString());
+      n8nFormData.append('user_id', user.id);
+      n8nFormData.append('upload_timestamp', new Date().toISOString());
+      
+      // Add mandant information if available
+      if (mandantInfo) {
+        n8nFormData.append('mandant_id', mandantId);
+        n8nFormData.append('mandant_nr', mandantInfo.mandant_nr);
+        n8nFormData.append('mandant_name1', mandantInfo.name1);
+      } else {
+        n8nFormData.append('mandant_id', '');
+        n8nFormData.append('mandant_nr', '');
+        n8nFormData.append('mandant_name1', '');
+      }
+
+      console.log(`Forwarding ${processedFiles.length} files to n8n workflow`);
+
+      const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
+        method: 'POST',
+        body: n8nFormData,
+      });
+
+      console.log(`N8N response status: ${n8nResponse.status}`);
+
+      if (n8nResponse.ok) {
+        const responseText = await n8nResponse.text();
+        console.log('Successfully forwarded files to n8n workflow. Response:', responseText);
         
-        // Add batch metadata
-        n8nFormData.append('batch_size', processedFiles.length.toString());
-        n8nFormData.append('user_id', user.id);
-        n8nFormData.append('upload_timestamp', new Date().toISOString());
-        
-        // Add mandant information if available
-        if (mandantInfo) {
-          n8nFormData.append('mandant_id', mandantId);
-          n8nFormData.append('mandant_nr', mandantInfo.mandant_nr);
-          n8nFormData.append('mandant_name1', mandantInfo.name1);
-        } else {
-          n8nFormData.append('mandant_id', '');
-          n8nFormData.append('mandant_nr', '');
-          n8nFormData.append('mandant_name1', '');
-        }
-
-        console.log(`Forwarding ${processedFiles.length} files to n8n workflow`);
-
-        const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
-          method: 'POST',
-          body: n8nFormData,
-        });
-
-        if (n8nResponse.ok) {
-          console.log('Successfully forwarded files to n8n workflow');
-          
-          // Update processing status in database
-          await supabase
-            .from('document_registry')
-            .update({ 
-              processing_status: 'forwarded_to_workflow',
-              verarbeitungsbeginn: new Date().toISOString()
-            })
-            .in('id', processedFiles.map(f => f.registryId));
-        } else {
-          console.error('Failed to forward to n8n:', n8nResponse.status, n8nResponse.statusText);
-          
-          // Update status to indicate forwarding failure
-          await supabase
-            .from('document_registry')
-            .update({ processing_status: 'forwarding_failed' })
-            .in('id', processedFiles.map(f => f.registryId));
-        }
-      } catch (error) {
-        console.error('Error forwarding to n8n:', error);
+        // Update processing status in database
+        await supabase
+          .from('document_registry')
+          .update({ 
+            processing_status: 'forwarded_to_workflow',
+            verarbeitungsbeginn: new Date().toISOString()
+          })
+          .in('id', processedFiles.map(f => f.registryId));
+      } else {
+        console.error('Failed to forward to n8n:', n8nResponse.status, n8nResponse.statusText);
         
         // Update status to indicate forwarding failure
         await supabase
@@ -279,15 +272,20 @@ serve(async (req) => {
           .update({ processing_status: 'forwarding_failed' })
           .in('id', processedFiles.map(f => f.registryId));
       }
-    };
+    } catch (forwardError) {
+      console.error('Error forwarding to n8n:', forwardError);
+      
+      // Update status to indicate forwarding failure
+      await supabase
+        .from('document_registry')
+        .update({ processing_status: 'forwarding_failed' })
+        .in('id', processedFiles.map(f => f.registryId));
+    }
 
-    // Start background task for n8n forwarding
-    EdgeRuntime.waitUntil(forwardToN8n());
-
-    // Return immediate response to user
+    // Return response to user
     const response = {
       success: true,
-      message: `${processedFiles.length} files processed successfully${validationErrors.length > 0 ? ` (${validationErrors.length} failed)` : ''}`,
+      message: `${processedFiles.length} files processed and forwarded successfully${validationErrors.length > 0 ? ` (${validationErrors.length} failed)` : ''}`,
       processed_files: processedFiles.map(f => ({
         document_id: f.documentId,
         registry_id: f.registryId,
