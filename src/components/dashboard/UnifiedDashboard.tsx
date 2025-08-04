@@ -44,8 +44,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         .select(`
           *,
           mandants!inner(id, name1, mandant_nr)
-        `)
-        .eq('status', 'pending');
+        `);
 
       if (error) throw error;
 
@@ -58,7 +57,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         account: item.konto || '',
         taxRate: item.uststeuerzahl || '19%',
         confidence: Math.round((item.overall_confidence || 0) * 100),
-        status: 'pending' as const,
+        status: (item.status === 'approved' ? 'ready' : item.status || 'pending') as any,
         mandant: item.mandants?.name1 || item.mandant_resolved || 'Unbekannt',
         mandantId: item.mandant_id || '',
         aiHints: item.check_notes || [],
@@ -121,10 +120,10 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     };
   }, []);
 
-  // Filter entries based on selected mandant and confidence - only show pending entries
+  // Filter entries based on selected mandant and confidence
   const filteredEntries = useMemo(() => {
-    // Only show entries with status 'pending' in the booking overview
-    let filtered = entries.filter(entry => entry.status === 'pending');
+    // Show all entries, not just pending ones
+    let filtered = entries;
     
     // Filter by mandant
     if (selectedMandant !== "all") {
