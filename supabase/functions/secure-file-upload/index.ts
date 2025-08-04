@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -6,10 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Maximum file size (50MB)
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
-
-// Allowed file types
+// Configuration
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const ALLOWED_MIME_TYPES = [
   'application/pdf',
   'image/jpeg',
@@ -20,6 +19,9 @@ const ALLOWED_MIME_TYPES = [
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 ];
+
+// Your n8n webhook URL
+const N8N_WEBHOOK_URL = 'https://jedai-solutions.app.n8n.cloud/webhook-test/afdcc912-2ca1-41ce-8ce5-ca631a2837ff';
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -72,12 +74,19 @@ serve(async (req) => {
 
     // Parse multipart form data
     const formData = await req.formData();
-    const file = formData.get('file') as File;
     const mandantId = formData.get('mandant_id') as string;
 
-    if (!file) {
+    // Get all files from form data
+    const files: File[] = [];
+    for (const [key, value] of formData.entries()) {
+      if (key === 'file' && value instanceof File) {
+        files.push(value);
+      }
+    }
+
+    if (files.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No file provided' }),
+        JSON.stringify({ error: 'No files provided' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -85,33 +94,9 @@ serve(async (req) => {
       );
     }
 
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-      return new Response(
-        JSON.stringify({ 
-          error: `File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB` 
-        }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
+    console.log(`Processing ${files.length} files for user ${user.id}`);
 
-    // Validate file type
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      return new Response(
-        JSON.stringify({ 
-          error: `File type not allowed. Allowed types: ${ALLOWED_MIME_TYPES.join(', ')}` 
-        }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Validate mandant access
+    // Validate mandant access if specified
     if (mandantId) {
       const { data: hasAccess } = await supabase
         .from('user_mandant_assignments')
@@ -132,63 +117,165 @@ serve(async (req) => {
       }
     }
 
-    // Generate file hash for integrity
-    const fileBuffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    // Validate all files
+    const validationErrors: string[] = [];
+    const processedFiles: Array<{
+      file: File;
+      hash: string;
+      documentId: string;
+      registryId: string;
+    }> = [];
 
-    // Generate unique document ID
-    const documentId = `DOC-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomUUID().slice(0, 8)}`;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        validationErrors.push(`File ${file.name}: too large (max ${MAX_FILE_SIZE / (1024 * 1024)}MB)`);
+        continue;
+      }
 
-    console.log(`Processing file upload for user ${user.id}: ${file.name} (${file.size} bytes, ${file.type})`);
+      // Validate file type
+      if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+        validationErrors.push(`File ${file.name}: type not allowed`);
+        continue;
+      }
 
-    // Store document metadata in registry
-    const { data: registryEntry, error: registryError } = await supabase
-      .from('document_registry')
-      .insert({
-        document_id: documentId,
-        original_filename: file.name,
-        file_size: file.size,
-        file_hash: fileHash,
-        mandant_id: mandantId,
-        upload_source: 'secure_upload',
-        processing_status: 'received',
-        gobd_compliant: true
-      })
-      .select()
-      .single();
+      // Generate file hash for integrity
+      const fileBuffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-    if (registryError) {
-      console.error('Registry insert error:', registryError);
+      // Generate unique document ID
+      const documentId = `DOC-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomUUID().slice(0, 8)}`;
+
+      // Store document metadata in registry
+      const { data: registryEntry, error: registryError } = await supabase
+        .from('document_registry')
+        .insert({
+          document_id: documentId,
+          original_filename: file.name,
+          file_size: file.size,
+          file_hash: fileHash,
+          mandant_id: mandantId,
+          upload_source: 'secure_upload',
+          processing_status: 'received',
+          gobd_compliant: true
+        })
+        .select()
+        .single();
+
+      if (registryError) {
+        console.error(`Registry insert error for ${file.name}:`, registryError);
+        validationErrors.push(`File ${file.name}: failed to register`);
+        continue;
+      }
+
+      processedFiles.push({
+        file,
+        hash: fileHash,
+        documentId,
+        registryId: registryEntry.id
+      });
+
+      console.log(`File registered: ${file.name} -> ${documentId}`);
+    }
+
+    // If there are validation errors but some files succeeded, continue with valid files
+    if (validationErrors.length > 0 && processedFiles.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Failed to register document' }),
+        JSON.stringify({ 
+          error: 'All files failed validation',
+          details: validationErrors 
+        }),
         { 
-          status: 500, 
+          status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    console.log(`Document registered with ID: ${registryEntry.id}`);
+    // Send files to n8n workflow in background
+    const forwardToN8n = async () => {
+      try {
+        // Create form data for n8n with all files
+        const n8nFormData = new FormData();
+        
+        // Add each file to the form data
+        for (let i = 0; i < processedFiles.length; i++) {
+          const { file, documentId, registryId } = processedFiles[i];
+          n8nFormData.append(`file_${i}`, file);
+          n8nFormData.append(`filename_${i}`, file.name);
+          n8nFormData.append(`fileType_${i}`, file.type);
+          n8nFormData.append(`fileSize_${i}`, file.size.toString());
+          n8nFormData.append(`documentId_${i}`, documentId);
+          n8nFormData.append(`registryId_${i}`, registryId);
+        }
+        
+        // Add batch metadata
+        n8nFormData.append('batch_size', processedFiles.length.toString());
+        n8nFormData.append('user_id', user.id);
+        n8nFormData.append('mandant_id', mandantId || '');
+        n8nFormData.append('upload_timestamp', new Date().toISOString());
 
-    // Here you would typically:
-    // 1. Store the file in Supabase Storage or external storage
-    // 2. Process the file through OCR
-    // 3. Run AI classification
-    // 4. Update the document status
+        console.log(`Forwarding ${processedFiles.length} files to n8n workflow`);
 
-    // For now, we'll just return success
+        const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          body: n8nFormData,
+        });
+
+        if (n8nResponse.ok) {
+          console.log('Successfully forwarded files to n8n workflow');
+          
+          // Update processing status in database
+          await supabase
+            .from('document_registry')
+            .update({ 
+              processing_status: 'forwarded_to_workflow',
+              verarbeitungsbeginn: new Date().toISOString()
+            })
+            .in('id', processedFiles.map(f => f.registryId));
+        } else {
+          console.error('Failed to forward to n8n:', n8nResponse.status, n8nResponse.statusText);
+          
+          // Update status to indicate forwarding failure
+          await supabase
+            .from('document_registry')
+            .update({ processing_status: 'forwarding_failed' })
+            .in('id', processedFiles.map(f => f.registryId));
+        }
+      } catch (error) {
+        console.error('Error forwarding to n8n:', error);
+        
+        // Update status to indicate forwarding failure
+        await supabase
+          .from('document_registry')
+          .update({ processing_status: 'forwarding_failed' })
+          .in('id', processedFiles.map(f => f.registryId));
+      }
+    };
+
+    // Start background task for n8n forwarding
+    EdgeRuntime.waitUntil(forwardToN8n());
+
+    // Return immediate response to user
+    const response = {
+      success: true,
+      message: `${processedFiles.length} files processed successfully${validationErrors.length > 0 ? ` (${validationErrors.length} failed)` : ''}`,
+      processed_files: processedFiles.map(f => ({
+        document_id: f.documentId,
+        registry_id: f.registryId,
+        file_name: f.file.name,
+        file_size: f.file.size,
+        file_hash: f.hash
+      })),
+      validation_errors: validationErrors.length > 0 ? validationErrors : undefined
+    };
+
     return new Response(
-      JSON.stringify({ 
-        success: true,
-        document_id: documentId,
-        registry_id: registryEntry.id,
-        message: 'File uploaded and registered successfully',
-        file_name: file.name,
-        file_size: file.size,
-        file_hash: fileHash
-      }),
+      JSON.stringify(response),
       { 
         status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
