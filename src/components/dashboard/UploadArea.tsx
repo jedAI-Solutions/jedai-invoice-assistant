@@ -95,7 +95,12 @@ export const UploadArea = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        throw new Error('Authentication required');
+        toast({
+          title: "Anmeldung erforderlich",
+          description: "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+          variant: "destructive",
+        });
+        return;
       }
 
       // Create FormData to send all files together
