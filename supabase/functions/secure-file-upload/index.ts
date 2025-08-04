@@ -97,12 +97,34 @@ serve(async (req) => {
     console.log(`Processing ${files.length} files for user ${user.id}`);
 
     // Validate mandant access if specified
-    if (mandantId) {
+    let actualMandantId = null;
+    if (mandantId && mandantId !== 'all') {
+      // First get the actual mandant ID from mandant_nr
+      const { data: mandantData, error: mandantLookupError } = await supabase
+        .from('mandants')
+        .select('id')
+        .eq('mandant_nr', mandantId)
+        .single();
+
+      if (mandantLookupError || !mandantData) {
+        console.error('Mandant lookup error:', mandantLookupError);
+        return new Response(
+          JSON.stringify({ error: 'Invalid mandant specified' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      actualMandantId = mandantData.id;
+
+      // Check user access to this mandant
       const { data: hasAccess } = await supabase
         .from('user_mandant_assignments')
         .select('id')
         .eq('user_id', user.id)
-        .eq('mandant_id', mandantId)
+        .eq('mandant_id', actualMandantId)
         .eq('is_active', true)
         .single();
 
@@ -158,7 +180,7 @@ serve(async (req) => {
           original_filename: file.name,
           file_size: file.size,
           file_hash: fileHash,
-          mandant_id: mandantId,
+          mandant_id: actualMandantId,
           upload_source: 'secure_upload',
           processing_status: 'received',
           gobd_compliant: true
@@ -200,11 +222,11 @@ serve(async (req) => {
     try {
       // Fetch mandant information if specified
       let mandantInfo = null;
-      if (mandantId) {
+      if (actualMandantId) {
         const { data: mandant, error: mandantError } = await supabase
           .from('mandants')
           .select('mandant_nr, name1')
-          .eq('id', mandantId)
+          .eq('id', actualMandantId)
           .single();
         
         if (!mandantError && mandant) {
@@ -233,7 +255,7 @@ serve(async (req) => {
       
       // Add mandant information if available
       if (mandantInfo) {
-        n8nFormData.append('mandant_id', mandantId);
+        n8nFormData.append('mandant_id', actualMandantId);
         n8nFormData.append('mandant_nr', mandantInfo.mandant_nr);
         n8nFormData.append('mandant_name1', mandantInfo.name1);
       } else {
