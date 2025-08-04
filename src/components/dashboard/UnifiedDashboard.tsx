@@ -183,27 +183,36 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     try {
       const approvedEntry = entries.find(e => e.id === entryId);
       if (approvedEntry) {
+        // Update ai_classifications status to 'approved'
+        const { error: classificationError } = await supabase
+          .from('ai_classifications')
+          .update({ status: 'approved' })
+          .eq('id', entryId);
+
+        if (classificationError) throw classificationError;
+
         // Add to approved_bookings table
         const { error: approvedError } = await supabase
           .from('approved_bookings')
           .insert({
+            classification_id: entryId,
             mandant_id: approvedEntry.mandantId,
             mandant_nr: approvedEntry.mandantId,
             mandant_name: approvedEntry.mandant,
-            belegnummer: approvedEntry.document,
-            belegdatum: approvedEntry.date,
-            betrag: approvedEntry.amount,
-            buchungstext: approvedEntry.description,
-            konto: approvedEntry.account,
-            gegenkonto: approvedEntry.account.startsWith('6') ? '1200' : '9999',
-            uststeuerzahl: approvedEntry.taxRate,
-            final_confidence: approvedEntry.confidence / 100,
+            belegnummer: approvedEntry.document || approvedEntry.belegnummer,
+            belegdatum: approvedEntry.date || approvedEntry.belegdatum,
+            betrag: approvedEntry.amount || approvedEntry.betrag,
+            buchungstext: approvedEntry.description || approvedEntry.buchungstext,
+            konto: approvedEntry.account || approvedEntry.konto,
+            gegenkonto: approvedEntry.gegenkonto || (approvedEntry.account?.startsWith('6') ? '1200' : '9999'),
+            uststeuerzahl: approvedEntry.taxRate || approvedEntry.uststeuerzahl,
+            final_confidence: (approvedEntry.confidence || approvedEntry.overall_confidence || 0) / 100,
             approved_by: 'manual'
           });
 
         if (approvedError) throw approvedError;
 
-        // Update local state - remove from entries since we only show pending entries
+        // Update local state - remove from entries since we don't show approved entries in booking overview
         setEntries(prevEntries => 
           prevEntries.filter(entry => entry.id !== entryId)
         );

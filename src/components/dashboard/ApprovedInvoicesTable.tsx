@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ApprovedInvoice {
   id: string;
@@ -21,8 +22,30 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
   const fetchApprovedInvoices = async () => {
     try {
       setLoading(true);
-      // Temporarily disabled - no database integration
-      setApprovedInvoices([]);
+      
+      let query = supabase
+        .from('approved_bookings')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // Filter by mandant if one is selected
+      if (selectedMandant !== "all") {
+        query = query.eq('mandant_id', selectedMandant);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      const mappedInvoices: ApprovedInvoice[] = data?.map((item: any) => ({
+        id: item.id,
+        belegnummer: item.belegnummer || 'Unbekannt',
+        mandant: item.mandant_name || 'Unbekannt',
+        betrag: item.betrag || 0,
+        created_at: item.created_at || new Date().toISOString()
+      })) || [];
+
+      setApprovedInvoices(mappedInvoices);
     } catch (error) {
       console.error('Error fetching approved invoices:', error);
       toast({
