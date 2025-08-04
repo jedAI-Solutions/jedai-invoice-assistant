@@ -30,11 +30,14 @@ export const BookingDetails = ({
 }: BookingDetailsProps) => {
   const [editedEntry, setEditedEntry] = useState<BookingEntry | null>(null);
   const [mandanten, setMandanten] = useState<Mandant[]>([]);
+  const [accounts, setAccounts] = useState<{account_number: string, account_name: string}[]>([]);
   const [loadingMandanten, setLoadingMandanten] = useState(false);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
 
-  // Lade Mandanten beim Komponenten-Start
+  // Lade Mandanten und Konten beim Komponenten-Start
   useEffect(() => {
     loadMandanten();
+    loadAccounts();
   }, []);
 
   useEffect(() => {
@@ -59,6 +62,26 @@ export const BookingDetails = ({
       setMandanten([]);
     } finally {
       setLoadingMandanten(false);
+    }
+  };
+
+  const loadAccounts = async () => {
+    setLoadingAccounts(true);
+    try {
+      const { data, error } = await supabase
+        .from('chart_of_accounts')
+        .select('account_number, account_name')
+        .eq('is_active', true)
+        .order('account_number');
+
+      if (error) throw error;
+
+      setAccounts(data || []);
+    } catch (error) {
+      console.error('Error loading accounts:', error);
+      setAccounts([]);
+    } finally {
+      setLoadingAccounts(false);
     }
   };
   if (!selectedEntry || !editedEntry) {
@@ -231,23 +254,21 @@ export const BookingDetails = ({
                     key={`account-${selectedEntry.id}`}
                     value={editedEntry.account} 
                     onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, account: value} : null)}
+                    disabled={loadingAccounts}
                   >
                     <SelectTrigger className="bg-white border border-gray-300 hover:bg-gray-50">
-                      <SelectValue placeholder="SKR-Konto auswählen" />
+                      <SelectValue placeholder={loadingAccounts ? "Lade Konten..." : "SKR-Konto auswählen"} />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
-                      <SelectItem value="0084">0084 - Betriebs- und Geschäftsausstattung</SelectItem>
-                      <SelectItem value="4900">4900 - Sonstige Erträge</SelectItem>
-                      <SelectItem value="4930">4930 - Dienstleistungserträge</SelectItem>
-                      <SelectItem value="6030">6030 - Mieten</SelectItem>
-                      <SelectItem value="6200">6200 - Werbekosten</SelectItem>
-                      <SelectItem value="6300">6300 - Bewirtung</SelectItem>
-                      <SelectItem value="6320">6320 - Kommunikation</SelectItem>
-                      <SelectItem value="6400">6400 - Strom/Gas/Wasser</SelectItem>
-                      <SelectItem value="6670">6670 - Fahrzeugkosten</SelectItem>
-                      <SelectItem value="6720">6720 - Versicherungen</SelectItem>
-                      <SelectItem value="6815">6815 - Büromaterial</SelectItem>
-                      <SelectItem value="8400">8400 - Erlöse</SelectItem>
+                      {accounts.map((account) => (
+                        <SelectItem 
+                          key={account.account_number} 
+                          value={account.account_number}
+                          className="hover:bg-gray-100 cursor-pointer"
+                        >
+                          {account.account_number} - {account.account_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
