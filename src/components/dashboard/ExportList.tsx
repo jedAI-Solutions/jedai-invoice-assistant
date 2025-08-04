@@ -13,7 +13,7 @@ interface ExportEntry {
   created_at: string;
 }
 
-export default function ExportList() {
+export default function ExportList({ selectedMandant }: { selectedMandant: string }) {
   const [exportData, setExportData] = useState<ExportEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();

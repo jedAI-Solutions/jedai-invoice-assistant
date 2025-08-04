@@ -12,9 +12,10 @@ interface UnifiedDashboardProps {
   onStatsUpdate: (stats: DashboardStats) => void;
   selectedMandant: string;
   selectedTimeframe: string;
+  onMandantChange?: (mandant: string) => void;
 }
 
-export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimeframe }: UnifiedDashboardProps) => {
+export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimeframe, onMandantChange }: UnifiedDashboardProps) => {
   const { toast } = useToast();
   // Mandant mapping from UI IDs to actual UUIDs in database
   const mandanten: Mandant[] = [
@@ -317,9 +318,9 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     }
   };
 
-  // Handle mandant change internally
+  // Handle mandant change and propagate to parent
   const handleMandantChange = (mandant: string) => {
-    // This is handled by parent component through props
+    onMandantChange?.(mandant);
   };
 
   return (
@@ -331,7 +332,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
       />
       
       {/* Export Liste */}
-      <ExportList />
+      <ExportList selectedMandant={selectedMandant} />
       
       {/* Klassifizierte Rechnungen */}
       <div className="space-y-4">

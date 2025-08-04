@@ -59,6 +59,7 @@ const Index = () => {
                 onStatsUpdate={setDashboardStats} 
                 selectedMandant={selectedMandant}
                 selectedTimeframe={selectedTimeframe}
+                onMandantChange={setSelectedMandant}
               />
             </div>
           </div>
