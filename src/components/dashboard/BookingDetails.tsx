@@ -38,6 +38,7 @@ export const BookingDetails = ({
   }, []);
 
   useEffect(() => {
+    console.log('BookingDetails: selectedEntry changed', selectedEntry?.id, selectedEntry?.account, selectedEntry?.taxRate);
     setEditedEntry(selectedEntry);
   }, [selectedEntry]);
 
@@ -226,11 +227,15 @@ export const BookingDetails = ({
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="konto">SKR-Konto</Label>
-                  <Select value={editedEntry.account} onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, account: value} : null)}>
-                    <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
+                  <Select 
+                    key={`account-${selectedEntry.id}`}
+                    value={editedEntry.account} 
+                    onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, account: value} : null)}
+                  >
+                    <SelectTrigger className="bg-white border border-gray-300 hover:bg-gray-50">
                       <SelectValue placeholder="SKR-Konto auswählen" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
                       <SelectItem value="0084">0084 - Betriebs- und Geschäftsausstattung</SelectItem>
                       <SelectItem value="4900">4900 - Sonstige Erträge</SelectItem>
                       <SelectItem value="4930">4930 - Dienstleistungserträge</SelectItem>
@@ -248,11 +253,15 @@ export const BookingDetails = ({
                 </div>
                 <div>
                   <Label htmlFor="steuer">Steuersatz</Label>
-                  <Select value={editedEntry.taxRate} onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, taxRate: value} : null)}>
-                    <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
-                      <SelectValue />
+                  <Select 
+                    key={`taxrate-${selectedEntry.id}`}
+                    value={editedEntry.taxRate} 
+                    onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, taxRate: value} : null)}
+                  >
+                    <SelectTrigger className="bg-white border border-gray-300 hover:bg-gray-50">
+                      <SelectValue placeholder="Steuersatz auswählen" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
                       <SelectItem value="19%">19% - Regelsteuersatz</SelectItem>
                       <SelectItem value="9%">9% - Ermäßigter Satz (Bücher etc.)</SelectItem>
                       <SelectItem value="7%">7% - Ermäßigter Satz</SelectItem>
