@@ -30,114 +30,59 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     "m3": "7f678713-d266-42f0-b9c7-07f058a7fa75"
   };
 
-  const [allEntries] = useState<BookingEntry[]>([
-    {
-      id: "r1",
-      document: "Rechnung_2024_001.pdf",
-      date: "2024-01-15",
-      amount: 1250.00,
-      description: "Büromaterial und Software-Lizenzen",
-      account: "6815",
-      taxRate: "19%",
-      confidence: 74,
-      status: 'pending',
-      mandant: "Mustermann GmbH",
-      mandantId: "m1",
-      aiHints: ["Prüfen Sie die Zuordnung zu 6815", "Betrag erscheint ungewöhnlich hoch", "Rechnungsdatum prüfen"],
-      createdAt: "2024-01-15T10:30:00Z",
-      lastModified: "2024-01-15T10:30:00Z"
-    },
-    {
-      id: "r2", 
-      document: "Tankbeleg_2024_002.jpg",
-      date: "2024-01-14",
-      amount: 87.50,
-      description: "Kraftstoff Firmenfahrzeug",
-      account: "6670",
-      taxRate: "19%",
-      confidence: 67,
-      status: 'pending',
-      mandant: "Beispiel AG",
-      mandantId: "m2",
-      aiHints: ["Belegqualität niedrig", "Fahrtzweck unklar", "Kilometerstand nicht erkennbar"],
-      createdAt: "2024-01-14T14:22:00Z",
-      lastModified: "2024-01-14T14:22:00Z"
-    },
-    {
-      id: "r3",
-      document: "Unklarer_Beleg_003.pdf", 
-      date: "2024-01-13",
-      amount: 245.80,
-      description: "Geschäftsessen - Details unklar",
-      account: "6300",
-      taxRate: "19%",
-      confidence: 45,
-      status: 'pending',
-      mandant: "Demo KG",
-      mandantId: "m3",
-      aiHints: ["Teilnehmer nicht erkennbar", "Geschäftlicher Anlass unklar", "Bewirtungsnachweis unvollständig"],
-      createdAt: "2024-01-13T18:15:00Z",
-      lastModified: "2024-01-13T18:15:00Z"
-    },
-    {
-      id: "a1",
-      document: "Stromrechnung_Dezember_2024.pdf",
-      date: "2024-12-15",
-      amount: 420.50,
-      description: "Stromkosten Büroräume Dezember",
-      account: "6400",
-      taxRate: "19%",
-      confidence: 96,
-      status: 'ready',
-      mandant: "Mustermann GmbH",
-      mandantId: "m1",
-      aiHints: ["Automatische Erkennung erfolgreich", "Alle Daten vollständig", "Exportbereit"],
-      createdAt: "2024-12-15T09:00:00Z",
-      lastModified: "2024-12-15T09:00:00Z"
-    },
-    {
-      id: "a2", 
-      document: "Lieferant_ABC_Rechnung_456.pdf",
-      date: "2024-12-14",
-      amount: 1890.00,
-      description: "Büroausstattung und IT-Equipment",
-      account: "6815",
-      taxRate: "19%",
-      confidence: 94,
-      status: 'ready',
-      mandant: "Beispiel AG",
-      mandantId: "m2",
-      aiHints: ["Lieferant bekannt", "Standard-Buchung", "Keine Korrekturen nötig"],
-      createdAt: "2024-12-14T11:30:00Z",
-      lastModified: "2024-12-14T11:30:00Z"
-    },
-    {
-      id: "a3",
-      document: "Telefon_Internet_Dezember.pdf", 
-      date: "2024-12-01",
-      amount: 89.99,
-      description: "Telefon- und Internetkosten",
-      account: "6320",
-      taxRate: "19%",
-      confidence: 98,
-      status: 'approved',
-      mandant: "Demo KG",
-      mandantId: "m3",
-      aiHints: ["Bereits genehmigt", "Monatlicher Standardposten", "Vollautomatisch verarbeitet"],
-      createdAt: "2024-12-01T08:00:00Z",
-      lastModified: "2024-12-01T08:00:00Z"
-    }
-  ]);
+  const [allEntries, setAllEntries] = useState<BookingEntry[]>([]);
 
   const [selectedEntry, setSelectedEntry] = useState<BookingEntry | null>(null);
   const [entries, setEntries] = useState<BookingEntry[]>([]);
   const [confidenceFilter, setConfidenceFilter] = useState<string>("90");
 
-  // Load entries from classified_invoices table using raw SQL query
+  // Load entries from ai_classifications table
   const fetchEntries = async () => {
     try {
-      // Temporarily disabled - no database integration
-      setEntries(allEntries);
+      const { data: classifications, error } = await supabase
+        .from('ai_classifications')
+        .select(`
+          *,
+          mandants!inner(id, name1, mandant_nr)
+        `)
+        .eq('status', 'pending');
+
+      if (error) throw error;
+
+      const mappedEntries: BookingEntry[] = classifications?.map((item: any) => ({
+        id: item.id,
+        document: item.belegnummer || 'Unbekannter Beleg',
+        date: item.belegdatum || new Date().toISOString().split('T')[0],
+        amount: item.betrag || 0,
+        description: item.buchungstext || 'Keine Beschreibung',
+        account: item.konto || '',
+        taxRate: item.uststeuerzahl || '19%',
+        confidence: Math.round((item.overall_confidence || 0) * 100),
+        status: 'pending' as const,
+        mandant: item.mandants?.name1 || item.mandant_resolved || 'Unbekannt',
+        mandantId: item.mandant_id || '',
+        aiHints: item.check_notes || [],
+        aiReasoning: item.reasoning || '',
+        createdAt: item.created_at || new Date().toISOString(),
+        lastModified: item.updated_at || new Date().toISOString(),
+        // Additional AI classification fields
+        belegnummer: item.belegnummer,
+        belegdatum: item.belegdatum,
+        betrag: item.betrag,
+        buchungstext: item.buchungstext,
+        konto: item.konto,
+        gegenkonto: item.gegenkonto,
+        uststeuerzahl: item.uststeuerzahl,
+        mandant_resolved: item.mandant_resolved,
+        overall_confidence: item.overall_confidence,
+        ai_result: item.ai_result,
+        reasoning: item.reasoning,
+        uncertainty_factors: item.uncertainty_factors,
+        check_notes: item.check_notes
+      })) || [];
+
+      setEntries(mappedEntries);
+      setAllEntries(mappedEntries);
     } catch (error) {
       console.error('Error fetching entries:', error);
       toast({
@@ -152,20 +97,20 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     fetchEntries();
   }, [toast]);
 
-  // Set up real-time updates for classified_invoices table
+  // Set up real-time updates for ai_classifications table
   useEffect(() => {
     const channel = supabase
-      .channel('classified-invoices-changes')
+      .channel('ai-classifications-changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'classified_invoices'
+          table: 'ai_classifications'
         },
         () => {
-          console.log('Classified invoices updated, automatically refreshing booking overview...');
-          // Refresh data when classified_invoices table changes
+          console.log('AI classifications updated, automatically refreshing booking overview...');
+          // Refresh data when ai_classifications table changes
           fetchEntries();
         }
       )

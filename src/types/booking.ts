@@ -14,6 +14,20 @@ export interface BookingEntry {
   aiReasoning?: string;
   createdAt: string;
   lastModified: string;
+  // AI Classifications table fields
+  belegnummer?: string;
+  belegdatum?: string;
+  betrag?: number;
+  buchungstext?: string;
+  konto?: string;
+  gegenkonto?: string;
+  uststeuerzahl?: string;
+  mandant_resolved?: string;
+  overall_confidence?: number;
+  ai_result?: any;
+  reasoning?: string;
+  uncertainty_factors?: string[];
+  check_notes?: string[];
 }
 
 export interface Mandant {
