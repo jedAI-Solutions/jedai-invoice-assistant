@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -114,26 +115,37 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (invoice: ApprovedInvoice) => {
     try {
-      const { error } = await supabase
+      // Instead of deleting completely, move back to ai_classifications with pending status
+      if (invoice.classification_id) {
+        const { error: updateError } = await supabase
+          .from('ai_classifications')
+          .update({ status: 'pending' })
+          .eq('id', invoice.classification_id);
+
+        if (updateError) throw updateError;
+      }
+
+      // Remove from approved_bookings
+      const { error: deleteError } = await supabase
         .from('approved_bookings')
         .delete()
-        .eq('id', id);
+        .eq('id', invoice.id);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
 
       toast({
         title: "Erfolg",
-        description: "Rechnung wurde gelöscht",
+        description: "Rechnung wurde zurück in die klassifizierten Rechnungen verschoben",
       });
 
       fetchApprovedInvoices();
     } catch (error) {
-      console.error('Error deleting invoice:', error);
+      console.error('Error moving invoice back to classified:', error);
       toast({
         title: "Fehler",
-        description: "Rechnung konnte nicht gelöscht werden",
+        description: "Rechnung konnte nicht zurück verschoben werden",
         variant: "destructive",
       });
     }
@@ -198,7 +210,8 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(invoice.id)}
+                      onClick={() => handleDelete(invoice)}
+                      title="Zurück zu klassifizierten Rechnungen"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
