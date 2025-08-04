@@ -49,6 +49,7 @@ export const UploadArea = () => {
     console.log('handleFiles called with:', fileList.length, 'files');
     const fileArray = Array.from(fileList);
     
+    // Clear previous selections and add new ones
     setSelectedFiles(fileArray);
     
     const newFiles: UploadFile[] = fileArray.map((file, index) => ({
@@ -61,7 +62,8 @@ export const UploadArea = () => {
     }));
 
     console.log('New files selected:', newFiles);
-    setFiles(prev => [...prev, ...newFiles]);
+    // Replace existing files instead of appending
+    setFiles(newFiles);
   };
 
   const handleUpload = async () => {
@@ -77,6 +79,7 @@ export const UploadArea = () => {
     setIsUploading(true);
     const uploadFiles = files.filter(f => f.status === 'uploading');
     await uploadFilesToWebhook(selectedFiles, uploadFiles);
+    // Clear selected files after upload
     setSelectedFiles([]);
     setIsUploading(false);
   };
@@ -262,7 +265,7 @@ export const UploadArea = () => {
               className="w-full"
               variant="gradient"
             >
-              {isUploading ? "Wird hochgeladen..." : `${selectedFiles.length} Datei(en) hochladen`}
+              {isUploading ? "Wird hochgeladen..." : `${selectedFiles.length} ${selectedFiles.length === 1 ? 'Datei' : 'Dateien'} hochladen`}
             </Button>
           </div>
         )}
