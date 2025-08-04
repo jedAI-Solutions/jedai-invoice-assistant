@@ -108,6 +108,13 @@ export type Database = {
             foreignKeyName: "ai_classifications_mandant_id_fkey"
             columns: ["mandant_id"]
             isOneToOne: false
+            referencedRelation: "mandant_public_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_classifications_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
             referencedRelation: "mandant_summary"
             referencedColumns: ["id"]
           },
@@ -361,6 +368,13 @@ export type Database = {
             foreignKeyName: "ai_training_data_mandant_id_fkey"
             columns: ["mandant_id"]
             isOneToOne: false
+            referencedRelation: "mandant_public_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_training_data_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
             referencedRelation: "mandant_summary"
             referencedColumns: ["id"]
           },
@@ -377,6 +391,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_agenda_mandants"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_training_data_mandant_nr_fkey"
+            columns: ["mandant_nr"]
+            isOneToOne: false
+            referencedRelation: "mandant_public_view"
+            referencedColumns: ["mandant_nr"]
           },
           {
             foreignKeyName: "ai_training_data_mandant_nr_fkey"
@@ -481,6 +502,13 @@ export type Database = {
             columns: ["document_id"]
             isOneToOne: false
             referencedRelation: "document_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_queue_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
+            referencedRelation: "mandant_public_view"
             referencedColumns: ["id"]
           },
           {
@@ -605,6 +633,13 @@ export type Database = {
             columns: ["document_id"]
             isOneToOne: false
             referencedRelation: "document_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approved_bookings_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
+            referencedRelation: "mandant_public_view"
             referencedColumns: ["id"]
           },
           {
@@ -776,6 +811,13 @@ export type Database = {
           usage_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "booking_text_templates_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
+            referencedRelation: "mandant_public_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "booking_text_templates_mandant_id_fkey"
             columns: ["mandant_id"]
@@ -957,6 +999,13 @@ export type Database = {
           violation_type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "compliance_violations_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
+            referencedRelation: "mandant_public_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "compliance_violations_mandant_id_fkey"
             columns: ["mandant_id"]
@@ -1216,6 +1265,13 @@ export type Database = {
             foreignKeyName: "document_registry_mandant_id_fkey"
             columns: ["mandant_id"]
             isOneToOne: false
+            referencedRelation: "mandant_public_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_registry_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
             referencedRelation: "mandant_summary"
             referencedColumns: ["id"]
           },
@@ -1420,6 +1476,13 @@ export type Database = {
           validate_account_numbers?: boolean | null
         }
         Relationships: [
+          {
+            foreignKeyName: "dtvf_configurations_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
+            referencedRelation: "mandant_public_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "dtvf_configurations_mandant_id_fkey"
             columns: ["mandant_id"]
@@ -1694,6 +1757,13 @@ export type Database = {
           verification_status?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "knowledge_base_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
+            referencedRelation: "mandant_public_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "knowledge_base_mandant_id_fkey"
             columns: ["mandant_id"]
@@ -2367,6 +2437,13 @@ export type Database = {
             foreignKeyName: "user_mandant_assignments_mandant_id_fkey"
             columns: ["mandant_id"]
             isOneToOne: false
+            referencedRelation: "mandant_public_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_mandant_assignments_mandant_id_fkey"
+            columns: ["mandant_id"]
+            isOneToOne: false
             referencedRelation: "mandant_summary"
             referencedColumns: ["id"]
           },
@@ -2469,6 +2546,63 @@ export type Database = {
       }
     }
     Views: {
+      mandant_public_view: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          kontenrahmen: string | null
+          land: string | null
+          mandant_nr: string | null
+          mandantentyp: string | null
+          name1: string | null
+          name2: string | null
+          ort: string | null
+          plz: string | null
+          rechtsform: string | null
+          status: string | null
+          strasse: string | null
+          telefon: string | null
+          updated_at: string | null
+          versteuerung: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          kontenrahmen?: string | null
+          land?: string | null
+          mandant_nr?: string | null
+          mandantentyp?: string | null
+          name1?: string | null
+          name2?: string | null
+          ort?: string | null
+          plz?: string | null
+          rechtsform?: string | null
+          status?: string | null
+          strasse?: string | null
+          telefon?: string | null
+          updated_at?: string | null
+          versteuerung?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          kontenrahmen?: string | null
+          land?: string | null
+          mandant_nr?: string | null
+          mandantentyp?: string | null
+          name1?: string | null
+          name2?: string | null
+          ort?: string | null
+          plz?: string | null
+          rechtsform?: string | null
+          status?: string | null
+          strasse?: string | null
+          telefon?: string | null
+          updated_at?: string | null
+          versteuerung?: string | null
+        }
+        Relationships: []
+      }
       mandant_summary: {
         Row: {
           approved_documents: number | null
@@ -2623,6 +2757,10 @@ export type Database = {
           mandant_nr: string
         }[]
       }
+      get_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       gtrgm_compress: {
         Args: { "": unknown }
         Returns: unknown
@@ -2681,6 +2819,14 @@ export type Database = {
           p_details?: Json
           p_ip_address?: unknown
           p_user_agent?: string
+        }
+        Returns: undefined
+      }
+      log_sensitive_data_access: {
+        Args: {
+          p_table_name: string
+          p_operation: string
+          p_record_id?: string
         }
         Returns: undefined
       }
