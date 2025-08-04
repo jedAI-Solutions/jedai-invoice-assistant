@@ -199,6 +199,20 @@ serve(async (req) => {
     // Send files to n8n workflow in background
     const forwardToN8n = async () => {
       try {
+        // Fetch mandant information if specified
+        let mandantInfo = null;
+        if (mandantId) {
+          const { data: mandant, error: mandantError } = await supabase
+            .from('mandants')
+            .select('mandant_nr, name1, name2, ort, email, telefon, kontenrahmen, mandantentyp, rechtsform')
+            .eq('id', mandantId)
+            .single();
+          
+          if (!mandantError && mandant) {
+            mandantInfo = mandant;
+          }
+        }
+
         // Create form data for n8n with all files
         const n8nFormData = new FormData();
         
@@ -216,8 +230,25 @@ serve(async (req) => {
         // Add batch metadata
         n8nFormData.append('batch_size', processedFiles.length.toString());
         n8nFormData.append('user_id', user.id);
-        n8nFormData.append('mandant_id', mandantId || '');
         n8nFormData.append('upload_timestamp', new Date().toISOString());
+        
+        // Add mandant information if available
+        if (mandantInfo) {
+          n8nFormData.append('mandant_id', mandantId);
+          n8nFormData.append('mandant_nr', mandantInfo.mandant_nr);
+          n8nFormData.append('mandant_name1', mandantInfo.name1);
+          n8nFormData.append('mandant_name2', mandantInfo.name2 || '');
+          n8nFormData.append('mandant_ort', mandantInfo.ort || '');
+          n8nFormData.append('mandant_email', mandantInfo.email || '');
+          n8nFormData.append('mandant_telefon', mandantInfo.telefon || '');
+          n8nFormData.append('mandant_kontenrahmen', mandantInfo.kontenrahmen || '');
+          n8nFormData.append('mandant_typ', mandantInfo.mandantentyp || '');
+          n8nFormData.append('mandant_rechtsform', mandantInfo.rechtsform || '');
+        } else {
+          n8nFormData.append('mandant_id', '');
+          n8nFormData.append('mandant_nr', '');
+          n8nFormData.append('mandant_name1', '');
+        }
 
         console.log(`Forwarding ${processedFiles.length} files to n8n workflow`);
 
