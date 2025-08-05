@@ -55,13 +55,14 @@ export const DashboardHeader = ({
         <div className="flex-1 flex items-center justify-center gap-3 md:gap-6 pb-8">
           {/* Logo Container */}
           <div className="flex-shrink-0 relative group cursor-pointer">
-            <img
+            <TransparentLogo
               src={jedaiLogoIcon}
               alt="jedAI Solutions Logo"
               className="relative h-12 md:h-24 w-auto object-contain transition-all duration-700 ease-in-out
                        hover:scale-105 hover:brightness-110
                        animate-pulse-subtle group-hover:animate-none
                        filter hover:drop-shadow-sm"
+              showExportButton={true}
             />
             {/* Subtle glow effect on hover */}
             <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-30 
