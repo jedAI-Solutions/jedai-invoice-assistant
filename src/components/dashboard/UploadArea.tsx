@@ -15,6 +15,8 @@ interface UploadFile {
   status: 'uploading' | 'processing' | 'completed' | 'error';
   progress: number;
   confidence?: number;
+  documentRegistryId?: string;
+  documentId?: string;
 }
 
 export const UploadArea = () => {
@@ -136,10 +138,20 @@ export const UploadArea = () => {
         const result = await response.json();
         console.log('Batch upload result:', result);
         
-        // Update all uploaded files to processing
-        setFiles(prev => prev.map(f => 
-          uploadFiles.some(uf => uf.id === f.id) ? { ...f, status: 'processing', progress: 100 } : f
-        ));
+        // Update all uploaded files to processing with document registry info
+        setFiles(prev => prev.map((f, index) => {
+          if (uploadFiles.some(uf => uf.id === f.id)) {
+            const uploadedFile = result.processedFiles?.[index];
+            return { 
+              ...f, 
+              status: 'processing', 
+              progress: 100,
+              documentRegistryId: uploadedFile?.documentRegistryId,
+              documentId: uploadedFile?.documentId
+            };
+          }
+          return f;
+        }));
 
         // Complete after processing time
         setTimeout(() => {
@@ -323,6 +335,11 @@ export const UploadArea = () => {
                     )}
                   </div>
                 </div>
+                {file.documentRegistryId && (
+                  <div className="text-xs text-muted-foreground mb-2">
+                    Registry ID: {file.documentRegistryId} | Document ID: {file.documentId}
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                   <span>{formatFileSize(file.size)}</span>
                   <span>•</span>
