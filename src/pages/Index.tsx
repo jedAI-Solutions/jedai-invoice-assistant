@@ -55,12 +55,13 @@ const Index = () => {
             
             {/* Unified Dashboard - maximale Breite */}
             <div className="lg:col-span-4 order-1 lg:order-2">
-              <UnifiedDashboard 
-                onStatsUpdate={setDashboardStats} 
-                selectedMandant={selectedMandant}
-                selectedTimeframe={selectedTimeframe}
-                onMandantChange={setSelectedMandant}
-              />
+        <UnifiedDashboard 
+          onStatsUpdate={setDashboardStats}
+          selectedMandant={selectedMandant}
+          selectedTimeframe={selectedTimeframe}
+          onMandantChange={setSelectedMandant}
+          onRefreshData={() => (window as any).refreshBookingOverview?.()}
+        />
             </div>
           </div>
         </div>

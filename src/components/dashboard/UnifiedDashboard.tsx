@@ -13,9 +13,10 @@ interface UnifiedDashboardProps {
   selectedMandant: string;
   selectedTimeframe: string;
   onMandantChange?: (mandant: string) => void;
+  onRefreshData?: () => void;
 }
 
-export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimeframe, onMandantChange }: UnifiedDashboardProps) => {
+export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimeframe, onMandantChange, onRefreshData }: UnifiedDashboardProps) => {
   const { toast } = useToast();
   // Mandant mapping from UI IDs to actual UUIDs in database
   const mandanten: Mandant[] = [
@@ -96,6 +97,26 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
   useEffect(() => {
     fetchEntries();
   }, [toast]);
+
+  // Expose refresh function to parent
+  useEffect(() => {
+    if (onRefreshData) {
+      onRefreshData();
+    }
+  }, [onRefreshData]);
+
+  // Add a manual refresh function that can be called from outside
+  const refreshData = () => {
+    console.log('Manual refresh triggered');
+    fetchEntries();
+  };
+
+  // Expose refresh function to parent via callback
+  useEffect(() => {
+    if (onRefreshData) {
+      (window as any).refreshBookingOverview = refreshData;
+    }
+  }, []);
 
   // Set up real-time updates for ai_classifications table
   useEffect(() => {

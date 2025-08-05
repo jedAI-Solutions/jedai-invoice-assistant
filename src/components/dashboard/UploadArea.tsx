@@ -153,7 +153,7 @@ export const UploadArea = () => {
           return f;
         }));
 
-        // Complete after processing time
+        // Complete after processing time and refresh booking overview
         setTimeout(() => {
           setFiles(prev => prev.map(f => 
             uploadFiles.some(uf => uf.id === f.id)
@@ -164,6 +164,12 @@ export const UploadArea = () => {
                 } 
               : f
           ));
+          
+          // Trigger refresh of booking overview
+          if ((window as any).refreshBookingOverview) {
+            console.log('Triggering booking overview refresh after upload completion');
+            (window as any).refreshBookingOverview();
+          }
         }, 2000);
 
         // Show success message
