@@ -18,9 +18,7 @@ export default function Auth() {
 
   // Redirect authenticated users to main page
   useEffect(() => {
-    console.log('Auth page: checking user state', { user: !!user, email: user?.email });
     if (user) {
-      console.log('Auth page: user found, redirecting to /');
       navigate('/');
     }
   }, [user, navigate]);
@@ -82,8 +80,6 @@ export default function Auth() {
     setLoading(false);
   };
 
-  console.log('Auth component rendering:', { user: !!user, loading });
-  
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
       <div className="w-full max-w-md">
