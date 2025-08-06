@@ -11,7 +11,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('ProtectedRoute: checking auth state', { user: !!user, loading });
     if (!loading && !user) {
+      console.log('ProtectedRoute: redirecting to /auth');
       navigate('/auth');
     }
   }, [user, loading, navigate]);
