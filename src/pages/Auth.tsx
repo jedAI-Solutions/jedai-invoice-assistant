@@ -59,7 +59,11 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <TransparentLogo className="h-16 w-auto" />
+            <TransparentLogo 
+              src="/src/assets/jedai-logo-transparent.png"
+              alt="Taxagent Logo"
+              className="h-16 w-auto" 
+            />
           </div>
           <h1 className="text-2xl font-bold text-primary-foreground mb-2">
             Welcome to Taxagent
