@@ -77,8 +77,8 @@ const Auth = () => {
         }}
       ></div>
       
-      {/* Glass overlay */}
-      <div className="absolute inset-0 bg-white/10 backdrop-blur-glass"></div>
+      {/* Glass overlay without blur */}
+      <div className="absolute inset-0 bg-black/20"></div>
       
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
