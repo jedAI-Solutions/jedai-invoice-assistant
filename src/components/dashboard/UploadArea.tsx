@@ -324,6 +324,10 @@ export const UploadArea = () => {
           />
         </div>
 
+        <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-sm">
+          Debug Info: selectedFiles.length = {selectedFiles.length}, isUploading = {isUploading.toString()}
+        </div>
+
         {selectedFiles.length > 0 && (
           <div className="mt-4 space-y-3">
             <h4 className="font-semibold text-foreground text-sm">Ausgewählte Dateien ({selectedFiles.length})</h4>
