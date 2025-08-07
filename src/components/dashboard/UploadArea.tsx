@@ -48,29 +48,15 @@ export const UploadArea = () => {
   }, []);
 
   const handleFiles = (fileList: FileList) => {
-    console.log('handleFiles called with:', fileList.length, 'files');
     const fileArray = Array.from(fileList);
-    
-    // Clear previous selections and add new ones
     setSelectedFiles(fileArray);
     
-    const newFiles: UploadFile[] = fileArray.map((file, index) => ({
-      id: `file-${Date.now()}-${index}`,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      status: 'uploading',
-      progress: 0
-    }));
-
-    console.log('New files selected:', newFiles);
-    // Replace existing files instead of appending
-    setFiles(newFiles);
+    // Clear any existing upload files
+    setFiles([]);
   };
 
   const removeSelectedFile = (indexToRemove: number) => {
     setSelectedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
-    setFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const handleUpload = async () => {
@@ -95,15 +81,17 @@ export const UploadArea = () => {
     setIsUploading(true);
     
     try {
-      // Update files to uploading status
-      setFiles(prev => selectedFiles.map((file, index) => ({
+      // Create upload files with uploading status
+      const uploadFiles: UploadFile[] = selectedFiles.map((file, index) => ({
         id: `file-${Date.now()}-${index}`,
         name: file.name,
         size: file.size,
         type: file.type,
         status: 'uploading' as const,
         progress: 10
-      })));
+      }));
+      
+      setFiles(uploadFiles);
 
       await uploadFilesToWebhook(selectedFiles);
       setSelectedFiles([]);
@@ -138,18 +126,15 @@ export const UploadArea = () => {
       
       // Add all files to the form data
       fileArray.forEach((file, index) => {
-        formData.append('file', file); // Edge function will handle multiple files with same key
+        formData.append('file', file);
       });
       
       formData.append('mandant_id', selectedMandant);
-      
-      console.log(`Uploading ${fileArray.length} files together`);
       
       // Update progress to show upload starting  
       setFiles(prev => prev.map(f => ({ ...f, progress: 50 })));
 
       // Use secure edge function 
-      console.log('Starting upload to edge function...');
       const response = await fetch(`https://awrduehwnyxbwtjbbrhw.supabase.co/functions/v1/secure-file-upload`, {
         method: 'POST',
         headers: {
@@ -158,12 +143,8 @@ export const UploadArea = () => {
         body: formData,
       });
       
-      console.log('Upload response status:', response.status);
-      console.log('Upload response ok:', response.ok);
-      
       if (response.ok) {
         const result = await response.json();
-        console.log('Batch upload result:', result);
         
         // Update all uploaded files to processing with document registry info
         setFiles(prev => prev.map((f, index) => {
@@ -193,12 +174,11 @@ export const UploadArea = () => {
 
         // Show success message
         toast({
-          title: "Files uploaded successfully",
-          description: `${fileArray.length} files have been processed and forwarded to workflow.`,
+          title: "Upload erfolgreich",
+          description: `${fileArray.length} Datei(en) wurden erfolgreich hochgeladen und werden verarbeitet.`,
         });
       } else {
         const errorText = await response.text();
-        console.error('Upload failed. Status:', response.status, 'Response:', errorText);
         let errorData;
         try {
           errorData = JSON.parse(errorText);
@@ -208,17 +188,12 @@ export const UploadArea = () => {
         throw new Error(errorData.error || `Upload failed: ${response.statusText}`);
       }
     } catch (error) {
-      console.error('Batch upload error:', error);
+      console.error('Upload error:', error);
       
       // Update all files to error state
       setFiles(prev => prev.map(f => ({ ...f, status: 'error' as const, progress: 0 })));
       
-      // Show error message
-      toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive",
-      });
+      throw error;
     }
   };
 
@@ -308,7 +283,6 @@ export const UploadArea = () => {
             onChange={(e) => e.target.files && handleFiles(e.target.files)}
           />
         </div>
-
 
         {selectedFiles.length > 0 && (
           <div className="mt-4 space-y-3">
