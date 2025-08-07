@@ -519,7 +519,13 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
         {/* Upload Button */}
         {files.length > 0 && (
           <Button
-            onClick={sendToN8nWebhook}
+            onClick={() => {
+              console.log('🔥 UPLOAD BUTTON CLICKED! Files:', files.length);
+              console.log('🔥 Selected mandant:', selectedMandant);
+              console.log('🔥 Is uploading:', isUploading);
+              console.log('🔥 File statuses:', files.map(f => f.status));
+              sendToN8nWebhook();
+            }}
             disabled={isUploading || files.some(f => f.status !== 'pending')}
             className="mt-4 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 
                        text-white py-2 px-4 rounded-lg transition-colors duration-200
