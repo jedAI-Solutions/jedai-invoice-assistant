@@ -248,6 +248,9 @@ serve(async (req) => {
         n8nFormData.append(`registryId_${i}`, registryId);
       }
       
+      // Add Supabase callback URL for document storage
+      n8nFormData.append('storage_callback_url', `${supabaseUrl}/functions/v1/store-classified-document`);
+      
       // Add batch metadata
       n8nFormData.append('batch_size', processedFiles.length.toString());
       n8nFormData.append('user_id', user.id);

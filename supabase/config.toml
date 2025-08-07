@@ -15,3 +15,6 @@ major_version = 15
 
 [functions.secure-file-upload]
 verify_jwt = true
+
+[functions.store-classified-document]
+verify_jwt = false
