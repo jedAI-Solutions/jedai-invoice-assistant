@@ -50,7 +50,7 @@ const Index = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             {/* Upload Area - sehr klein */}
             <div className="lg:col-span-1 order-2 lg:order-1">
-              <UploadArea />
+              <UploadArea selectedMandant={selectedMandant} />
             </div>
             
             {/* Unified Dashboard - maximale Breite */}

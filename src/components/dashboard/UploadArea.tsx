@@ -1,31 +1,63 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback } from 'react';
+import { Upload, FileText, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import MandantSelectorAll from "./MandantSelectorAll";
+import { useMandants } from "@/hooks/useMandants";
 
 interface UploadFile {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  status: 'uploading' | 'processing' | 'completed' | 'error';
+  file: File;
+  documentId: string;
+  registryId: string;
+  hash: string;
+  status: 'pending' | 'uploading' | 'success' | 'error';
   progress: number;
-  confidence?: number;
-  documentRegistryId?: string;
-  documentId?: string;
+  isDuplicate?: boolean;
 }
 
-export const UploadArea = () => {
+interface UploadAreaProps {
+  selectedMandant?: string;
+}
+
+export const UploadArea = ({ selectedMandant = "all" }: UploadAreaProps) => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
-  const [selectedMandant, setSelectedMandant] = useState<string>("all");
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const { mandants } = useMandants();
   const { toast } = useToast();
+
+  // File validation constants
+  const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_FILES = 10;
+
+  // Generate SHA-256 hash for duplicate detection
+  const generateFileHash = async (file: File): Promise<string> => {
+    const buffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
+  // Check for duplicate files in database
+  const checkDuplicate = async (hash: string): Promise<boolean> => {
+    const { data } = await supabase
+      .from('document_registry')
+      .select('id')
+      .eq('file_hash', hash)
+      .maybeSingle();
+    
+    return !!data;
+  };
+
+  // Generate IDs
+  const generateIds = () => ({
+    documentId: crypto.randomUUID(),
+    registryId: crypto.randomUUID()
+  });
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -37,188 +69,237 @@ export const UploadArea = () => {
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
+    if (e.dataTransfer.files) {
+      await processFiles(Array.from(e.dataTransfer.files));
     }
   }, []);
 
-  const handleFiles = (fileList: FileList) => {
-    console.log('handleFiles called with:', fileList.length, 'files');
-    const fileArray = Array.from(fileList);
-    
-    // Clear previous selections and add new ones
-    setSelectedFiles(fileArray);
-    
-    const newFiles: UploadFile[] = fileArray.map((file, index) => ({
-      id: `file-${Date.now()}-${index}`,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      status: 'uploading',
-      progress: 0
-    }));
+  const processFiles = async (newFiles: File[]) => {
+    // Validate mandant selection
+    if (!selectedMandant || selectedMandant === 'all') {
+      toast({
+        title: "Mandant auswählen",
+        description: "Bitte wählen Sie einen Mandanten vor dem Upload aus.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    console.log('New files selected:', newFiles);
-    // Replace existing files instead of appending
-    setFiles(newFiles);
+    // Validate file count
+    if (files.length + newFiles.length > MAX_FILES) {
+      toast({
+        title: "Zu viele Dateien",
+        description: `Maximal ${MAX_FILES} Dateien gleichzeitig erlaubt.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Process each file
+    const processedFiles: UploadFile[] = [];
+    
+    for (const file of newFiles) {
+      // Validate type
+      if (!ACCEPTED_TYPES.includes(file.type)) {
+        toast({
+          title: "Ungültiger Dateityp",
+          description: `${file.name} ist kein unterstütztes Format.`,
+          variant: "destructive"
+        });
+        continue;
+      }
+
+      // Validate size
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "Datei zu groß",
+          description: `${file.name} überschreitet die maximale Größe von 10MB.`,
+          variant: "destructive"
+        });
+        continue;
+      }
+
+      // Generate hash and check duplicate
+      const hash = await generateFileHash(file);
+      const isDuplicate = await checkDuplicate(hash);
+      const ids = generateIds();
+
+      processedFiles.push({
+        file,
+        ...ids,
+        hash,
+        status: 'pending',
+        progress: 0,
+        isDuplicate
+      });
+    }
+
+    setFiles(prev => [...prev, ...processedFiles]);
+
+    // Show duplicate warning if any
+    const duplicates = processedFiles.filter(f => f.isDuplicate);
+    if (duplicates.length > 0) {
+      toast({
+        title: "Duplikate erkannt",
+        description: `${duplicates.length} Datei(en) wurden bereits hochgeladen.`,
+        variant: "destructive"
+      });
+    }
   };
 
-  const removeSelectedFile = (indexToRemove: number) => {
-    setSelectedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
+  const removeFile = (indexToRemove: number) => {
     setFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  const handleUpload = async () => {
-    if (selectedFiles.length === 0) {
-      toast({
-        title: "Keine Dateien ausgewählt",
-        description: "Bitte wählen Sie erst Dateien aus, bevor Sie den Upload starten.",
-        variant: "destructive",
-      });
-      return;
-    }
+  // Upload to Supabase Storage
+  const uploadToSupabase = async (uploadFile: UploadFile, mandantNr: string): Promise<string> => {
+    const timestamp = Date.now();
+    const date = new Date();
+    const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const fileName = `${uploadFile.file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}_${timestamp}`;
+    const filePath = `${mandantNr}/${yearMonth}/${fileName}`;
 
-    if (selectedMandant === 'all' || !selectedMandant) {
-      toast({
-        title: "Mandant auswählen",
-        description: "Bitte wählen Sie einen spezifischen Mandanten für den Upload aus.",
-        variant: "destructive",
+    const { data, error } = await supabase.storage
+      .from('taxagent-documents')
+      .upload(filePath, uploadFile.file, {
+        cacheControl: '3600',
+        upsert: false
       });
-      return;
-    }
+
+    if (error) throw error;
+    return data.path;
+  };
+
+  // Create Document Registry Entry
+  const createRegistryEntry = async (
+    uploadFile: UploadFile, 
+    storagePath: string,
+    mandant: any
+  ) => {
+    const { data: { user } } = await supabase.auth.getUser();
     
+    const entry = {
+      document_id: uploadFile.documentId,
+      original_filename: uploadFile.file.name,
+      file_hash: uploadFile.hash,
+      file_size: uploadFile.file.size,
+      file_type: uploadFile.file.type,
+      storage_path: storagePath,
+      mandant_id: mandant.id,
+      mandant_nr: mandant.mandant_nr,
+      processing_status: 'received',
+      upload_source: 'web',
+      uploaded_by: user?.id,
+      gobd_compliant: true
+    };
+
+    const { error } = await supabase
+      .from('document_registry')
+      .insert(entry);
+
+    if (error) throw error;
+  };
+
+  // Send to n8n Webhook
+  const sendToN8nWebhook = async () => {
     setIsUploading(true);
+    const currentMandant = mandants.find(m => m.id === selectedMandant);
     
-    try {
-      // Update files to uploading status
-      setFiles(prev => selectedFiles.map((file, index) => ({
-        id: `file-${Date.now()}-${index}`,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        status: 'uploading' as const,
-        progress: 10
-      })));
+    if (!currentMandant) {
+      toast({
+        title: "Fehler",
+        description: "Mandant nicht gefunden.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-      await uploadFilesToWebhook(selectedFiles);
-      setSelectedFiles([]);
+    try {
+      // Upload files to Supabase first
+      for (let i = 0; i < files.length; i++) {
+        const uploadFile = files[i];
+        
+        // Update progress
+        setFiles(prev => prev.map((f, idx) => 
+          idx === i ? { ...f, status: 'uploading', progress: 30 } : f
+        ));
+
+        // Upload to storage
+        const storagePath = await uploadToSupabase(uploadFile, currentMandant.mandant_nr);
+        
+        // Update progress
+        setFiles(prev => prev.map((f, idx) => 
+          idx === i ? { ...f, progress: 60 } : f
+        ));
+
+        // Create registry entry
+        await createRegistryEntry(uploadFile, storagePath, currentMandant);
+        
+        // Update progress
+        setFiles(prev => prev.map((f, idx) => 
+          idx === i ? { ...f, progress: 80 } : f
+        ));
+      }
+
+      // Prepare webhook payload
+      const { data: { user } } = await supabase.auth.getUser();
+      const formData = new FormData();
+      
+      // Add metadata
+      formData.append('batch_size', files.length.toString());
+      formData.append('user_id', user?.id || '');
+      formData.append('upload_timestamp', new Date().toISOString());
+      formData.append('mandant_id', currentMandant.id);
+      formData.append('mandant_nr', currentMandant.mandant_nr);
+      formData.append('mandant_name1', currentMandant.name1 || '');
+
+      // Add file metadata and files
+      files.forEach((uploadFile, index) => {
+        formData.append(`filename_${index}`, uploadFile.file.name);
+        formData.append(`fileType_${index}`, uploadFile.file.type);
+        formData.append(`fileSize_${index}`, uploadFile.file.size.toString());
+        formData.append(`documentId_${index}`, uploadFile.documentId);
+        formData.append(`registryId_${index}`, uploadFile.registryId);
+        formData.append(`file_${index}`, uploadFile.file);
+      });
+
+      // Send to n8n
+      const response = await fetch('https://jedai-solutions.app.n8n.cloud/webhook/afdcc912-2ca1-41ce-8ce5-ca631a2837ff', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) throw new Error('Webhook-Fehler');
+
+      // Update all files to success
+      setFiles(prev => prev.map(f => ({ ...f, status: 'success', progress: 100 })));
+
+      toast({
+        title: "Upload erfolgreich",
+        description: `${files.length} Datei(en) wurden zur Verarbeitung gesendet.`,
+      });
+
+      // Clear files after 3 seconds
+      setTimeout(() => {
+        setFiles([]);
+      }, 3000);
+
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('Upload error:', error);
+      setFiles(prev => prev.map(f => ({ ...f, status: 'error' })));
+      
       toast({
         title: "Upload fehlgeschlagen",
-        description: error instanceof Error ? error.message : "Unbekannter Fehler",
-        variant: "destructive",
+        description: "Bitte versuchen Sie es erneut.",
+        variant: "destructive"
       });
     } finally {
       setIsUploading(false);
-    }
-  };
-
-  const uploadFilesToWebhook = async (fileArray: File[]) => {
-    try {
-      // Get authentication session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: "Anmeldung erforderlich",
-          description: "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Create FormData to send all files together
-      const formData = new FormData();
-      
-      // Add all files to the form data
-      fileArray.forEach((file, index) => {
-        formData.append('file', file); // Edge function will handle multiple files with same key
-      });
-      
-      formData.append('mandant_id', selectedMandant);
-      
-      console.log(`Uploading ${fileArray.length} files together`);
-      
-      // Update progress to show upload starting  
-      setFiles(prev => prev.map(f => ({ ...f, progress: 50 })));
-
-      // Use secure edge function 
-      console.log('Starting upload to edge function...');
-      const response = await fetch(`https://awrduehwnyxbwtjbbrhw.supabase.co/functions/v1/secure-file-upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: formData,
-      });
-      
-      console.log('Upload response status:', response.status);
-      console.log('Upload response ok:', response.ok);
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Batch upload result:', result);
-        
-        // Update all uploaded files to processing with document registry info
-        setFiles(prev => prev.map((f, index) => {
-          const uploadedFile = result.processedFiles?.[index];
-          return { 
-            ...f, 
-            status: 'processing' as const, 
-            progress: 100,
-            documentRegistryId: uploadedFile?.documentRegistryId,
-            documentId: uploadedFile?.documentId
-          };
-        }));
-
-        // Complete after processing time and refresh booking overview
-        setTimeout(() => {
-          setFiles(prev => prev.map(f => ({ 
-            ...f, 
-            status: 'completed' as const, 
-            confidence: Math.floor(Math.random() * 20) + 80 
-          })));
-          
-          // Trigger refresh of booking overview
-          if ((window as any).refreshBookingOverview) {
-            (window as any).refreshBookingOverview();
-          }
-        }, 2000);
-
-        // Show success message
-        toast({
-          title: "Files uploaded successfully",
-          description: `${fileArray.length} files have been processed and forwarded to workflow.`,
-        });
-      } else {
-        const errorText = await response.text();
-        console.error('Upload failed. Status:', response.status, 'Response:', errorText);
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { error: errorText || response.statusText };
-        }
-        throw new Error(errorData.error || `Upload failed: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error('Batch upload error:', error);
-      
-      // Update all files to error state
-      setFiles(prev => prev.map(f => ({ ...f, status: 'error' as const, progress: 0 })));
-      
-      // Show error message
-      toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive",
-      });
     }
   };
 
@@ -230,159 +311,125 @@ export const UploadArea = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'uploading': return 'secondary';
-      case 'processing': return 'secondary';
-      case 'completed': return 'default';
-      case 'error': return 'destructive';
-      default: return 'secondary';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'uploading': return 'Hochladen...';
-      case 'processing': return 'KI-Verarbeitung...';
-      case 'completed': return 'Abgeschlossen';
-      case 'error': return 'Fehler';
-      default: return 'Unbekannt';
-    }
-  };
-
   return (
-    <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
+    <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 h-full">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-sm font-modern">
-          <span>Beleg-Upload</span>
+          <span>Dokumente hochladen</span>
           <Badge variant="outline" className="text-xs">PDF/JPG/PNG</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <MandantSelectorAll 
-            selectedMandant={selectedMandant} 
-            onMandantChange={setSelectedMandant} 
-          />
-        </div>
-        <div
-          className={`border-2 border-dashed rounded-lg p-4 text-center transition-all duration-300 ${
-            dragActive 
-              ? 'border-primary bg-primary/10 backdrop-blur-glass scale-105' 
-              : 'border-white/30 bg-white/5 backdrop-blur-glass hover:bg-white/10'
-          }`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-        >
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground font-modern">
-                Belege ablegen
-              </p>
-              <Button 
-                variant="link" 
-                size="sm"
-                className="p-0 h-auto text-primary text-xs"
-                onClick={() => document.getElementById('file-input')?.click()}
-              >
-                oder auswählen
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              PDF, JPG, PNG • Max. 10MB
+        {/* Mandant Check */}
+        {(!selectedMandant || selectedMandant === 'all') && (
+          <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
+            <p className="text-sm text-yellow-100 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              Bitte wählen Sie oben einen Mandanten aus
             </p>
           </div>
+        )}
+
+        {/* Drop Zone */}
+        <div
+          onDrop={handleDrop}
+          onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+          onDragLeave={() => setDragActive(false)}
+          className={`
+            border-2 border-dashed rounded-lg p-6 text-center cursor-pointer
+            transition-all duration-200
+            ${dragActive 
+              ? 'border-blue-400 bg-blue-500/20' 
+              : 'border-gray-500/50 hover:border-gray-400/50 hover:bg-white/5'
+            }
+            ${(!selectedMandant || selectedMandant === 'all') ? 'opacity-50 pointer-events-none' : ''}
+          `}
+          onClick={() => document.getElementById('file-input')?.click()}
+        >
+          <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+          <p className="text-sm text-gray-300">
+            Dateien hier ablegen
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            oder klicken zum Auswählen
+          </p>
           <input
             id="file-input"
             type="file"
             multiple
-            accept=".pdf,.jpg,.jpeg,.png,.xml"
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={(e) => e.target.files && processFiles(Array.from(e.target.files))}
             className="hidden"
-            onChange={(e) => e.target.files && handleFiles(e.target.files)}
+            disabled={!selectedMandant || selectedMandant === 'all'}
           />
         </div>
 
-
-        {selectedFiles.length > 0 && (
-          <div className="mt-4 space-y-3">
-            <h4 className="font-semibold text-foreground text-sm">Ausgewählte Dateien ({selectedFiles.length})</h4>
-            <div className="space-y-2">
-              {selectedFiles.map((file, index) => (
-                <div key={`selected-${index}`} className="flex items-center justify-between p-3 border border-white/20 rounded-lg bg-white/5 backdrop-blur-glass">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{file.name}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{formatFileSize(file.size)}</span>
-                      <span>•</span>
-                      <span>{file.type}</span>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeSelectedFile(index)}
-                    className="ml-2 text-muted-foreground hover:text-destructive h-8 w-8 p-0"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </Button>
-                </div>
-              ))}
-            </div>
-            <Button 
-              onClick={handleUpload}
-              disabled={isUploading}
-              className="w-full"
-              variant="gradient"
-            >
-              {isUploading ? "Wird hochgeladen..." : `${selectedFiles.length} ${selectedFiles.length === 1 ? 'Datei' : 'Dateien'} hochladen`}
-            </Button>
-          </div>
-        )}
-
+        {/* File List */}
         {files.length > 0 && (
-          <div className="mt-6 space-y-3">
-            <h4 className="font-semibold text-foreground">Verarbeitungsfortschritt</h4>
-            {files.map((file) => (
-              <div key={file.id} className="border border-white/20 rounded-lg p-4 bg-white/10 backdrop-blur-glass hover:bg-white/15 transition-all duration-300">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-sm truncate flex-1 mr-4">{file.name}</span>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={getStatusColor(file.status) as any}>
-                      {getStatusText(file.status)}
-                    </Badge>
-                    {file.confidence && (
-                      <Badge variant="outline">
-                        KI: {file.confidence}%
-                      </Badge>
-                    )}
+          <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
+            {files.map((file, index) => (
+              <div key={index} className="bg-white/10 rounded-lg p-3 flex items-center gap-3">
+                <FileText className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-white truncate">{file.file.name}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="flex-1 bg-gray-700 rounded-full h-1">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          file.status === 'error' ? 'bg-red-500' : 
+                          file.status === 'success' ? 'bg-green-500' : 'bg-blue-500'
+                        }`}
+                        style={{ width: `${file.progress}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-400">{file.progress}%</span>
                   </div>
+                  {file.isDuplicate && (
+                    <p className="text-xs text-yellow-400 mt-1">Duplikat erkannt</p>
+                  )}
                 </div>
-                {file.documentRegistryId && (
-                  <div className="text-xs text-muted-foreground mb-2">
-                    Registry ID: {file.documentRegistryId} | Document ID: {file.documentId}
-                  </div>
+                {file.status === 'pending' && (
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 )}
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                  <span>{formatFileSize(file.size)}</span>
-                  <span>•</span>
-                  <span>{file.type}</span>
-                </div>
-                {file.status !== 'completed' && (
-                  <Progress value={file.progress} className="h-2" />
-                )}
+                {file.status === 'success' && <CheckCircle className="h-5 w-5 text-green-500" />}
+                {file.status === 'error' && <AlertCircle className="h-5 w-5 text-red-500" />}
               </div>
             ))}
           </div>
         )}
+
+        {/* Upload Button */}
+        {files.length > 0 && (
+          <Button
+            onClick={sendToN8nWebhook}
+            disabled={isUploading || files.some(f => f.status !== 'pending')}
+            className="mt-4 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 
+                       text-white py-2 px-4 rounded-lg transition-colors duration-200
+                       flex items-center justify-center gap-2"
+          >
+            {isUploading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                Verarbeite...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4" />
+                {files.length} Datei(en) hochladen
+              </>
+            )}
+          </Button>
+        )}
+
+        {/* Info Text */}
+        <p className="text-xs text-gray-400 mt-4">
+          Unterstützte Formate: PDF, JPG, PNG (max. 10MB)
+        </p>
       </CardContent>
     </Card>
   );
