@@ -22,12 +22,16 @@ interface UploadAreaProps {
   selectedMandant?: string;
 }
 
-export const UploadArea = ({ selectedMandant = "all" }: UploadAreaProps) => {
+export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: UploadAreaProps) => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const { mandants } = useMandants();
+  const [selectedMandant, setSelectedMandant] = useState<string>(propSelectedMandant);
+  const { mandants, loading } = useMandants();
   const { toast } = useToast();
+
+  console.log('UploadArea: mandants loaded:', mandants.length, 'loading:', loading);
+  console.log('UploadArea: propSelectedMandant:', propSelectedMandant, 'selectedMandant:', selectedMandant);
 
   // File validation constants
   const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
@@ -80,6 +84,10 @@ export const UploadArea = ({ selectedMandant = "all" }: UploadAreaProps) => {
   }, []);
 
   const processFiles = async (newFiles: File[]) => {
+    console.log('processFiles called with', newFiles.length, 'files');
+    console.log('selectedMandant:', selectedMandant);
+    console.log('available mandants:', mandants);
+    
     // Validate mandant selection
     if (!selectedMandant || selectedMandant === 'all') {
       toast({
@@ -207,9 +215,11 @@ export const UploadArea = ({ selectedMandant = "all" }: UploadAreaProps) => {
 
   // Send to n8n Webhook
   const sendToN8nWebhook = async () => {
+    console.log('sendToN8nWebhook called, files:', files.length, 'selectedMandant:', selectedMandant);
     setIsUploading(true);
     const currentMandant = mandants.find(m => m.id === selectedMandant);
     
+    console.log('currentMandant found:', currentMandant);
     if (!currentMandant) {
       toast({
         title: "Fehler",
@@ -320,12 +330,44 @@ export const UploadArea = ({ selectedMandant = "all" }: UploadAreaProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {loading && (
+          <div className="mb-4 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg">
+            <p className="text-sm text-blue-100">Lade Mandanten...</p>
+          </div>
+        )}
+        
+        {/* Mandant Selection */}
+        {!loading && mandants.length > 0 && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-white mb-2">
+              Mandant auswählen
+            </label>
+            <select
+              value={selectedMandant}
+              onChange={(e) => setSelectedMandant(e.target.value)}
+              className="w-full p-2 bg-white/10 border border-white/20 rounded-lg text-white"
+            >
+              <option value="all">Bitte Mandant auswählen</option>
+              {mandants.map((mandant) => (
+                <option key={mandant.id} value={mandant.id} className="text-gray-900">
+                  {mandant.mandant_nr} - {mandant.name1}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        
+        {/* Debug Info */}
+        <div className="mb-4 p-2 bg-gray-800/50 rounded text-xs text-gray-300">
+          Debug: {mandants.length} Mandanten geladen, ausgewählt: {selectedMandant}
+        </div>
+        
         {/* Mandant Check */}
         {(!selectedMandant || selectedMandant === 'all') && (
           <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
             <p className="text-sm text-yellow-100 flex items-center gap-2">
               <AlertCircle className="h-4 w-4" />
-              Bitte wählen Sie oben einen Mandanten aus
+              Bitte wählen Sie einen Mandanten aus
             </p>
           </div>
         )}
