@@ -240,12 +240,13 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
 
   // Send to n8n Webhook
   const sendToN8nWebhook = async () => {
-    console.log('sendToN8nWebhook called, files:', files.length, 'selectedMandant:', selectedMandant);
+    console.log('🚀 sendToN8nWebhook called, files:', files.length, 'selectedMandant:', selectedMandant);
     setIsUploading(true);
     const currentMandant = mandants.find(m => m.id === selectedMandant);
     
-    console.log('currentMandant found:', currentMandant);
+    console.log('👤 currentMandant found:', currentMandant);
     if (!currentMandant) {
+      console.error('❌ No mandant found for ID:', selectedMandant);
       toast({
         title: "Fehler",
         description: "Mandant nicht gefunden.",
@@ -256,22 +257,23 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
     }
 
     try {
-      console.log('sendToN8nWebhook: starting upload process');
-      // Upload files to Supabase first
+      console.log('📁 sendToN8nWebhook: starting upload process for', files.length, 'files');
+      
+      // Process each file: upload to storage and create registry entry
       for (let i = 0; i < files.length; i++) {
         const uploadFile = files[i];
-        console.log(`sendToN8nWebhook: processing file ${i + 1}/${files.length}:`, uploadFile.file.name);
+        console.log(`📄 Processing file ${i + 1}/${files.length}:`, uploadFile.file.name);
         
-        // Update progress
+        // Update progress to uploading
         setFiles(prev => prev.map((f, idx) => 
           idx === i ? { ...f, status: 'uploading', progress: 30 } : f
         ));
 
         try {
           // Upload to storage
-          console.log('sendToN8nWebhook: uploading to storage...');
+          console.log('☁️ Uploading to Supabase storage...');
           const storagePath = await uploadToSupabase(uploadFile, currentMandant.mandant_nr);
-          console.log('sendToN8nWebhook: storage upload success:', storagePath);
+          console.log('✅ Storage upload success:', storagePath);
           
           // Update progress
           setFiles(prev => prev.map((f, idx) => 
@@ -279,16 +281,16 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
           ));
 
           // Create registry entry
-          console.log('sendToN8nWebhook: creating registry entry...');
+          console.log('📝 Creating registry entry...');
           await createRegistryEntry(uploadFile, storagePath, currentMandant);
-          console.log('sendToN8nWebhook: registry entry created');
+          console.log('✅ Registry entry created');
           
           // Update progress
           setFiles(prev => prev.map((f, idx) => 
             idx === i ? { ...f, progress: 80 } : f
           ));
         } catch (fileError) {
-          console.error(`sendToN8nWebhook: error processing file ${uploadFile.file.name}:`, fileError);
+          console.error(`❌ Error processing file ${uploadFile.file.name}:`, fileError);
           setFiles(prev => prev.map((f, idx) => 
             idx === i ? { ...f, status: 'error' } : f
           ));
@@ -296,54 +298,53 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
         }
       }
 
-      // Prepare webhook payload
-      console.log('🚀 sendToN8nWebhook: preparing webhook payload...');
+      // Now send webhook notification with document metadata
+      console.log('🌐 Sending webhook notification to n8n...');
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Create a simple JSON payload instead of FormData
       const webhookPayload = {
         batch_size: files.length,
         user_id: user?.id || '',
         upload_timestamp: new Date().toISOString(),
         mandant_id: currentMandant.id,
         mandant_nr: currentMandant.mandant_nr,
-        mandant_name1: currentMandant.name1 || '',
-        documents: files.map((uploadFile, index) => ({
+        mandant_name: currentMandant.name1 || '',
+        documents: files.map((uploadFile) => ({
+          document_id: uploadFile.documentId,
+          registry_id: uploadFile.registryId,
           filename: uploadFile.file.name,
-          fileType: uploadFile.file.type,
-          fileSize: uploadFile.file.size,
-          documentId: uploadFile.documentId,
-          registryId: uploadFile.registryId,
-          hash: uploadFile.hash
+          file_size: uploadFile.file.size,
+          file_type: uploadFile.file.type,
+          file_hash: uploadFile.hash
         }))
       };
 
-      console.log('📋 Webhook payload:', webhookPayload);
-      console.log('🌐 sendToN8nWebhook: sending to webhook...');
+      console.log('📋 Webhook payload:', JSON.stringify(webhookPayload, null, 2));
       
-      // Send to n8n with JSON payload
       const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook/afdcc912-2ca1-41ce-8ce5-ca631a2837ff';
-      console.log('🔗 sendToN8nWebhook: webhook URL:', webhookUrl);
+      console.log('🔗 Webhook URL:', webhookUrl);
       
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(webhookPayload)
       });
 
-      console.log('📊 sendToN8nWebhook: webhook response status:', response.status);
-      console.log('✅ sendToN8nWebhook: webhook response ok:', response.ok);
+      console.log('📊 Webhook response status:', response.status);
+      console.log('✅ Webhook response ok:', response.ok);
+      console.log('📤 Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ sendToN8nWebhook: webhook error response:', errorText);
-        throw new Error(`Webhook-Fehler: ${response.status} - ${errorText}`);
+        console.error('❌ Webhook error response:', errorText);
+        throw new Error(`Webhook failed: ${response.status} - ${errorText}`);
       }
 
       const responseData = await response.text();
-      console.log('🎉 sendToN8nWebhook: webhook success response:', responseData);
+      console.log('🎉 Webhook success response:', responseData);
 
       // Update all files to success
       setFiles(prev => prev.map(f => ({ ...f, status: 'success', progress: 100 })));
@@ -359,7 +360,7 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
       }, 3000);
 
     } catch (error) {
-      console.error('sendToN8nWebhook: Upload error:', error);
+      console.error('💥 Upload error:', error);
       setFiles(prev => prev.map(f => ({ ...f, status: 'error' })));
       
       toast({
