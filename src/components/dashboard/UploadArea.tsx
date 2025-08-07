@@ -352,7 +352,12 @@ export const UploadArea = () => {
               ))}
             </div>
             <Button 
-              onClick={handleUpload}
+              onClick={() => {
+                console.log('Upload button clicked!');
+                console.log('Button disabled:', isUploading);
+                console.log('Selected files:', selectedFiles.length);
+                handleUpload();
+              }}
               disabled={isUploading}
               className="w-full"
               variant="gradient"
