@@ -30,8 +30,8 @@ const Index = () => {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      {/* Overlay für bessere Lesbarkeit */}
-      <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px]" />
+      {/* Entfernen des starken Overlays für bessere Sichtbarkeit des Hintergrunds */}
+      <div className="absolute inset-0 bg-black/5" />
       
       {/* Content */}
       <div className="relative z-10">

@@ -86,7 +86,7 @@ export const BookingDetails = ({
   };
   if (!selectedEntry || !editedEntry) {
     return (
-      <Card className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass">
+      <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
         <CardContent className="p-12 text-center">
           <p className="text-muted-foreground">Wählen Sie eine Buchung zur Bearbeitung aus</p>
         </CardContent>
@@ -109,7 +109,7 @@ export const BookingDetails = ({
   };
 
   return (
-    <Card className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:shadow-strong transition-all duration-300">
+    <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Buchungsdetails</span>

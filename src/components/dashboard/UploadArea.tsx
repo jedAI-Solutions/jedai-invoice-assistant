@@ -227,7 +227,7 @@ export const UploadArea = () => {
   };
 
   return (
-    <Card className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:shadow-strong transition-all duration-300">
+    <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-sm font-modern">
           <span>Beleg-Upload</span>

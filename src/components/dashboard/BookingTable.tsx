@@ -106,7 +106,7 @@ export const BookingTable = ({
   );
 
   return (
-    <Card className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass">
+    <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
       <CardHeader className="p-3 md:p-6">
         <CardTitle className="flex flex-col md:flex-row md:items-center justify-between font-modern gap-3">
           <span className="text-lg md:text-xl">Buchungsübersicht</span>
