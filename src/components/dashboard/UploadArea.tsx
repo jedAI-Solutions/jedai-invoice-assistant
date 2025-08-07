@@ -166,12 +166,14 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
 
   // Upload to Supabase Storage
   const uploadToSupabase = async (uploadFile: UploadFile, mandantNr: string): Promise<string> => {
+    console.log('uploadToSupabase called with:', { fileName: uploadFile.file.name, mandantNr });
     const timestamp = Date.now();
     const date = new Date();
     const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     const fileName = `${uploadFile.file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}_${timestamp}`;
     const filePath = `${mandantNr}/${yearMonth}/${fileName}`;
 
+    console.log('uploadToSupabase: uploading to path:', filePath);
     const { data, error } = await supabase.storage
       .from('taxagent-documents')
       .upload(filePath, uploadFile.file, {
@@ -179,16 +181,20 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
         upsert: false
       });
 
-    if (error) throw error;
+    if (error) {
+      console.error('uploadToSupabase: storage error:', error);
+      throw error;
+    }
+    console.log('uploadToSupabase: storage success:', data.path);
     return data.path;
   };
 
-  // Create Document Registry Entry
   const createRegistryEntry = async (
     uploadFile: UploadFile, 
     storagePath: string,
     mandant: any
   ) => {
+    console.log('createRegistryEntry called with:', { uploadFile: uploadFile.file.name, storagePath, mandant });
     const { data: { user } } = await supabase.auth.getUser();
     
     const entry = {
@@ -196,21 +202,22 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
       original_filename: uploadFile.file.name,
       file_hash: uploadFile.hash,
       file_size: uploadFile.file.size,
-      file_type: uploadFile.file.type,
-      storage_path: storagePath,
       mandant_id: mandant.id,
-      mandant_nr: mandant.mandant_nr,
       processing_status: 'received',
       upload_source: 'web',
-      uploaded_by: user?.id,
       gobd_compliant: true
     };
 
+    console.log('createRegistryEntry: inserting entry:', entry);
     const { error } = await supabase
       .from('document_registry')
       .insert(entry);
 
-    if (error) throw error;
+    if (error) {
+      console.error('createRegistryEntry: error inserting:', error);
+      throw error;
+    }
+    console.log('createRegistryEntry: success');
   };
 
   // Send to n8n Webhook
@@ -230,30 +237,44 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
     }
 
     try {
+      console.log('sendToN8nWebhook: starting upload process');
       // Upload files to Supabase first
       for (let i = 0; i < files.length; i++) {
         const uploadFile = files[i];
+        console.log(`sendToN8nWebhook: processing file ${i + 1}/${files.length}:`, uploadFile.file.name);
         
         // Update progress
         setFiles(prev => prev.map((f, idx) => 
           idx === i ? { ...f, status: 'uploading', progress: 30 } : f
         ));
 
-        // Upload to storage
-        const storagePath = await uploadToSupabase(uploadFile, currentMandant.mandant_nr);
-        
-        // Update progress
-        setFiles(prev => prev.map((f, idx) => 
-          idx === i ? { ...f, progress: 60 } : f
-        ));
+        try {
+          // Upload to storage
+          console.log('sendToN8nWebhook: uploading to storage...');
+          const storagePath = await uploadToSupabase(uploadFile, currentMandant.mandant_nr);
+          console.log('sendToN8nWebhook: storage upload success:', storagePath);
+          
+          // Update progress
+          setFiles(prev => prev.map((f, idx) => 
+            idx === i ? { ...f, progress: 60 } : f
+          ));
 
-        // Create registry entry
-        await createRegistryEntry(uploadFile, storagePath, currentMandant);
-        
-        // Update progress
-        setFiles(prev => prev.map((f, idx) => 
-          idx === i ? { ...f, progress: 80 } : f
-        ));
+          // Create registry entry
+          console.log('sendToN8nWebhook: creating registry entry...');
+          await createRegistryEntry(uploadFile, storagePath, currentMandant);
+          console.log('sendToN8nWebhook: registry entry created');
+          
+          // Update progress
+          setFiles(prev => prev.map((f, idx) => 
+            idx === i ? { ...f, progress: 80 } : f
+          ));
+        } catch (fileError) {
+          console.error(`sendToN8nWebhook: error processing file ${uploadFile.file.name}:`, fileError);
+          setFiles(prev => prev.map((f, idx) => 
+            idx === i ? { ...f, status: 'error' } : f
+          ));
+          throw fileError;
+        }
       }
 
       // Prepare webhook payload

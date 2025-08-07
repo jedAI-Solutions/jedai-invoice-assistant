@@ -17,16 +17,22 @@ export function useMandants() {
 
   const fetchMandants = async () => {
     try {
+      console.log('useMandants: fetching mandants...');
       const { data, error } = await supabase
         .from('mandants')
         .select('id, mandant_nr, name1')
         .eq('status', 'active')
         .order('mandant_nr');
 
-      if (error) throw error;
+      console.log('useMandants: query result:', { data, error });
+      if (error) {
+        console.error('useMandants: error fetching mandants:', error);
+        throw error;
+      }
+      console.log('useMandants: setting mandants:', data?.length || 0);
       setMandants(data || []);
     } catch (error) {
-      console.error('Error fetching mandants:', error);
+      console.error('useMandants: Error fetching mandants:', error);
     } finally {
       setLoading(false);
     }
