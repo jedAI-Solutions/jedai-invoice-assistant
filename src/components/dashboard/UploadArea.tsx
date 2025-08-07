@@ -63,6 +63,7 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log('🎯 Drag event:', e.type);
     if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
     } else if (e.type === "dragleave") {
@@ -74,8 +75,9 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
+    console.log('📁 Files dropped:', e.dataTransfer.files.length);
 
-    if (e.dataTransfer.files) {
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       await processFiles(Array.from(e.dataTransfer.files));
     }
   }, []);
@@ -424,8 +426,15 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
         {/* Drop Zone */}
         <div
           onDrop={handleDrop}
-          onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
-          onDragLeave={() => setDragActive(false)}
+          onDragOver={(e) => { 
+            e.preventDefault(); 
+            setDragActive(true); 
+            console.log('🎯 Drag over detected');
+          }}
+          onDragLeave={() => {
+            setDragActive(false);
+            console.log('🎯 Drag leave detected');
+          }}
           className={`
             border-2 border-dashed rounded-lg p-6 text-center cursor-pointer
             transition-all duration-200
@@ -435,7 +444,10 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
             }
             ${(!selectedMandant || selectedMandant === 'all') ? 'opacity-50 pointer-events-none' : ''}
           `}
-          onClick={() => document.getElementById('file-input')?.click()}
+          onClick={() => {
+            console.log('🖱️ Drop zone clicked');
+            document.getElementById('file-input')?.click();
+          }}
         >
           <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
           <p className="text-sm text-gray-300">
@@ -449,7 +461,12 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
             type="file"
             multiple
             accept=".pdf,.jpg,.jpeg,.png"
-            onChange={(e) => e.target.files && processFiles(Array.from(e.target.files))}
+            onChange={(e) => {
+              console.log('📂 File input changed:', e.target.files?.length);
+              if (e.target.files && e.target.files.length > 0) {
+                processFiles(Array.from(e.target.files));
+              }
+            }}
             className="hidden"
             disabled={!selectedMandant || selectedMandant === 'all'}
           />
