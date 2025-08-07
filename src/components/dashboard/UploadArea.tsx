@@ -74,6 +74,10 @@ export const UploadArea = () => {
   };
 
   const handleUpload = async () => {
+    console.log('handleUpload called');
+    console.log('selectedFiles.length:', selectedFiles.length);
+    console.log('selectedMandant:', selectedMandant);
+    
     if (selectedFiles.length === 0) {
       toast({
         title: "Keine Dateien ausgewählt",
@@ -83,12 +87,26 @@ export const UploadArea = () => {
       return;
     }
     
+    console.log('Setting isUploading to true');
     setIsUploading(true);
     const uploadFiles = files.filter(f => f.status === 'uploading');
-    await uploadFilesToWebhook(selectedFiles, uploadFiles);
-    // Clear selected files after upload
-    setSelectedFiles([]);
-    setIsUploading(false);
+    console.log('uploadFiles:', uploadFiles);
+    
+    try {
+      await uploadFilesToWebhook(selectedFiles, uploadFiles);
+      // Clear selected files after upload
+      setSelectedFiles([]);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast({
+        title: "Upload fehlgeschlagen",
+        description: "Fehler beim Upload: " + error.message,
+        variant: "destructive",
+      });
+    } finally {
+      console.log('Setting isUploading to false');
+      setIsUploading(false);
+    }
   };
 
   const uploadFilesToWebhook = async (fileArray: File[], uploadFiles: UploadFile[]) => {
