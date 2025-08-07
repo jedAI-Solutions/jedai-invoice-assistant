@@ -321,7 +321,7 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
 
       console.log('📋 Webhook payload:', JSON.stringify(webhookPayload, null, 2));
       
-      const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook/afdcc912-2ca1-41ce-8ce5-ca631a2837ff';
+      const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook-test/afdcc912-2ca1-41ce-8ce5-ca631a2837ff';
       console.log('🔗 Webhook URL:', webhookUrl);
       
       const response = await fetch(webhookUrl, {
