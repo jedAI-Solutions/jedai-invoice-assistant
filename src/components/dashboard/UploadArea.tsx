@@ -164,29 +164,47 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
     setFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  // Upload to Supabase Storage
+  // Upload to Supabase Storage with better filename sanitization
   const uploadToSupabase = async (uploadFile: UploadFile, mandantNr: string): Promise<string> => {
     console.log('uploadToSupabase called with:', { fileName: uploadFile.file.name, mandantNr });
-    const timestamp = Date.now();
-    const date = new Date();
-    const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    const fileName = `${uploadFile.file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}_${timestamp}`;
-    const filePath = `${mandantNr}/${yearMonth}/${fileName}`;
+    
+    try {
+      const timestamp = Date.now();
+      const date = new Date();
+      const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      // Better filename sanitization - remove all non-ASCII and special characters
+      const fileExtension = uploadFile.file.name.split('.').pop() || '';
+      const baseName = uploadFile.file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+      const sanitizedBaseName = baseName
+        .replace(/[^\w\s-]/g, '') // Remove all non-word chars except spaces and hyphens
+        .replace(/\s+/g, '_')     // Replace spaces with underscores
+        .replace(/-+/g, '_')      // Replace hyphens with underscores
+        .substring(0, 50);        // Limit length
+      
+      const fileName = `${sanitizedBaseName}_${timestamp}.${fileExtension}`;
+      const filePath = `${mandantNr}/${yearMonth}/${fileName}`;
 
-    console.log('uploadToSupabase: uploading to path:', filePath);
-    const { data, error } = await supabase.storage
-      .from('taxagent-documents')
-      .upload(filePath, uploadFile.file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+      console.log('uploadToSupabase: uploading to path:', filePath);
+      
+      const { data, error } = await supabase.storage
+        .from('taxagent-documents')
+        .upload(filePath, uploadFile.file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-    if (error) {
-      console.error('uploadToSupabase: storage error:', error);
+      if (error) {
+        console.error('uploadToSupabase: storage error:', error);
+        throw new Error(`Storage upload failed: ${error.message}`);
+      }
+      
+      console.log('uploadToSupabase: storage success:', data.path);
+      return data.path;
+    } catch (error) {
+      console.error('uploadToSupabase: unexpected error:', error);
       throw error;
     }
-    console.log('uploadToSupabase: storage success:', data.path);
-    return data.path;
   };
 
   const createRegistryEntry = async (
