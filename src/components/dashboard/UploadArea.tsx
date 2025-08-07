@@ -251,6 +251,7 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
         description: "Mandant nicht gefunden.",
         variant: "destructive"
       });
+      setIsUploading(false);
       return;
     }
 
@@ -296,6 +297,7 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
       }
 
       // Prepare webhook payload
+      console.log('sendToN8nWebhook: preparing webhook payload...');
       const { data: { user } } = await supabase.auth.getUser();
       const formData = new FormData();
       
@@ -317,13 +319,27 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
         formData.append(`file_${index}`, uploadFile.file);
       });
 
+      console.log('sendToN8nWebhook: sending to webhook...');
       // Send to n8n
-      const response = await fetch('https://jedai-solutions.app.n8n.cloud/webhook/afdcc912-2ca1-41ce-8ce5-ca631a2837ff', {
+      const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook/afdcc912-2ca1-41ce-8ce5-ca631a2837ff';
+      console.log('sendToN8nWebhook: webhook URL:', webhookUrl);
+      
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         body: formData
       });
 
-      if (!response.ok) throw new Error('Webhook-Fehler');
+      console.log('sendToN8nWebhook: webhook response status:', response.status);
+      console.log('sendToN8nWebhook: webhook response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('sendToN8nWebhook: webhook error response:', errorText);
+        throw new Error(`Webhook-Fehler: ${response.status} - ${errorText}`);
+      }
+
+      const responseData = await response.text();
+      console.log('sendToN8nWebhook: webhook success response:', responseData);
 
       // Update all files to success
       setFiles(prev => prev.map(f => ({ ...f, status: 'success', progress: 100 })));
@@ -339,12 +355,12 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
       }, 3000);
 
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('sendToN8nWebhook: Upload error:', error);
       setFiles(prev => prev.map(f => ({ ...f, status: 'error' })));
       
       toast({
         title: "Upload fehlgeschlagen",
-        description: "Bitte versuchen Sie es erneut.",
+        description: error instanceof Error ? error.message : "Bitte versuchen Sie es erneut.",
         variant: "destructive"
       });
     } finally {
