@@ -337,7 +337,12 @@ export const CombinedInterface = () => {
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="konto">SKR-Konto</Label>
-                      <Select value={selectedEntry.account}>
+                      <Select 
+                        value={selectedEntry.account}
+                        onValueChange={(value) => {
+                          setSelectedEntry(prev => prev ? {...prev, account: value} : null);
+                        }}
+                      >
                         <SelectTrigger className="bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
                           <SelectValue />
                         </SelectTrigger>
@@ -355,7 +360,12 @@ export const CombinedInterface = () => {
                     </div>
                     <div>
                       <Label htmlFor="steuer">Steuersatz</Label>
-                      <Select value={selectedEntry.taxRate}>
+                      <Select 
+                        value={selectedEntry.taxRate}
+                        onValueChange={(value) => {
+                          setSelectedEntry(prev => prev ? {...prev, taxRate: value} : null);
+                        }}
+                      >
                         <SelectTrigger className="bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
                           <SelectValue />
                         </SelectTrigger>

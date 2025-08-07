@@ -186,7 +186,12 @@ export const ReviewInterface = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="konto">SKR-Konto</Label>
-                    <Select value={selectedBooking.account}>
+                    <Select 
+                      value={selectedBooking.account}
+                      onValueChange={(value) => {
+                        setSelectedBooking(prev => prev ? {...prev, account: value} : null);
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -201,7 +206,12 @@ export const ReviewInterface = () => {
                   </div>
                   <div>
                     <Label htmlFor="steuer">Steuersatz</Label>
-                    <Select value={selectedBooking.taxRate}>
+                    <Select 
+                      value={selectedBooking.taxRate}
+                      onValueChange={(value) => {
+                        setSelectedBooking(prev => prev ? {...prev, taxRate: value} : null);
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
