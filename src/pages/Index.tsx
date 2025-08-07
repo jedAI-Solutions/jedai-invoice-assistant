@@ -27,7 +27,7 @@ const Index = () => {
         backgroundImage: `url(${dashboardBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
+        backgroundRepeat: 'no-repeat'
       }}
     >
       {/* Overlay für bessere Lesbarkeit */}
