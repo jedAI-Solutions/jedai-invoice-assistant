@@ -30,9 +30,6 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
   const { mandants, loading } = useMandants();
   const { toast } = useToast();
 
-  console.log('UploadArea: mandants loaded:', mandants.length, 'loading:', loading);
-  console.log('UploadArea: propSelectedMandant:', propSelectedMandant, 'selectedMandant:', selectedMandant);
-
   // File validation constants
   const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -84,12 +81,13 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
   }, []);
 
   const processFiles = async (newFiles: File[]) => {
-    console.log('processFiles called with', newFiles.length, 'files');
-    console.log('selectedMandant:', selectedMandant);
-    console.log('available mandants:', mandants);
+    console.log('🔄 processFiles called with', newFiles.length, 'files');
+    console.log('📋 selectedMandant:', selectedMandant);
+    console.log('👥 available mandants:', mandants.length);
     
     // Validate mandant selection
     if (!selectedMandant || selectedMandant === 'all') {
+      console.error('❌ No mandant selected for upload');
       toast({
         title: "Mandant auswählen",
         description: "Bitte wählen Sie einen Mandanten vor dem Upload aus.",
@@ -412,10 +410,6 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
           </div>
         )}
         
-        {/* Debug Info */}
-        <div className="mb-4 p-2 bg-gray-800/50 rounded text-xs text-gray-300">
-          Debug: {mandants.length} Mandanten geladen, ausgewählt: {selectedMandant}
-        </div>
         
         {/* Mandant Check */}
         {(!selectedMandant || selectedMandant === 'all') && (
