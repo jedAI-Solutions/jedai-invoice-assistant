@@ -297,49 +297,53 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
       }
 
       // Prepare webhook payload
-      console.log('sendToN8nWebhook: preparing webhook payload...');
+      console.log('🚀 sendToN8nWebhook: preparing webhook payload...');
       const { data: { user } } = await supabase.auth.getUser();
-      const formData = new FormData();
       
-      // Add metadata
-      formData.append('batch_size', files.length.toString());
-      formData.append('user_id', user?.id || '');
-      formData.append('upload_timestamp', new Date().toISOString());
-      formData.append('mandant_id', currentMandant.id);
-      formData.append('mandant_nr', currentMandant.mandant_nr);
-      formData.append('mandant_name1', currentMandant.name1 || '');
+      // Create a simple JSON payload instead of FormData
+      const webhookPayload = {
+        batch_size: files.length,
+        user_id: user?.id || '',
+        upload_timestamp: new Date().toISOString(),
+        mandant_id: currentMandant.id,
+        mandant_nr: currentMandant.mandant_nr,
+        mandant_name1: currentMandant.name1 || '',
+        documents: files.map((uploadFile, index) => ({
+          filename: uploadFile.file.name,
+          fileType: uploadFile.file.type,
+          fileSize: uploadFile.file.size,
+          documentId: uploadFile.documentId,
+          registryId: uploadFile.registryId,
+          hash: uploadFile.hash
+        }))
+      };
 
-      // Add file metadata and files
-      files.forEach((uploadFile, index) => {
-        formData.append(`filename_${index}`, uploadFile.file.name);
-        formData.append(`fileType_${index}`, uploadFile.file.type);
-        formData.append(`fileSize_${index}`, uploadFile.file.size.toString());
-        formData.append(`documentId_${index}`, uploadFile.documentId);
-        formData.append(`registryId_${index}`, uploadFile.registryId);
-        formData.append(`file_${index}`, uploadFile.file);
-      });
-
-      console.log('sendToN8nWebhook: sending to webhook...');
-      // Send to n8n
+      console.log('📋 Webhook payload:', webhookPayload);
+      console.log('🌐 sendToN8nWebhook: sending to webhook...');
+      
+      // Send to n8n with JSON payload
       const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook/afdcc912-2ca1-41ce-8ce5-ca631a2837ff';
-      console.log('sendToN8nWebhook: webhook URL:', webhookUrl);
+      console.log('🔗 sendToN8nWebhook: webhook URL:', webhookUrl);
       
       const response = await fetch(webhookUrl, {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookPayload)
       });
 
-      console.log('sendToN8nWebhook: webhook response status:', response.status);
-      console.log('sendToN8nWebhook: webhook response ok:', response.ok);
+      console.log('📊 sendToN8nWebhook: webhook response status:', response.status);
+      console.log('✅ sendToN8nWebhook: webhook response ok:', response.ok);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('sendToN8nWebhook: webhook error response:', errorText);
+        console.error('❌ sendToN8nWebhook: webhook error response:', errorText);
         throw new Error(`Webhook-Fehler: ${response.status} - ${errorText}`);
       }
 
       const responseData = await response.text();
-      console.log('sendToN8nWebhook: webhook success response:', responseData);
+      console.log('🎉 sendToN8nWebhook: webhook success response:', responseData);
 
       // Update all files to success
       setFiles(prev => prev.map(f => ({ ...f, status: 'success', progress: 100 })));
