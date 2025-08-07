@@ -40,8 +40,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -53,6 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
       
+      console.log('Profile fetched successfully:', data);
       return data as Profile;
     } catch (err) {
       console.error('Profile fetch error:', err);
@@ -66,10 +68,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Get initial session first
     const getInitialSession = async () => {
       try {
+        console.log('Getting initial session...');
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!mounted) return;
         
+        console.log('Initial session:', session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -83,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         if (mounted) {
+          console.log('Setting loading to false');
           setLoading(false);
         }
       } catch (error) {
