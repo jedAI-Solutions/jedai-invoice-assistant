@@ -61,7 +61,7 @@ const Auth = () => {
       className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{
         backgroundImage: `url(${aiHeaderBg})`,
-        backgroundSize: '120%',
+        backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
       }}
@@ -71,7 +71,7 @@ const Auth = () => {
         className="absolute inset-0 animate-bg-pan"
         style={{
           backgroundImage: `url(${aiHeaderBg})`,
-          backgroundSize: '130%',
+          backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
         }}
