@@ -338,7 +338,7 @@ export const CombinedInterface = () => {
                     <div>
                       <Label htmlFor="konto">SKR-Konto</Label>
                       <Select value={selectedEntry.account}>
-                        <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
+                        <SelectTrigger className="bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -356,7 +356,7 @@ export const CombinedInterface = () => {
                     <div>
                       <Label htmlFor="steuer">Steuersatz</Label>
                       <Select value={selectedEntry.taxRate}>
-                        <SelectTrigger className="bg-white/10 backdrop-blur-glass border-white/20">
+                        <SelectTrigger className="bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

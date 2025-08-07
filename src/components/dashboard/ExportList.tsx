@@ -111,7 +111,7 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
                     <div className="text-xs text-green-600">Exportbereit</div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" className="bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 shadow-lg text-white">
                       <Download className="h-4 w-4" />
                     </Button>
                     <Button

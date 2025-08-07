@@ -54,7 +54,7 @@ export default function MandantSelectorAll({ selectedMandant, onMandantChange }:
     <div className="space-y-2">
       <Label htmlFor="mandant-select">Mandant auswählen</Label>
       <Select value={selectedMandant} onValueChange={onMandantChange}>
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-full bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
           <SelectValue placeholder={loading ? "Lade Mandanten..." : "Mandant auswählen"} />
         </SelectTrigger>
         <SelectContent>

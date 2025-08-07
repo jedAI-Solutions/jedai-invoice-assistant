@@ -227,7 +227,7 @@ export const ReviewInterface = () => {
                   <Button className="flex-1">
                     Buchung genehmigen
                   </Button>
-                  <Button variant="outline" className="flex-1">
+                  <Button variant="outline" className="flex-1 bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 shadow-lg text-white">
                     Änderungen speichern
                   </Button>
                   <Button variant="destructive">
@@ -250,7 +250,7 @@ export const ReviewInterface = () => {
                         Belegvorschau wird hier angezeigt
                       </p>
                     </div>
-                    <Button variant="outline">
+                    <Button variant="outline" className="bg-white/20 backdrop-blur-md border-white/30 hover:bg-white/30 shadow-lg text-white">
                       Beleg öffnen
                     </Button>
                   </div>

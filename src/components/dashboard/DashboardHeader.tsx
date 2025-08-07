@@ -96,12 +96,12 @@ export const DashboardHeader = ({
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+                <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
                   <User className="h-4 w-4 mr-2" />
                   <span className="hidden md:inline">{user?.email}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">
                 <DropdownMenuLabel>Mein Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-xs text-muted-foreground">

@@ -215,10 +215,10 @@ export const BookingDetails = ({
                     disabled={loadingMandanten}
                     required
                   >
-                    <SelectTrigger className="bg-white border border-gray-300 hover:bg-gray-50">
+                    <SelectTrigger className="bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
                       <SelectValue placeholder={loadingMandanten ? "Lade Mandanten..." : "Mandant auswählen..."} />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
+                    <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">
                       <SelectItem 
                         value="nicht-definiert"
                         className="hover:bg-gray-100 cursor-pointer text-gray-600 italic"
@@ -256,10 +256,10 @@ export const BookingDetails = ({
                     onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, account: value} : null)}
                     disabled={loadingAccounts}
                   >
-                    <SelectTrigger className="bg-white border border-gray-300 hover:bg-gray-50">
+                    <SelectTrigger className="bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
                       <SelectValue placeholder={loadingAccounts ? "Lade Konten..." : "SKR-Konto auswählen"} />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
+                    <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">
                       {accounts.map((account) => (
                         <SelectItem 
                           key={account.account_number} 
@@ -279,10 +279,10 @@ export const BookingDetails = ({
                     value={editedEntry.taxRate} 
                     onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, taxRate: value} : null)}
                   >
-                    <SelectTrigger className="bg-white border border-gray-300 hover:bg-gray-50">
+                    <SelectTrigger className="bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
                       <SelectValue placeholder="Steuersatz auswählen" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
+                    <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">
                       <SelectItem value="19%">19% - Regelsteuersatz</SelectItem>
                       <SelectItem value="9%">9% - Ermäßigter Satz (Bücher etc.)</SelectItem>
                       <SelectItem value="7%">7% - Ermäßigter Satz</SelectItem>

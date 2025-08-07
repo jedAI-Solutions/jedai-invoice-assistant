@@ -112,7 +112,7 @@ export const BookingTable = ({
           <span className="text-lg md:text-xl">Buchungsübersicht</span>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <Select value={confidenceFilter} onValueChange={onConfidenceFilterChange}>
-                <SelectTrigger className="w-full sm:w-32 md:w-40 bg-white/10 backdrop-blur-glass border-white/20 text-xs md:text-sm">
+                <SelectTrigger className="w-full sm:w-32 md:w-40 bg-white/95 backdrop-blur-md border-white/30 text-xs md:text-sm shadow-lg">
                   <SelectValue placeholder="KI-Filter" />
                 </SelectTrigger>
                 <SelectContent>
