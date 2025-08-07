@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { TransparentLogo } from '@/components/TransparentLogo';
+import aiHeaderBg from "@/assets/ai-header-bg.jpg";
+import jedaiLogoIcon from "@/assets/jedai-logo-icon.png";
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -55,20 +57,56 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+      style={{
+        backgroundImage: `url(${aiHeaderBg})`,
+        backgroundSize: '120%',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Animated background layer */}
+      <div 
+        className="absolute inset-0 animate-bg-pan"
+        style={{
+          backgroundImage: `url(${aiHeaderBg})`,
+          backgroundSize: '130%',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      ></div>
+      
+      {/* Glass overlay */}
+      <div className="absolute inset-0 bg-white/10 backdrop-blur-glass"></div>
+      
+      <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <TransparentLogo 
-              src="/src/assets/jedai-logo-transparent.png"
-              alt="Taxagent Logo"
-              className="h-16 w-auto" 
-            />
+            <div className="relative group cursor-pointer">
+              <img
+                src={jedaiLogoIcon}
+                alt="jedAI Solutions Logo"
+                className="relative h-16 w-auto object-contain transition-all duration-700 ease-in-out
+                         hover:scale-105 hover:brightness-110
+                         animate-pulse-subtle group-hover:animate-none
+                         filter hover:drop-shadow-sm"
+              />
+              {/* Subtle glow effect on hover */}
+              <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-30 
+                            transition-opacity duration-500 ease-in-out
+                            bg-gradient-radial from-blue-200/30 via-transparent to-transparent
+                            blur-xl scale-150"></div>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-primary-foreground mb-2">
-            Welcome to Taxagent
+          <h1 className="text-2xl font-bold text-white font-modern leading-tight
+                       [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.8)] filter drop-shadow-lg
+                       transition-all duration-500 ease-in-out hover:scale-[1.02] cursor-default mb-2">
+            Taxagent
           </h1>
-          <p className="text-primary-foreground/80">
+          <p className="text-white font-modern font-semibold
+                       [text-shadow:_1px_1px_3px_rgb(0_0_0_/_0.9)]
+                       transition-all duration-300 ease-in-out hover:text-gray-100">
             KI-gestützte Belegverarbeitung
           </p>
         </div>
