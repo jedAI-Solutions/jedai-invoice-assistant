@@ -126,6 +126,7 @@ export const UploadArea = () => {
       ));
 
       // Use secure edge function 
+      console.log('Starting upload to edge function...');
       const response = await fetch(`https://awrduehwnyxbwtjbbrhw.supabase.co/functions/v1/secure-file-upload`, {
         method: 'POST',
         headers: {
@@ -133,6 +134,9 @@ export const UploadArea = () => {
         },
         body: formData,
       });
+      
+      console.log('Upload response status:', response.status);
+      console.log('Upload response ok:', response.ok);
       
       if (response.ok) {
         const result = await response.json();
@@ -178,7 +182,14 @@ export const UploadArea = () => {
           description: `${fileArray.length} files have been processed and forwarded to workflow.`,
         });
       } else {
-        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        const errorText = await response.text();
+        console.error('Upload failed. Status:', response.status, 'Response:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || response.statusText };
+        }
         throw new Error(errorData.error || `Upload failed: ${response.statusText}`);
       }
     } catch (error) {
