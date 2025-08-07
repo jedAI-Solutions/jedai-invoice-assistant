@@ -148,7 +148,7 @@ export const CombinedInterface = () => {
   };
 
   const renderBookingList = (entries: BookingEntry[], title: string, badgeText: string, badgeVariant: string) => (
-    <Card className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:shadow-strong transition-all duration-300">
+    <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>{title}</span>
@@ -257,7 +257,7 @@ export const CombinedInterface = () => {
       </div>
 
       {/* Buchungsvorschlag unten über ganze Breite */}
-      <Card className="bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:shadow-strong transition-all duration-300">
+      <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Buchungsvorschlag bearbeiten</span>

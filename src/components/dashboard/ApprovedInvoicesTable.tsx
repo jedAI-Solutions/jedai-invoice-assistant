@@ -175,7 +175,7 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
 
   if (loading) {
     return (
-      <Card>
+      <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
         <CardHeader>
           <CardTitle>Genehmigte Rechnungen</CardTitle>
         </CardHeader>
@@ -189,7 +189,7 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
   }
 
   return (
-    <Card>
+    <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Genehmigte Rechnungen</CardTitle>
         <Badge variant="secondary">{approvedInvoices.length} Einträge</Badge>

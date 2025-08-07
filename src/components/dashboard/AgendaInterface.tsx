@@ -114,7 +114,7 @@ export const AgendaInterface = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Agenda Liste */}
-        <Card className="lg:col-span-1 bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:shadow-strong transition-all duration-300">
+        <Card className="lg:col-span-1 bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Export-Liste</span>
@@ -160,7 +160,7 @@ export const AgendaInterface = () => {
         </Card>
 
         {/* Buchungsdetails */}
-        <Card className="lg:col-span-2 bg-gradient-card backdrop-blur-glass border-white/20 shadow-glass hover:shadow-strong transition-all duration-300">
+        <Card className="lg:col-span-2 bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardHeader>
             <CardTitle>Buchung überprüfen & exportieren</CardTitle>
           </CardHeader>

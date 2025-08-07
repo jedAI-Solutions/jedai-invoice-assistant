@@ -60,7 +60,7 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
 
   if (loading) {
     return (
-      <Card>
+      <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
         <CardHeader>
           <CardTitle>Export-Liste</CardTitle>
         </CardHeader>
@@ -74,7 +74,7 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
   }
 
   return (
-    <Card>
+    <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Export-Liste</CardTitle>
         <div className="flex items-center gap-2">

@@ -81,7 +81,7 @@ export const ExportQueue = () => {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             Export-Warteschlange
@@ -96,7 +96,7 @@ export const ExportQueue = () => {
   }
 
   return (
-    <Card>
+    <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           Export-Warteschlange
