@@ -74,10 +74,6 @@ export const UploadArea = () => {
   };
 
   const handleUpload = async () => {
-    console.log('handleUpload called');
-    console.log('selectedFiles.length:', selectedFiles.length);
-    console.log('selectedMandant:', selectedMandant);
-    
     if (selectedFiles.length === 0) {
       toast({
         title: "Keine Dateien ausgewählt",
@@ -86,30 +82,44 @@ export const UploadArea = () => {
       });
       return;
     }
+
+    if (selectedMandant === 'all' || !selectedMandant) {
+      toast({
+        title: "Mandant auswählen",
+        description: "Bitte wählen Sie einen spezifischen Mandanten für den Upload aus.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    console.log('Setting isUploading to true');
     setIsUploading(true);
-    const uploadFiles = files.filter(f => f.status === 'uploading');
-    console.log('uploadFiles:', uploadFiles);
     
     try {
-      await uploadFilesToWebhook(selectedFiles, uploadFiles);
-      // Clear selected files after upload
+      // Update files to uploading status
+      setFiles(prev => selectedFiles.map((file, index) => ({
+        id: `file-${Date.now()}-${index}`,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        status: 'uploading' as const,
+        progress: 10
+      })));
+
+      await uploadFilesToWebhook(selectedFiles);
       setSelectedFiles([]);
     } catch (error) {
       console.error('Upload failed:', error);
       toast({
         title: "Upload fehlgeschlagen",
-        description: "Fehler beim Upload: " + error.message,
+        description: error instanceof Error ? error.message : "Unbekannter Fehler",
         variant: "destructive",
       });
     } finally {
-      console.log('Setting isUploading to false');
       setIsUploading(false);
     }
   };
 
-  const uploadFilesToWebhook = async (fileArray: File[], uploadFiles: UploadFile[]) => {
+  const uploadFilesToWebhook = async (fileArray: File[]) => {
     try {
       // Get authentication session
       const { data: { session } } = await supabase.auth.getSession();
@@ -131,27 +141,12 @@ export const UploadArea = () => {
         formData.append('file', file); // Edge function will handle multiple files with same key
       });
       
-      // Add mandant information - required for edge function
-      if (selectedMandant && selectedMandant !== 'all') {
-        formData.append('mandant_id', selectedMandant);
-      } else {
-        // If no mandant selected or 'all' selected, use the first available mandant
-        // The edge function requires a mandant_id for security
-        toast({
-          title: "Mandant auswählen",
-          description: "Bitte wählen Sie einen spezifischen Mandanten für den Upload aus.",
-          variant: "destructive",
-        });
-        setIsUploading(false);
-        return;
-      }
+      formData.append('mandant_id', selectedMandant);
       
       console.log(`Uploading ${fileArray.length} files together`);
       
-      // Update progress to show upload starting
-      setFiles(prev => prev.map(f => 
-        uploadFiles.some(uf => uf.id === f.id) ? { ...f, progress: 10 } : f
-      ));
+      // Update progress to show upload starting  
+      setFiles(prev => prev.map(f => ({ ...f, progress: 50 })));
 
       // Use secure edge function 
       console.log('Starting upload to edge function...');
@@ -172,34 +167,26 @@ export const UploadArea = () => {
         
         // Update all uploaded files to processing with document registry info
         setFiles(prev => prev.map((f, index) => {
-          if (uploadFiles.some(uf => uf.id === f.id)) {
-            const uploadedFile = result.processedFiles?.[index];
-            return { 
-              ...f, 
-              status: 'processing', 
-              progress: 100,
-              documentRegistryId: uploadedFile?.documentRegistryId,
-              documentId: uploadedFile?.documentId
-            };
-          }
-          return f;
+          const uploadedFile = result.processedFiles?.[index];
+          return { 
+            ...f, 
+            status: 'processing' as const, 
+            progress: 100,
+            documentRegistryId: uploadedFile?.documentRegistryId,
+            documentId: uploadedFile?.documentId
+          };
         }));
 
         // Complete after processing time and refresh booking overview
         setTimeout(() => {
-          setFiles(prev => prev.map(f => 
-            uploadFiles.some(uf => uf.id === f.id)
-              ? { 
-                  ...f, 
-                  status: 'completed', 
-                  confidence: Math.floor(Math.random() * 20) + 80 
-                } 
-              : f
-          ));
+          setFiles(prev => prev.map(f => ({ 
+            ...f, 
+            status: 'completed' as const, 
+            confidence: Math.floor(Math.random() * 20) + 80 
+          })));
           
           // Trigger refresh of booking overview
           if ((window as any).refreshBookingOverview) {
-            console.log('Triggering booking overview refresh after upload completion');
             (window as any).refreshBookingOverview();
           }
         }, 2000);
@@ -224,9 +211,7 @@ export const UploadArea = () => {
       console.error('Batch upload error:', error);
       
       // Update all files to error state
-      setFiles(prev => prev.map(f => 
-        uploadFiles.some(uf => uf.id === f.id) ? { ...f, status: 'error', progress: 0 } : f
-      ));
+      setFiles(prev => prev.map(f => ({ ...f, status: 'error' as const, progress: 0 })));
       
       // Show error message
       toast({
@@ -324,9 +309,6 @@ export const UploadArea = () => {
           />
         </div>
 
-        <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-sm">
-          Debug Info: selectedFiles.length = {selectedFiles.length}, isUploading = {isUploading.toString()}
-        </div>
 
         {selectedFiles.length > 0 && (
           <div className="mt-4 space-y-3">
@@ -356,12 +338,7 @@ export const UploadArea = () => {
               ))}
             </div>
             <Button 
-              onClick={() => {
-                console.log('Upload button clicked!');
-                console.log('Button disabled:', isUploading);
-                console.log('Selected files:', selectedFiles.length);
-                handleUpload();
-              }}
+              onClick={handleUpload}
               disabled={isUploading}
               className="w-full"
               variant="gradient"
