@@ -28,6 +28,7 @@ export interface BookingEntry {
   reasoning?: string;
   uncertainty_factors?: string[];
   check_notes?: string[];
+  document_url?: string;
 }
 
 export interface Mandant {

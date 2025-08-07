@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { BookingEntry } from "@/types/booking";
 import { supabase } from "@/integrations/supabase/client";
 import type { Mandantenstammdaten } from "@/types/mandantenstammdaten";
+import { PDFViewer } from "./PDFViewer";
 
 type Mandant = Pick<Mandantenstammdaten, 'name1' | 'mandant_nr'>;
 
@@ -82,6 +83,41 @@ export const BookingDetails = ({
       setAccounts([]);
     } finally {
       setLoadingAccounts(false);
+    }
+  };
+
+  const downloadDocument = async (documentUrl: string, filename: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .download(documentUrl);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+    }
+  };
+
+  const openDocumentInNewTab = async (documentUrl: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(documentUrl, 3600); // 1 hour expiry
+
+      if (error) throw error;
+
+      window.open(data.signedUrl, '_blank');
+    } catch (error) {
+      console.error('Error opening document:', error);
     }
   };
   if (!selectedEntry || !editedEntry) {
@@ -375,23 +411,57 @@ export const BookingDetails = ({
           <TabsContent value="pdf" className="mt-6">
             <div className="border border-white/20 rounded-lg p-6 bg-white/10 backdrop-blur-glass">
               <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 rounded-lg bg-destructive/10 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <div className="text-center">
-                  <h4 className="font-semibold text-foreground">Original PDF-Ansicht</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Das ursprüngliche PDF-Dokument wird hier angezeigt
+                  <h4 className="font-semibold text-foreground mb-2">{selectedEntry.document}</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Original PDF-Dokument
                   </p>
+                  {selectedEntry.document_url ? (
+                    <div className="space-y-3">
+                      <PDFViewer documentUrl={selectedEntry.document_url} />
+                      <div className="flex gap-2 justify-center">
+                        <Button 
+                          variant="outline" 
+                          className="bg-white/10 backdrop-blur-glass border-white/20"
+                          onClick={() => downloadDocument(selectedEntry.document_url!, selectedEntry.document)}
+                        >
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          PDF herunterladen
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="bg-white/10 backdrop-blur-glass border-white/20"
+                          onClick={() => openDocumentInNewTab(selectedEntry.document_url!)}
+                        >
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                          In neuem Tab öffnen
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground text-sm mb-4">
+                        Kein Originaldokument verfügbar
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        className="bg-white/10 backdrop-blur-glass border-white/20"
+                        disabled
+                      >
+                        Dokument nicht verfügbar
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                <div className="w-full max-w-2xl h-96 border border-white/20 rounded-lg bg-white/5 flex items-center justify-center">
-                  <p className="text-muted-foreground">PDF-Viewer wird hier eingebettet</p>
-                </div>
-                <Button variant="outline" className="bg-white/10 backdrop-blur-glass border-white/20">
-                  PDF herunterladen
-                </Button>
               </div>
             </div>
           </TabsContent>

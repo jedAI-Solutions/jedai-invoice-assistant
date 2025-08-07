@@ -25,6 +25,7 @@ export type Database = {
           check_notes: string[] | null
           created_at: string | null
           document_id: string | null
+          document_url: string | null
           feedback_required: boolean | null
           gegenkonto: string
           historical_context_used: boolean | null
@@ -52,6 +53,7 @@ export type Database = {
           check_notes?: string[] | null
           created_at?: string | null
           document_id?: string | null
+          document_url?: string | null
           feedback_required?: boolean | null
           gegenkonto: string
           historical_context_used?: boolean | null
@@ -79,6 +81,7 @@ export type Database = {
           check_notes?: string[] | null
           created_at?: string | null
           document_id?: string | null
+          document_url?: string | null
           feedback_required?: boolean | null
           gegenkonto?: string
           historical_context_used?: boolean | null
