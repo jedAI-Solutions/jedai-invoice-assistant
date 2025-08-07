@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import MandantSelector from "./MandantSelector";
+import MandantSelectorAll from "./MandantSelectorAll";
 
 interface UploadFile {
   id: string;
@@ -236,7 +236,7 @@ export const UploadArea = () => {
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <MandantSelector 
+          <MandantSelectorAll 
             selectedMandant={selectedMandant} 
             onMandantChange={setSelectedMandant} 
           />
