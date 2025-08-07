@@ -65,7 +65,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
     
-    // Get initial session first
+    // Set up auth state listener FIRST to prevent deadlock
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!mounted) return;
+        
+        console.log('Auth state change:', event, session?.user?.id);
+        
+        // Only synchronous state updates here to prevent deadlock
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Defer profile fetching with setTimeout to prevent deadlock
+        if (session?.user) {
+          setTimeout(() => {
+            if (mounted) {
+              fetchProfile(session.user.id).then(userProfile => {
+                if (mounted) {
+                  setProfile(userProfile);
+                }
+              });
+            }
+          }, 0);
+        } else {
+          setProfile(null);
+        }
+      }
+    );
+
+    // THEN check for existing session
     const getInitialSession = async () => {
       try {
         console.log('Getting initial session...');
@@ -97,27 +125,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     };
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        
-        console.log('Auth state change:', event, session?.user?.id);
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          const userProfile = await fetchProfile(session.user.id);
-          if (mounted) {
-            setProfile(userProfile);
-          }
-        } else {
-          setProfile(null);
-        }
-      }
-    );
 
     getInitialSession();
 
