@@ -113,9 +113,19 @@ export const UploadArea = () => {
         formData.append('file', file); // Edge function will handle multiple files with same key
       });
       
-      // Add mandant information if selected
+      // Add mandant information - required for edge function
       if (selectedMandant && selectedMandant !== 'all') {
         formData.append('mandant_id', selectedMandant);
+      } else {
+        // If no mandant selected or 'all' selected, use the first available mandant
+        // The edge function requires a mandant_id for security
+        toast({
+          title: "Mandant auswählen",
+          description: "Bitte wählen Sie einen spezifischen Mandanten für den Upload aus.",
+          variant: "destructive",
+        });
+        setIsUploading(false);
+        return;
       }
       
       console.log(`Uploading ${fileArray.length} files together`);
