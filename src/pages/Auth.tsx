@@ -102,42 +102,42 @@ const Auth = () => {
           <h1 className="text-2xl font-bold text-white font-modern leading-tight
                        [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.8)] filter drop-shadow-lg
                        transition-all duration-500 ease-in-out hover:scale-[1.02] cursor-default mb-2">
-            Taxagent
+            jedAI Taxagent
           </h1>
           <p className="text-white font-modern font-semibold
                        [text-shadow:_1px_1px_3px_rgb(0_0_0_/_0.9)]
                        transition-all duration-300 ease-in-out hover:text-gray-100">
-            KI-gestützte Belegverarbeitung
+            GoBD-konforme KI-Belegverarbeitung für Steuerberater
           </p>
         </div>
 
         <Card className="bg-card/95 backdrop-blur-sm border-border/50 shadow-glass">
           <CardHeader>
             <CardTitle className="text-center text-foreground">
-              {activeTab === 'signin' ? 'Sign In' : 'Create Account'}
+              {activeTab === 'signin' ? 'Anmelden' : 'Konto erstellen'}
             </CardTitle>
             <CardDescription className="text-center text-muted-foreground">
               {activeTab === 'signin' 
-                ? 'Enter your credentials to access your dashboard'
-                : 'Create a new account to get started'
+                ? 'Bitte geben Sie Ihre Zugangsdaten ein'
+                : 'Neues Benutzerkonto für jedAI Taxagent erstellen'
               }
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="signin">Anmelden</TabsTrigger>
+                <TabsTrigger value="signup">Registrieren</TabsTrigger>
               </TabsList>
               
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email">E-Mail-Adresse</Label>
                     <Input
                       id="signin-email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="ihre.email@steuerberatung.de"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -145,12 +145,12 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="signin-password">Passwort</Label>
                     <div className="relative">
                       <Input
                         id="signin-password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Enter your password"
+                        placeholder="Ihr Passwort eingeben"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
@@ -179,10 +179,10 @@ const Auth = () => {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
+                        Anmeldung...
                       </>
                     ) : (
-                      'Sign In'
+                      'Anmelden'
                     )}
                   </Button>
                 </form>
@@ -191,11 +191,11 @@ const Auth = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email">E-Mail-Adresse</Label>
                     <Input
                       id="signup-email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="ihre.email@steuerberatung.de"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -203,12 +203,12 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password">Passwort</Label>
                     <div className="relative">
                       <Input
                         id="signup-password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Create a password"
+                        placeholder="Sicheres Passwort erstellen"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
@@ -230,7 +230,7 @@ const Auth = () => {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Password must be at least 6 characters long
+                      Passwort muss mindestens 6 Zeichen lang sein
                     </p>
                   </div>
                   <Button 
@@ -241,10 +241,10 @@ const Auth = () => {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
+                        Konto wird erstellt...
                       </>
                     ) : (
-                      'Create Account'
+                      'Konto erstellen'
                     )}
                   </Button>
                 </form>

@@ -8,50 +8,55 @@ Alle Farben MÜSSEN HSL sein.
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 215 25% 15%;
+    /* Taxagent Fintech 2025 Color Palette - Trust & Innovation */
+    --background: 248 250 252; /* gray-50 equivalent */
+    --foreground: 15 23 42; /* slate-800 equivalent */
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 15 23 42;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 15 23 42;
 
-    --primary: 215 85% 50%;
+    /* Primary Colors - Professional Blue */
+    --primary: 220 90% 40%; /* Deep professional blue */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 210 100% 70%;
-    --primary-dark: 220 85% 35%;
+    --primary-glow: 214 95% 60%; /* Lighter blue for interactions */
+    --primary-dark: 224 90% 25%; /* Darker blue for premium features */
 
-    --secondary: 210 30% 94%;
-    --secondary-foreground: 215 25% 15%;
+    --secondary: 210 40% 95%;
+    --secondary-foreground: 15 23 42;
 
-    --muted: 210 25% 96%;
-    --muted-foreground: 215 15% 50%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 100 116 139; /* slate-500 equivalent */
 
-    --accent: 35 85% 55%;
+    /* Accent Colors - Modern Vibrancy */
+    --accent: 45 93% 60%; /* Gold for premium/important CTAs */
     --accent-foreground: 0 0% 100%;
 
-    --success: 140 60% 45%;
+    /* Success & Status Colors */
+    --success: 160 84% 39%; /* Professional green */
     --success-foreground: 0 0% 100%;
 
-    --warning: 40 90% 55%;
+    --warning: 35 91% 60%; /* Amber warning */
     --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%; /* Soft red for errors */
     --destructive-foreground: 0 0% 100%;
 
     --border: 215 20% 90%;
     --input: 215 20% 92%;
     --ring: 215 85% 45%;
 
-    /* Professionelle Gradients - Logo-inspiriert */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary-glow)), hsl(var(--primary-dark)));
-    --gradient-logo: linear-gradient(90deg, hsl(var(--primary-glow)), hsl(var(--primary)));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.85), hsl(210 30% 98% / 0.9));
-    --gradient-card-hover: linear-gradient(145deg, hsl(0 0% 100% / 0.95), hsl(210 30% 96% / 0.95));
-    --gradient-glass: linear-gradient(145deg, hsl(0 0% 100% / 0.1), hsl(210 30% 95% / 0.2));
-    --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(140 70% 55%));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary-glow)) 0%, hsl(var(--primary)) 50%, hsl(var(--primary-dark)) 100%);
+    /* Fintech 2025 Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(214 95% 60%) 0%, hsl(220 90% 40%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(166 76% 46%) 0%, hsl(160 84% 39%) 100%);
+    --gradient-premium: linear-gradient(135deg, hsl(45 93% 60%) 0%, hsl(37 91% 55%) 100%);
+    --gradient-ai: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(255 91% 76%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.9), hsl(210 40% 98% / 0.95));
+    --gradient-card-hover: linear-gradient(145deg, hsl(0 0% 100% / 0.95), hsl(210 40% 96% / 0.98));
+    --gradient-glass: linear-gradient(145deg, hsl(0 0% 100% / 0.7), hsl(210 40% 95% / 0.8));
+    --gradient-hero: linear-gradient(135deg, hsl(214 95% 60%) 0%, hsl(220 90% 40%) 50%, hsl(224 90% 25%) 100%);
     
     /* Glass Morphism */
     --glass-bg: hsl(0 0% 100% / 0.15);
