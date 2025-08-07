@@ -2750,6 +2750,10 @@ export type Database = {
       }
     }
     Functions: {
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_mandantenstammdaten: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -2811,6 +2815,10 @@ export type Database = {
         }
         Returns: string
       }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       log_audit_event: {
         Args: {
           p_session_id: string
@@ -2820,6 +2828,10 @@ export type Database = {
           p_ip_address?: unknown
           p_user_agent?: string
         }
+        Returns: undefined
+      }
+      log_security_event: {
+        Args: { event_type: string; details?: string }
         Returns: undefined
       }
       log_sensitive_data_access: {
