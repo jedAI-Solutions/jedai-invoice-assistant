@@ -270,24 +270,42 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
         ));
 
         try {
-          // Upload to storage
-          console.log('☁️ Uploading to Supabase storage...');
-          const storagePath = await uploadToSupabase(uploadFile, currentMandant.mandant_nr);
-          console.log('✅ Storage upload success:', storagePath);
-          
+          // Send file securely via Edge Function (secure-file-upload)
+          console.log('🛡️ Sending file to secure edge upload...');
+          const { data: sessionData } = await supabase.auth.getSession();
+          const accessToken = sessionData?.session?.access_token;
+          if (!accessToken) throw new Error('Nicht angemeldet');
+
+          // Prepare multipart form data
+          const form = new FormData();
+          form.append('mandant_id', currentMandant.id);
+          form.append('files', uploadFile.file, uploadFile.file.name);
+
           // Update progress
           setFiles(prev => prev.map((f, idx) => 
             idx === i ? { ...f, progress: 60 } : f
           ));
 
-          // Create registry entry
-          console.log('📝 Creating registry entry...');
-          await createRegistryEntry(uploadFile, storagePath, currentMandant);
-          console.log('✅ Registry entry created');
-          
-          // Update progress
+          const functionUrl = 'https://awrduehwnyxbwtjbbrhw.supabase.co/functions/v1/secure-file-upload';
+          const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3cmR1ZWh3bnl4Ynd0amJicmh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTA3NzQsImV4cCI6MjA2ODA4Njc3NH0.D9qdE99x88EKAFJxRHbseuaphVlncOGyICMbd1vZUSw'
+            },
+            body: form
+          });
+
+          console.log('📊 Edge upload status:', response.status);
+          if (!response.ok) {
+            const errText = await response.text();
+            console.error('❌ Edge upload error:', errText);
+            throw new Error(`Edge upload failed: ${response.status}`);
+          }
+
+          // Success
           setFiles(prev => prev.map((f, idx) => 
-            idx === i ? { ...f, progress: 80 } : f
+            idx === i ? { ...f, progress: 100, status: 'success' } : f
           ));
         } catch (fileError) {
           console.error(`❌ Error processing file ${uploadFile.file.name}:`, fileError);
@@ -298,60 +316,10 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
         }
       }
 
-      // Now send webhook notification with document metadata
-      console.log('🌐 Sending webhook notification to n8n...');
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const webhookPayload = {
-        batch_size: files.length,
-        user_id: user?.id || '',
-        upload_timestamp: new Date().toISOString(),
-        mandant_id: currentMandant.id,
-        mandant_nr: currentMandant.mandant_nr,
-        mandant_name: currentMandant.name1 || '',
-        documents: files.map((uploadFile) => ({
-          document_id: uploadFile.documentId,
-          registry_id: uploadFile.registryId,
-          filename: uploadFile.file.name,
-          file_size: uploadFile.file.size,
-          file_type: uploadFile.file.type,
-          file_hash: uploadFile.hash
-        }))
-      };
-
-      console.log('📋 Webhook payload:', JSON.stringify(webhookPayload, null, 2));
-      
-      const webhookUrl = 'https://jedai-solutions.app.n8n.cloud/webhook-test/afdcc912-2ca1-41ce-8ce5-ca631a2837ff';
-      console.log('🔗 Webhook URL:', webhookUrl);
-      
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(webhookPayload)
-      });
-
-      console.log('📊 Webhook response status:', response.status);
-      console.log('✅ Webhook response ok:', response.ok);
-      console.log('📤 Response headers:', Object.fromEntries(response.headers.entries()));
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Webhook error response:', errorText);
-        throw new Error(`Webhook failed: ${response.status} - ${errorText}`);
-      }
-
-      const responseData = await response.text();
-      console.log('🎉 Webhook success response:', responseData);
-
-      // Update all files to success
-      setFiles(prev => prev.map(f => ({ ...f, status: 'success', progress: 100 })));
-
+      // All files uploaded via secure edge function
       toast({
         title: "Upload erfolgreich",
-        description: `${files.length} Datei(en) wurden zur Verarbeitung gesendet.`,
+        description: `${files.length} Datei(en) wurden sicher übermittelt.`,
       });
 
       // Clear files after 3 seconds
@@ -362,7 +330,6 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
     } catch (error) {
       console.error('💥 Upload error:', error);
       setFiles(prev => prev.map(f => ({ ...f, status: 'error' })));
-      
       toast({
         title: "Upload fehlgeschlagen",
         description: error instanceof Error ? error.message : "Bitte versuchen Sie es erneut.",
@@ -372,7 +339,6 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
       setIsUploading(false);
     }
   };
-
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;

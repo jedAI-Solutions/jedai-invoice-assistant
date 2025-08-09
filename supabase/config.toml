@@ -17,4 +17,4 @@ major_version = 15
 verify_jwt = true
 
 [functions.store-classified-document]
-verify_jwt = false
+verify_jwt = true
