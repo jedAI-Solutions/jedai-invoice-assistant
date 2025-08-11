@@ -38,7 +38,8 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
   const [selectedEntry, setSelectedEntry] = useState<BookingEntry | null>(null);
   const [entries, setEntries] = useState<BookingEntry[]>([]);
-  const [confidenceFilter, setConfidenceFilter] = useState<string>("90");
+  const [confidenceFilter, setConfidenceFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'modified' | 'approved'>("all");
 
   // Load entries from ai_classifications table
   const fetchEntries = async () => {
@@ -61,7 +62,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         account: item.konto || '',
         taxRate: item.uststeuerzahl ? `${item.uststeuerzahl}%` : '19%',
         confidence: Math.round((item.overall_confidence || 0) * 100),
-        status: (item.status === 'approved' ? 'ready' : item.status || 'pending') as any,
+        status: (item.status || 'pending') as any,
         mandant: item.mandants?.name1 || item.mandant_resolved || 'Unbekannt',
         mandantId: item.mandant_id || '',
         mandantNr: item.mandants?.mandant_nr || '',
@@ -202,11 +203,8 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         .from('approved_bookings')
         .select('*', { count: 'exact', head: true });
 
-      // Count rejected entries
-      const { count: rejectedEntries } = await supabase
-        .from('ai_classifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'rejected');
+      // Rejected entries are not used; set to 0
+      const rejectedEntries = 0;
 
       // Calculate saved time: 10 minutes per approved booking
       const savedTime = (approvedBookings || 0) * 10;
@@ -307,30 +305,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     }
   };
 
-  const handleReject = async (entryId: string) => {
-    try {
-      // For now, just remove from local state since we don't have a belege table
-      setEntries(prevEntries => 
-        prevEntries.filter(entry => entry.id !== entryId)
-      );
-      
-      if (selectedEntry?.id === entryId) {
-        setSelectedEntry(null);
-      }
-
-      toast({
-        title: "Erfolg",
-        description: "Eintrag wurde abgelehnt",
-      });
-    } catch (error) {
-      console.error('Error rejecting entry:', error);
-      toast({
-        title: "Fehler",
-        description: "Eintrag konnte nicht abgelehnt werden",
-        variant: "destructive",
-      });
-    }
-  };
+  // Reject is not supported; we use permanent delete instead handled by handleDelete
 
   const handleSaveChanges = async (entryId: string, changes: Partial<BookingEntry>) => {
     try {
@@ -406,27 +381,33 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
   const handleDelete = async (entryId: string) => {
     try {
-      // For now, just remove from local state
-      setEntries(prevEntries => 
-        prevEntries.filter(entry => entry.id !== entryId)
-      );
-      
-      // Clear selection if the deleted entry was selected
+      const entry = entries.find(e => e.id === entryId);
+      if (!entry) throw new Error('Eintrag nicht gefunden');
+
+      // Delete related approved_bookings first
+      const { error: delApprovedErr } = await supabase
+        .from('approved_bookings')
+        .delete()
+        .eq('classification_id', entryId);
+      if (delApprovedErr) throw delApprovedErr;
+
+      // Then delete the classification
+      const { error: delClassErr } = await supabase
+        .from('ai_classifications')
+        .delete()
+        .eq('id', entryId);
+      if (delClassErr) throw delClassErr;
+
+      // Update local state
+      setEntries(prev => prev.filter(e => e.id !== entryId));
       if (selectedEntry?.id === entryId) {
         setSelectedEntry(null);
       }
 
-      toast({
-        title: "Erfolg",
-        description: "Eintrag wurde gelöscht",
-      });
+      toast({ title: 'Gelöscht', description: 'Eintrag und verbundene Daten wurden entfernt.' });
     } catch (error) {
       console.error('Error deleting entry:', error);
-      toast({
-        title: "Fehler",
-        description: "Eintrag konnte nicht gelöscht werden",
-        variant: "destructive",
-      });
+      toast({ title: 'Fehler', description: 'Löschen fehlgeschlagen', variant: 'destructive' });
     }
   };
 
@@ -453,10 +434,12 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
           entries={filteredEntries}
           onEntrySelect={setSelectedEntry}
           onApprove={handleApprove}
-          onReject={handleReject}
+          onDelete={handleDelete}
           selectedEntry={selectedEntry}
           confidenceFilter={confidenceFilter}
           onConfidenceFilterChange={setConfidenceFilter}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
         />
       </div>
       
@@ -465,7 +448,6 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         <BookingDetails
           selectedEntry={selectedEntry}
           onApprove={handleApprove}
-          onReject={handleReject}
           onSaveChanges={handleSaveChanges}
           onDelete={handleDelete}
         />

@@ -11,20 +11,24 @@ interface BookingTableProps {
   entries: BookingEntry[];
   onEntrySelect: (entry: BookingEntry) => void;
   onApprove: (entryId: string) => void;
-  onReject: (entryId: string) => void;
+  onDelete: (entryId: string) => void;
   selectedEntry?: BookingEntry | null;
   confidenceFilter: string;
   onConfidenceFilterChange: (filter: string) => void;
+  statusFilter: 'all' | 'pending' | 'modified' | 'approved';
+  onStatusFilterChange: (filter: 'all' | 'pending' | 'modified' | 'approved') => void;
 }
 
 export const BookingTable = ({
   entries,
   onEntrySelect,
   onApprove,
-  onReject,
+  onDelete,
   selectedEntry,
   confidenceFilter,
-  onConfidenceFilterChange
+  onConfidenceFilterChange,
+  statusFilter,
+  onStatusFilterChange
 }: BookingTableProps) => {
   const [sortField, setSortField] = useState<keyof BookingEntry>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -38,23 +42,36 @@ export const BookingTable = ({
     }
   };
 
-  const sortedEntries = [...entries].sort((a, b) => {
-    const aValue = a[sortField];
-    const bValue = b[sortField];
-    
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-    }
-    
-    const aStr = String(aValue).toLowerCase();
-    const bStr = String(bValue).toLowerCase();
-    
-    if (sortDirection === 'asc') {
-      return aStr.localeCompare(bStr);
-    } else {
-      return bStr.localeCompare(aStr);
-    }
-  });
+const filteredByStatus = entries.filter((e) => {
+  if (statusFilter === 'all') return true;
+  return e.status === statusFilter;
+});
+
+const sortedEntries = [...filteredByStatus].sort((a, b) => {
+  const aValue = a[sortField];
+  const bValue = b[sortField];
+
+  // Numeric sort
+  if (typeof aValue === 'number' && typeof bValue === 'number') {
+    return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+  }
+
+  // Date sort for known date fields
+  if (sortField === 'date' || sortField === 'createdAt' || sortField === 'lastModified') {
+    const parse = (v: any) => {
+      const t = Date.parse(String(v));
+      return isNaN(t) ? 0 : t;
+    };
+    const aTime = parse(aValue);
+    const bTime = parse(bValue);
+    return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
+  }
+
+  // Fallback string sort
+  const aStr = String(aValue ?? '').toLowerCase();
+  const bStr = String(bValue ?? '').toLowerCase();
+  return sortDirection === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
+});
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 90) return "bg-success text-success-foreground";
@@ -68,9 +85,9 @@ export const BookingTable = ({
     switch (status) {
       case 'approved': return 'default';
       case 'exported': return 'default';
-      case 'rejected': return 'destructive';
-      case 'corrected': return 'warning';
+      case 'modified': return 'warning';
       case 'ready': return 'secondary';
+      case 'pending': return 'secondary';
       default: return 'secondary';
     }
   };
@@ -79,9 +96,9 @@ export const BookingTable = ({
     switch (status) {
       case 'approved': return 'Genehmigt';
       case 'exported': return 'Exportiert';
-      case 'rejected': return 'Abgelehnt';
-      case 'corrected': return 'Korrigiert';
+      case 'modified': return 'Geändert';
       case 'ready': return 'Bereit';
+      case 'pending': return 'Prüfung';
       default: return 'Prüfung';
     }
   };
@@ -120,6 +137,18 @@ export const BookingTable = ({
                   <SelectItem value="green">🟢 Hoch (≥90%)</SelectItem>
                   <SelectItem value="yellow">🟡 Mittel (70-89%)</SelectItem>
                   <SelectItem value="red">🔴 Niedrig (&lt;70%)</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={statusFilter} onValueChange={(v) => onStatusFilterChange(v as any)}>
+                <SelectTrigger className="w-full sm:w-32 md:w-40 bg-white/95 backdrop-blur-md border-white/30 text-xs md:text-sm shadow-lg">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="modified">Modified</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -183,7 +212,7 @@ export const BookingTable = ({
                    </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <div className="flex gap-1">
-                      {(entry.status === 'pending' || entry.status === 'rejected') && (
+                      {(entry.status === 'pending' || entry.status === 'modified') && (
                         <>
                           <Button
                             size="sm"
@@ -197,7 +226,11 @@ export const BookingTable = ({
                             size="sm"
                             variant="ghost"
                             className="h-6 w-6 md:h-8 md:w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
-                            onClick={() => onReject(entry.id)}
+                            onClick={() => {
+                              if (window.confirm('Diesen Eintrag und verbundene Daten wirklich endgültig löschen?')) {
+                                onDelete(entry.id);
+                              }
+                            }}
                           >
                             <X className="h-3 w-3 md:h-4 md:w-4" />
                           </Button>

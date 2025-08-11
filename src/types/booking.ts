@@ -7,7 +7,7 @@ export interface BookingEntry {
   account: string;
   taxRate: string;
   confidence: number;
-  status: 'pending' | 'approved' | 'rejected' | 'ready' | 'exported' | 'corrected';
+  status: 'pending' | 'approved' | 'modified' | 'ready' | 'exported' | 'corrected';
   mandant: string;
   mandantId: string;
   mandantNr?: string;

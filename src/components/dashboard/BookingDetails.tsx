@@ -17,7 +17,6 @@ type Mandant = Pick<Mandantenstammdaten, 'name1' | 'mandant_nr'>;
 interface BookingDetailsProps {
   selectedEntry: BookingEntry | null;
   onApprove: (entryId: string) => void;
-  onReject: (entryId: string) => void;
   onSaveChanges: (entryId: string, changes: Partial<BookingEntry>) => void;
   onDelete?: (entryId: string) => void;
 }
@@ -25,7 +24,6 @@ interface BookingDetailsProps {
 export const BookingDetails = ({
   selectedEntry,
   onApprove,
-  onReject,
   onSaveChanges,
   onDelete
 }: BookingDetailsProps) => {
@@ -147,17 +145,20 @@ export const BookingDetails = ({
   }
 
   const getStatusBadgeVariant = () => {
-    if (selectedEntry.status === 'pending' || selectedEntry.status === 'rejected') {
+    if (selectedEntry.status === 'pending' || selectedEntry.status === 'modified') {
       return 'bg-warning/10 text-warning border-warning/20';
     }
-    return 'bg-success/10 text-success border-success/20';
+    if (selectedEntry.status === 'approved') {
+      return 'bg-success/10 text-success border-success/20';
+    }
+    return 'bg-secondary/10 text-secondary border-secondary/20';
   };
 
   const getStatusText = () => {
-    if (selectedEntry.status === 'pending' || selectedEntry.status === 'rejected') {
-      return 'Prüfung erforderlich';
-    }
-    return 'Exportbereit';
+    if (selectedEntry.status === 'pending') return 'Prüfung erforderlich';
+    if (selectedEntry.status === 'modified') return 'Geändert – erneute Prüfung empfohlen';
+    if (selectedEntry.status === 'approved') return 'Genehmigt';
+    return 'Status';
   };
 
   return (
