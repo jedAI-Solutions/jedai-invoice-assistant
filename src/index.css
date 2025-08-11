@@ -185,6 +185,14 @@ Alle Farben MÜSSEN HSL sein.
   .bg-gradient-radial {
     background: radial-gradient(circle, var(--tw-gradient-stops));
   }
+  
+  /* Glass utilities using design tokens */
+  .bg-glass {
+    background-color: var(--glass-bg);
+  }
+  .border-glass {
+    border-color: var(--glass-border);
+  }
 }
 
 @layer base {

@@ -35,7 +35,7 @@ export const DashboardHeader = ({
   };
   return (
     <div 
-      className="relative bg-white/10 backdrop-blur-glass shadow-glass border-b border-white/20 p-4 md:p-8 min-h-[120px] md:min-h-[160px] overflow-hidden"
+      className="relative bg-glass backdrop-blur-glass shadow-glass border-b border-glass p-4 md:p-8 min-h-[120px] md:min-h-[160px] overflow-hidden"
       style={{
         backgroundImage: `url(${aiHeaderBg})`,
         backgroundSize: '120%',
@@ -96,7 +96,7 @@ export const DashboardHeader = ({
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
+                <Button variant="ghost" size="sm" className="text-white hover:bg-glass bg-glass backdrop-blur-md border-glass shadow-lg">
                   <User className="h-4 w-4 mr-2" />
                   <span className="hidden md:inline">{user?.email}</span>
                 </Button>
