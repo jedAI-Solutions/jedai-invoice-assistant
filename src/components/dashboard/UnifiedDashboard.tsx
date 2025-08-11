@@ -304,6 +304,9 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
           setSelectedEntry(null);
         }
 
+        // Trigger local refresh event for approved invoices view
+        window.dispatchEvent(new CustomEvent('approved-booking-created'));
+
         toast({
           title: "Erfolg",
           description: "Buchung genehmigt und zur Export-Liste hinzugefügt",

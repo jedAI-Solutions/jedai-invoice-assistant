@@ -91,6 +91,16 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
     };
   }, [selectedMandant]);
 
+  // Local event listener for immediate refresh after approval
+  useEffect(() => {
+    const handler = () => {
+      console.log('Local approved-booking-created event received, refreshing approved invoices...');
+      fetchApprovedInvoices();
+    };
+    window.addEventListener('approved-booking-created', handler);
+    return () => window.removeEventListener('approved-booking-created', handler);
+  }, [selectedMandant]);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('de-DE');
   };
