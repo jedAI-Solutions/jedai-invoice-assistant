@@ -260,10 +260,10 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
             size="sm"
             onClick={handleExportAll}
             disabled={exporting || approvedInvoices.length === 0}
-            title="Alle angezeigten Rechnungen an n8n exportieren"
+            title="Agenda Exportdatei generieren"
           >
             <UploadCloud className="h-4 w-4" />
-            <span className="hidden sm:inline">An n8n exportieren</span>
+            <span className="hidden sm:inline">Agenda Exportdatei generieren</span>
           </Button>
         </div>
       </CardHeader>
