@@ -7,6 +7,7 @@ import ApprovedInvoicesTable from "./ApprovedInvoicesTable";
 import { BookingEntry, Mandant, DashboardStats } from "@/types/booking";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UnifiedDashboardProps {
   onStatsUpdate: (stats: DashboardStats) => void;
@@ -18,6 +19,7 @@ interface UnifiedDashboardProps {
 
 export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimeframe, onMandantChange, onRefreshData }: UnifiedDashboardProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   // Mandant mapping from UI IDs to actual UUIDs in database
   const mandanten: Mandant[] = [
     { id: "0c32475a-29e5-4132-88c0-021fcfc68f44", name: "Mustermann GmbH", shortName: "MM", color: "#3b82f6" },
@@ -274,7 +276,8 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
             gegenkonto: approvedEntry.gegenkonto || (approvedEntry.account?.startsWith('6') ? '1200' : '9999'),
             uststeuerzahl: approvedEntry.taxRate || approvedEntry.uststeuerzahl,
             final_confidence: (approvedEntry.confidence || approvedEntry.overall_confidence || 0) / 100,
-            approved_by: 'manual'
+             approved_by: user?.id || 'unknown',
+             approval_method: 'manual'
           });
 
         if (approvedError) throw approvedError;
