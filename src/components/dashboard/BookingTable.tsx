@@ -15,8 +15,8 @@ interface BookingTableProps {
   selectedEntry?: BookingEntry | null;
   confidenceFilter: string;
   onConfidenceFilterChange: (filter: string) => void;
-  statusFilter: 'all' | 'pending' | 'modified' | 'approved';
-  onStatusFilterChange: (filter: 'all' | 'pending' | 'modified' | 'approved') => void;
+  statusFilter: 'all' | 'pending' | 'modified';
+  onStatusFilterChange: (filter: 'all' | 'pending' | 'modified') => void;
 }
 
 export const BookingTable = ({
@@ -43,7 +43,7 @@ export const BookingTable = ({
   };
 
 const filteredByStatus = entries.filter((e) => {
-  if (statusFilter === 'all') return true;
+  if (statusFilter === 'all') return e.status !== 'approved';
   return e.status === statusFilter;
 });
 
@@ -145,10 +145,9 @@ const sortedEntries = [...filteredByStatus].sort((a, b) => {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Alle Status</SelectItem>
+                  <SelectItem value="all">Alle (ohne Genehmigte)</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="modified">Modified</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
                 </SelectContent>
               </Select>
               

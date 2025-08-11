@@ -39,7 +39,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
   const [selectedEntry, setSelectedEntry] = useState<BookingEntry | null>(null);
   const [entries, setEntries] = useState<BookingEntry[]>([]);
   const [confidenceFilter, setConfidenceFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'modified' | 'approved'>("all");
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'modified'>("all");
 
   // Load entries from ai_classifications table
   const fetchEntries = async () => {
