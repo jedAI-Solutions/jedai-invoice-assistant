@@ -2,7 +2,7 @@
 // Gathers all used SKR accounts from booking overviews (ai_classifications + approved_bookings)
 // and ensures they exist in chart_of_accounts. If missing, they are inserted with sane defaults.
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.51.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
