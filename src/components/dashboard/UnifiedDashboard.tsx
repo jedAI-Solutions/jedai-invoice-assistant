@@ -79,6 +79,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         ai_result: item.ai_result,
         reasoning: item.reasoning,
         uncertainty_factors: item.uncertainty_factors,
+        document_id: item.document_id,
         check_notes: item.check_notes
       })) || [];
 
@@ -260,6 +261,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
           .from('approved_bookings')
           .insert({
             classification_id: entryId,
+            document_id: approvedEntry.document_id,
             mandant_id: approvedEntry.mandantId,
             mandant_nr: approvedEntry.mandantId,
             mandant_name: approvedEntry.mandant,
