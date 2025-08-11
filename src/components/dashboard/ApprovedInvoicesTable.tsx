@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, RotateCcw } from "lucide-react";
+import { Trash2, Download, RotateCcw, UploadCloud } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -20,8 +20,8 @@ interface ApprovedInvoice {
 export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMandant: string }) {
   const [approvedInvoices, setApprovedInvoices] = useState<ApprovedInvoice[]>([]);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const { toast } = useToast();
-
   const fetchApprovedInvoices = async () => {
     try {
       setLoading(true);
@@ -195,6 +195,33 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
       });
     }
   };
+  
+  const handleExportAll = async () => {
+    try {
+      setExporting(true);
+      const mandantId = selectedMandant === 'all' ? null : selectedMandant;
+      const { data, error } = await supabase.functions.invoke('export-approved-invoices', {
+        body: {
+          mandantId,
+          invoiceIds: approvedInvoices.map(i => i.id),
+        },
+      });
+      if (error) throw error;
+      toast({
+        title: "Export gestartet",
+        description: "n8n Workflow wurde ausgelöst.",
+      });
+    } catch (error) {
+      console.error('Error triggering export:', error);
+      toast({
+        title: "Fehler beim Export",
+        description: "Export konnte nicht gestartet werden",
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -215,7 +242,19 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
     <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Genehmigte Rechnungen</CardTitle>
-        <Badge variant="secondary">{approvedInvoices.length} Einträge</Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary">{approvedInvoices.length} Einträge</Badge>
+          <Button
+            variant="gradient"
+            size="sm"
+            onClick={handleExportAll}
+            disabled={exporting || approvedInvoices.length === 0}
+            title="Alle angezeigten Rechnungen an n8n exportieren"
+          >
+            <UploadCloud className="h-4 w-4" />
+            <span className="hidden sm:inline">An n8n exportieren</span>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {approvedInvoices.length === 0 ? (

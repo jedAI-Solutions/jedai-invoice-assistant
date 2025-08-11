@@ -21,3 +21,6 @@ verify_jwt = true
 
 [functions.sync-accounts]
 verify_jwt = true
+
+[functions.export-approved-invoices]
+verify_jwt = true
