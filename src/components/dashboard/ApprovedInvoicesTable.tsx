@@ -31,9 +31,13 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
         .select('*')
         .order('created_at', { ascending: false });
 
-      // Filter by mandant if one is selected
+      // Filter by mandant if one is selected (accepts UUID or mandant_nr)
       if (selectedMandant !== "all") {
-        query = query.eq('mandant_id', selectedMandant);
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(selectedMandant);
+        console.log('ApprovedInvoicesTable: applying filter', { selectedMandant, isUuid });
+        query = isUuid
+          ? query.eq('mandant_id', selectedMandant)
+          : query.eq('mandant_nr', selectedMandant);
       }
 
       const { data, error } = await query;
