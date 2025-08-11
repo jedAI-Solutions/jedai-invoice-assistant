@@ -41,6 +41,13 @@ export const BookingDetails = ({
     loadAccounts();
   }, []);
 
+  // Wenn der Mandant wechselt, Konten synchronisieren und neu laden
+  useEffect(() => {
+    if (selectedEntry?.mandantId) {
+      loadAccounts();
+    }
+  }, [selectedEntry?.mandantId]);
+
   useEffect(() => {
     console.log('BookingDetails: selectedEntry changed', selectedEntry?.id, selectedEntry?.account, selectedEntry?.taxRate);
     setEditedEntry(selectedEntry);
@@ -69,6 +76,15 @@ export const BookingDetails = ({
   const loadAccounts = async () => {
     setLoadingAccounts(true);
     try {
+      // Synchronisiere fehlende Konten aus der Buchungsübersicht
+      try {
+        await supabase.functions.invoke('sync-accounts', {
+          body: { mandant_id: selectedEntry?.mandantId ?? null },
+        });
+      } catch (syncError) {
+        console.warn('sync-accounts invocation failed', syncError);
+      }
+
       const { data, error } = await supabase
         .from('chart_of_accounts')
         .select('account_number, account_name')
