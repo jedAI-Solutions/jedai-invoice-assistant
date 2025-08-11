@@ -331,7 +331,51 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
   const handleSaveChanges = async (entryId: string, changes: Partial<BookingEntry>) => {
     try {
-      // Update local state only for now
+      const current = entries.find(e => e.id === entryId);
+      if (!current) throw new Error('Eintrag nicht gefunden');
+
+      // Resolve mandant_id: if provided and not a UUID, try to resolve by mandantNr or mandantId as mandant_nr
+      let resolvedMandantId: string | undefined = undefined;
+      const candidateMandant = changes.mandantId || changes.mandantNr;
+      if (candidateMandant) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(candidateMandant);
+        if (isUuid) {
+          resolvedMandantId = candidateMandant;
+        } else {
+          const { data: m, error: mErr } = await supabase
+            .from('mandants')
+            .select('id')
+            .eq('mandant_nr', candidateMandant)
+            .maybeSingle();
+          if (mErr) throw mErr;
+          if (m?.id) resolvedMandantId = m.id;
+        }
+      }
+
+      const parseTaxRate = (rate?: string) => {
+        if (!rate) return undefined;
+        return rate.replace('%', '').trim();
+      };
+
+      const updateData: any = {
+        status: 'modified',
+      };
+      if (changes.date) updateData.belegdatum = changes.date;
+      if (typeof changes.amount === 'number') updateData.betrag = changes.amount;
+      if (changes.description) updateData.buchungstext = changes.description;
+      if (changes.account) updateData.konto = changes.account;
+      const ust = parseTaxRate(changes.taxRate);
+      if (ust) updateData.uststeuerzahl = ust;
+      if (resolvedMandantId) updateData.mandant_id = resolvedMandantId;
+
+      const { error: updateErr } = await supabase
+        .from('ai_classifications')
+        .update(updateData)
+        .eq('id', entryId);
+
+      if (updateErr) throw updateErr;
+
+      // Update local state after successful DB update
       setEntries(prevEntries => 
         prevEntries.map(entry => 
           entry.id === entryId 
@@ -339,21 +383,20 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
             : entry
         )
       );
-      
       if (selectedEntry?.id === entryId) {
         setSelectedEntry(prev => prev ? { ...prev, ...changes } : null);
       }
 
       toast({
-        title: "Erfolg",
-        description: "Änderungen wurden gespeichert",
+        title: 'Erfolg',
+        description: "Korrekturen gespeichert und als 'modified' markiert",
       });
     } catch (error) {
       console.error('Error saving changes:', error);
       toast({
-        title: "Fehler",
-        description: "Änderungen konnten nicht gespeichert werden",
-        variant: "destructive",
+        title: 'Fehler',
+        description: 'Änderungen konnten nicht gespeichert werden',
+        variant: 'destructive',
       });
     }
   };
