@@ -78,11 +78,18 @@ serve(async (req) => {
 
     // Get all files from form data
     const files: File[] = [];
-    for (const [key, value] of formData.entries()) {
-      if (key === 'file' && value instanceof File) {
-        files.push(value);
-      }
-    }
+for (const [key, value] of formData.entries()) {
+  const isFileField = (k: string) =>
+    k === 'file' ||
+    k === 'files' ||
+    k === 'file[]' ||
+    k === 'files[]' ||
+    k.startsWith('file_') ||
+    k.startsWith('files_');
+  if (value instanceof File && isFileField(key)) {
+    files.push(value);
+  }
+}
 
     if (files.length === 0) {
       return new Response(
@@ -98,46 +105,65 @@ serve(async (req) => {
 
     // Validate mandant access if specified
     let actualMandantId = null;
-    if (mandantId && mandantId !== 'all') {
-      // First get the actual mandant ID from mandant_nr
-      const { data: mandantData, error: mandantLookupError } = await supabase
+if (mandantId && mandantId !== 'all') {
+  // Resolve mandant by mandant_nr or UUID
+  let resolvedMandantId: string | null = null;
+
+  // Try by mandant_nr first
+  const { data: byNr } = await supabase
+    .from('mandants')
+    .select('id')
+    .eq('mandant_nr', mandantId)
+    .maybeSingle();
+
+  if (byNr?.id) {
+    resolvedMandantId = byNr.id;
+  } else {
+    // Fallback: try by UUID
+    const uuidLike = /^[0-9a-fA-F-]{36}$/.test(mandantId);
+    if (uuidLike) {
+      const { data: byId } = await supabase
         .from('mandants')
         .select('id')
-        .eq('mandant_nr', mandantId)
-        .single();
-
-      if (mandantLookupError || !mandantData) {
-        console.error('Mandant lookup error:', mandantLookupError);
-        return new Response(
-          JSON.stringify({ error: 'Invalid mandant specified' }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-
-      actualMandantId = mandantData.id;
-
-      // Check user access to this mandant
-      const { data: hasAccess } = await supabase
-        .from('user_mandant_assignments')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('mandant_id', actualMandantId)
-        .eq('is_active', true)
-        .single();
-
-      if (!hasAccess) {
-        return new Response(
-          JSON.stringify({ error: 'Access denied to this mandant' }),
-          { 
-            status: 403, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
+        .eq('id', mandantId)
+        .maybeSingle();
+      if (byId?.id) {
+        resolvedMandantId = byId.id;
       }
     }
+  }
+
+  if (!resolvedMandantId) {
+    return new Response(
+      JSON.stringify({ error: 'Invalid mandant specified' }),
+      { 
+        status: 400, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+  }
+
+  actualMandantId = resolvedMandantId;
+
+  // Check user access to this mandant
+  const { data: hasAccess } = await supabase
+    .from('user_mandant_assignments')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('mandant_id', actualMandantId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (!hasAccess) {
+    return new Response(
+      JSON.stringify({ error: 'Access denied to this mandant' }),
+      { 
+        status: 403, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+  }
+}
 
     // Validate all files
     const validationErrors: string[] = [];
