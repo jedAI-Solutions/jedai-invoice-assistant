@@ -10,6 +10,7 @@ export interface BookingEntry {
   status: 'pending' | 'approved' | 'rejected' | 'ready' | 'exported' | 'corrected';
   mandant: string;
   mandantId: string;
+  mandantNr?: string;
   aiHints?: string[];
   aiReasoning?: string;
   createdAt: string;
