@@ -350,6 +350,44 @@ serve(async (req) => {
         }
       );
 
+      } catch (forwardingError) {
+        console.error('Forwarding block error:', forwardingError);
+        // Best-effort status update to indicate failure
+        try {
+          await supabase
+            .from('document_registry')
+            .update({ processing_status: 'forwarding_failed' })
+            .in('id', processedFiles.map(f => f.registryId));
+        } catch (statusUpdateError) {
+          console.error('Failed to update status after forwarding error:', statusUpdateError);
+        }
+        const response = {
+          success: false,
+          message: 'Forwarding to workflow failed (unexpected error)',
+          processed_files: processedFiles.map(f => ({
+            document_id: f.documentId,
+            registry_id: f.registryId,
+            file_name: f.file.name,
+            file_size: f.file.size,
+            file_hash: f.hash
+          })),
+          forwarding_details: {
+            webhook_url: N8N_WEBHOOK_URL,
+            status: 0,
+            status_text: 'unexpected_error',
+            response_snippet: forwardingError instanceof Error ? forwardingError.message : 'Unknown error'
+          },
+          validation_errors: validationErrors.length > 0 ? validationErrors : undefined
+        };
+        return new Response(
+          JSON.stringify(response),
+          { 
+            status: 502,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
   } catch (error) {
     console.error('Upload error:', error);
     return new Response(
