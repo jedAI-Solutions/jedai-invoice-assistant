@@ -82,12 +82,12 @@ serve(async (req) => {
     console.log('Storage path:', storagePath);
 
     // Upload file to Supabase storage
-    const { data: storageData, error: storageError } = await supabase.storage
-      .from('documents')
-      .upload(storagePath, fileBuffer, {
-        contentType: file_type,
-        upsert: true
-      });
+const { data: storageData, error: storageError } = await supabase.storage
+  .from('taxagent-documents')
+  .upload(storagePath, fileBuffer, {
+    contentType: file_type,
+    upsert: true
+  });
 
     if (storageError) {
       console.error('Storage upload error:', storageError);
@@ -134,9 +134,9 @@ serve(async (req) => {
     }
 
     // Get signed URL for immediate access
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from('documents')
-      .createSignedUrl(storageData.path, 3600); // 1 hour expiry
+const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+  .from('taxagent-documents')
+  .createSignedUrl(storageData.path, 3600); // 1 hour expiry
 
     const response = {
       success: true,

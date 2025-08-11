@@ -296,12 +296,19 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
             body: form
           });
 
-          console.log('📊 Edge upload status:', response.status);
-          if (!response.ok) {
-            const errText = await response.text();
-            console.error('❌ Edge upload error:', errText);
-            throw new Error(`Edge upload failed: ${response.status}`);
-          }
+console.log('📊 Edge upload status:', response.status);
+if (!response.ok) {
+  const raw = await response.text();
+  let parsed: any = null;
+  try { parsed = raw ? JSON.parse(raw) : null; } catch {}
+  console.error('❌ Edge upload error:', raw);
+  const fd = parsed?.forwarding_details;
+  const msg = parsed?.message || `Edge upload failed`;
+  const extra = fd
+    ? ` [n8n ${fd.status} ${fd.status_text}] ${fd.response_snippet?.slice(0,200) || ''}`
+    : raw ? ` ${raw.slice(0,200)}` : '';
+  throw new Error(`${msg} (${response.status})${extra}`);
+}
 
           // Success
           setFiles(prev => prev.map((f, idx) => 
