@@ -1529,10 +1529,13 @@ export type Database = {
           generated_at: string | null
           id: string
           imported_at: string | null
+          mime_type: string | null
           period_description: string | null
           period_from: string | null
           period_to: string | null
           software_origin: string | null
+          storage_path: string | null
+          storage_uploaded_at: string | null
           total_amount: number | null
           total_bookings: number | null
         }
@@ -1555,10 +1558,13 @@ export type Database = {
           generated_at?: string | null
           id?: string
           imported_at?: string | null
+          mime_type?: string | null
           period_description?: string | null
           period_from?: string | null
           period_to?: string | null
           software_origin?: string | null
+          storage_path?: string | null
+          storage_uploaded_at?: string | null
           total_amount?: number | null
           total_bookings?: number | null
         }
@@ -1581,10 +1587,13 @@ export type Database = {
           generated_at?: string | null
           id?: string
           imported_at?: string | null
+          mime_type?: string | null
           period_description?: string | null
           period_from?: string | null
           period_to?: string | null
           software_origin?: string | null
+          storage_path?: string | null
+          storage_uploaded_at?: string | null
           total_amount?: number | null
           total_bookings?: number | null
         }

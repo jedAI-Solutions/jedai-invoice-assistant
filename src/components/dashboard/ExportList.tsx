@@ -1,8 +1,11 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 interface ExportBatchEntry {
   id: string;
@@ -13,12 +16,18 @@ interface ExportBatchEntry {
   total_amount: number | null;
   export_status: string | null;
   client_number: string | null; // mandant_nr
+  // Neue Felder aus der Migration
+  storage_path?: string | null;
+  mime_type?: string | null;
+  storage_uploaded_at?: string | null;
+  file_size?: number | null;
 }
 
 export default function ExportList({ selectedMandant }: { selectedMandant: string }) {
   const [batches, setBatches] = useState<ExportBatchEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [mandantNr, setMandantNr] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Resolve mandant_nr for filtering when a specific mandant is selected
@@ -48,7 +57,7 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
       setLoading(true);
       let query = supabase
         .from('dtvf_export_batches')
-        .select('id,batch_number,filename,generated_at,total_bookings,total_amount,export_status,client_number')
+        .select('id,batch_number,filename,generated_at,total_bookings,total_amount,export_status,client_number,storage_path,mime_type,storage_uploaded_at,file_size')
         .order('generated_at', { ascending: false });
 
       if (mandantNr) {
@@ -104,6 +113,48 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
 
   const visibleBatches = useMemo(() => batches, [batches]);
 
+  const handleDownload = async (entry: ExportBatchEntry) => {
+    try {
+      if (!entry.storage_path || entry.export_status !== 'completed') {
+        toast({
+          title: "Noch nicht verfügbar",
+          description: "Für diesen Export liegt noch keine Datei vor.",
+        });
+        return;
+      }
+
+      setDownloadingId(entry.id);
+      console.log('Creating signed URL for:', entry.storage_path);
+
+      const { data, error } = await supabase
+        .storage
+        .from('exports')
+        .createSignedUrl(entry.storage_path, 3600);
+
+      if (error || !data?.signedUrl) {
+        console.error('Signed URL error:', error);
+        toast({
+          title: "Download fehlgeschlagen",
+          description: "Die Datei konnte nicht abgerufen werden.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Download auslösen
+      const link = document.createElement('a');
+      link.href = data.signedUrl;
+      // Dateiname aus DB verwenden, falls vorhanden
+      const suggestedName = entry.filename || entry.batch_number || 'export';
+      link.download = suggestedName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   if (loading) {
     return (
       <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
@@ -134,35 +185,53 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
           </div>
         ) : (
           <div className="space-y-2">
-            {visibleBatches.map((entry) => (
-              <div
-                key={entry.id}
-                className="grid grid-cols-1 md:grid-cols-5 items-center gap-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="md:col-span-2">
-                  <div className="font-medium">Batch {entry.batch_number}</div>
+            {visibleBatches.map((entry) => {
+              const canDownload = Boolean(entry.storage_path) && entry.export_status === 'completed';
+              const isDownloading = downloadingId === entry.id;
+
+              return (
+                <div
+                  key={entry.id}
+                  className="grid grid-cols-1 md:grid-cols-6 items-center gap-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="md:col-span-2">
+                    <div className="font-medium">Batch {entry.batch_number}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {entry.filename}
+                    </div>
+                  </div>
                   <div className="text-sm text-muted-foreground">
-                    {entry.filename}
+                    {formatDateTime(entry.generated_at)}
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold">
+                      {formatCurrency(entry.total_amount)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {entry.total_bookings ?? 0} Buchungen
+                    </div>
+                  </div>
+                  <div className="flex md:justify-center">
+                    <Badge variant={entry.export_status === 'completed' ? 'default' : 'secondary'}>
+                      {entry.export_status || 'preparing'}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleDownload(entry)}
+                      disabled={!canDownload || isDownloading}
+                      title={canDownload ? 'Export herunterladen' : 'Datei noch nicht verfügbar'}
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      {isDownloading ? 'Lädt...' : 'Download'}
+                    </Button>
                   </div>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {formatDateTime(entry.generated_at)}
-                </div>
-                <div className="text-right">
-                  <div className="font-semibold">
-                    {formatCurrency(entry.total_amount)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {entry.total_bookings ?? 0} Buchungen
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <Badge variant={entry.export_status === 'completed' ? 'default' : 'secondary'}>
-                    {entry.export_status || 'preparing'}
-                  </Badge>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>
