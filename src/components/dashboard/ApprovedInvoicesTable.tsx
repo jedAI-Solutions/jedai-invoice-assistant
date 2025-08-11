@@ -67,6 +67,25 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
     fetchApprovedInvoices();
   }, [selectedMandant]);
 
+  // Realtime-Updates: aktualisiere Tabelle bei Änderungen an approved_bookings
+  useEffect(() => {
+    const channel = supabase
+      .channel('approved-bookings-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'approved_bookings' },
+        () => {
+          console.log('approved_bookings changed, refreshing approved invoices...');
+          fetchApprovedInvoices();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedMandant]);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('de-DE');
   };
