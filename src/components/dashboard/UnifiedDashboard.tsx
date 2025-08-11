@@ -441,9 +441,6 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
         onMandantChange={handleMandantChange}
       />
       
-      {/* Export Liste */}
-      <ExportList selectedMandant={selectedMandant} />
-      
       {/* Klassifizierte Rechnungen */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Klassifizierte Rechnungen</h2>
@@ -474,6 +471,12 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Export-Übersicht</h2>
         <ApprovedInvoicesTable selectedMandant={selectedMandant} />
+      </div>
+
+      {/* Export-Historie */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Export-Historie</h2>
+        <ExportList selectedMandant={selectedMandant} />
       </div>
     </div>
   );
