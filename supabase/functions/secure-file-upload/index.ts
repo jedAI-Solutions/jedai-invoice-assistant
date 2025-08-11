@@ -267,67 +267,88 @@ serve(async (req) => {
         n8nFormData.append('mandant_name1', '');
       }
 
+      // Forward to n8n with timeout and detailed logging
       console.log(`Forwarding ${processedFiles.length} files to n8n workflow`);
 
-      const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
-        method: 'POST',
-        body: n8nFormData,
-      });
+      let forwardOk = false;
+      let n8nStatus = 0;
+      let n8nStatusText = '';
+      let n8nResponseText = '';
 
-      console.log(`N8N response status: ${n8nResponse.status}`);
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 20000); // 20s timeout
 
-      if (n8nResponse.ok) {
-        const responseText = await n8nResponse.text();
-        console.log('Successfully forwarded files to n8n workflow. Response:', responseText);
-        
-        // Update processing status in database
+        const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          body: n8nFormData,
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+
+        n8nStatus = n8nResponse.status;
+        n8nStatusText = n8nResponse.statusText || '';
+        n8nResponseText = await n8nResponse.text().catch(() => '');
+        forwardOk = n8nResponse.ok;
+
+        console.log(`N8N response status: ${n8nStatus} ${n8nStatusText}`);
+        if (!forwardOk) {
+          console.error('N8N response body (error):', n8nResponseText?.slice(0, 500));
+        } else {
+          console.log('N8N response body (success):', n8nResponseText?.slice(0, 500));
+        }
+
+        // Update processing status in database per result
         await supabase
           .from('document_registry')
           .update({ 
-            processing_status: 'forwarded_to_workflow',
-            verarbeitungsbeginn: new Date().toISOString()
+            processing_status: forwardOk ? 'forwarded_to_workflow' : 'forwarding_failed',
+            verarbeitungsbeginn: forwardOk ? new Date().toISOString() : null
           })
           .in('id', processedFiles.map(f => f.registryId));
-      } else {
-        console.error('Failed to forward to n8n:', n8nResponse.status, n8nResponse.statusText);
-        
+
+      } catch (forwardError) {
+        forwardOk = false;
+        n8nStatusText = 'fetch_error';
+        n8nResponseText = forwardError instanceof Error ? forwardError.message : 'Unknown fetch error';
+        console.error('Error forwarding to n8n:', forwardError);
+
         // Update status to indicate forwarding failure
         await supabase
           .from('document_registry')
           .update({ processing_status: 'forwarding_failed' })
           .in('id', processedFiles.map(f => f.registryId));
       }
-    } catch (forwardError) {
-      console.error('Error forwarding to n8n:', forwardError);
-      
-      // Update status to indicate forwarding failure
-      await supabase
-        .from('document_registry')
-        .update({ processing_status: 'forwarding_failed' })
-        .in('id', processedFiles.map(f => f.registryId));
-    }
 
-    // Return response to user
-    const response = {
-      success: true,
-      message: `${processedFiles.length} files processed and forwarded successfully${validationErrors.length > 0 ? ` (${validationErrors.length} failed)` : ''}`,
-      processed_files: processedFiles.map(f => ({
-        document_id: f.documentId,
-        registry_id: f.registryId,
-        file_name: f.file.name,
-        file_size: f.file.size,
-        file_hash: f.hash
-      })),
-      validation_errors: validationErrors.length > 0 ? validationErrors : undefined
-    };
+      // Build response to user reflecting forwarding result
+      const response = {
+        success: forwardOk,
+        message: forwardOk
+          ? `${processedFiles.length} files processed and forwarded successfully${validationErrors.length > 0 ? ` (${validationErrors.length} failed)` : ''}`
+          : `Forwarding to workflow failed (${n8nStatus} ${n8nStatusText})`,
+        processed_files: processedFiles.map(f => ({
+          document_id: f.documentId,
+          registry_id: f.registryId,
+          file_name: f.file.name,
+          file_size: f.file.size,
+          file_hash: f.hash
+        })),
+        validation_errors: validationErrors.length > 0 ? validationErrors : undefined,
+        forwarding_details: forwardOk ? undefined : {
+          webhook_url: N8N_WEBHOOK_URL,
+          status: n8nStatus,
+          status_text: n8nStatusText,
+          response_snippet: n8nResponseText?.slice(0, 1000)
+        }
+      };
 
-    return new Response(
-      JSON.stringify(response),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+      return new Response(
+        JSON.stringify(response),
+        { 
+          status: forwardOk ? 200 : 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
 
   } catch (error) {
     console.error('Upload error:', error);
