@@ -29,6 +29,7 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
       let query = supabase
         .from('approved_bookings')
         .select('*')
+        .eq('export_status', 'pending')
         .order('created_at', { ascending: false });
 
       // Filter by mandant if one is selected (accepts UUID or mandant_nr)
