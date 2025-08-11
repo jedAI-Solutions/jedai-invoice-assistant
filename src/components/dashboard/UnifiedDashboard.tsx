@@ -184,34 +184,48 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
     avgConfidence: 0
   });
 
-  // Calculate stats based on database data
+  // Calculate stats based on database data and current Mandanten-Filter
   const calculateStats = async () => {
     try {
-      // Count total entries from ai_classifications
-      const { count: totalEntries } = await supabase
+      // Apply Mandant filter to ai_classifications counts
+      let totalQuery = supabase
         .from('ai_classifications')
         .select('*', { count: 'exact', head: true });
+      if (selectedMandant !== 'all') {
+        totalQuery = totalQuery.eq('mandant_id', selectedMandant);
+      }
+      const { count: totalEntries } = await totalQuery;
 
-      // Count pending reviews from ai_classifications  
-      const { count: pendingReviews } = await supabase
+      let pendingQuery = supabase
         .from('ai_classifications')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
+      if (selectedMandant !== 'all') {
+        pendingQuery = pendingQuery.eq('mandant_id', selectedMandant);
+      }
+      const { count: pendingReviews } = await pendingQuery;
 
-      // Count approved bookings from approved_bookings table
-      const { count: approvedBookings } = await supabase
+      // Apply Mandant filter to approved_bookings count
+      let approvedQuery = supabase
         .from('approved_bookings')
         .select('*', { count: 'exact', head: true });
+      if (selectedMandant !== 'all') {
+        approvedQuery = approvedQuery.eq('mandant_id', selectedMandant);
+      }
+      const { count: approvedBookings } = await approvedQuery;
 
-      // Rejected entries are not used; set to 0
+      // Rejected entries not tracked separately in current model
       const rejectedEntries = 0;
 
-      // Calculate saved time: 10 minutes per approved booking
+      // Saved time heuristic: 10 minutes per approved booking (filtered by mandant)
       const savedTime = (approvedBookings || 0) * 10;
 
-      // Calculate average confidence from current filtered entries
-      const avgConfidence = filteredEntries.length > 0 
-        ? filteredEntries.reduce((sum, entry) => sum + entry.confidence, 0) / filteredEntries.length 
+      // Calculate average confidence for current Mandant (ignore confidence UI filter)
+      const entriesForMandant = selectedMandant === 'all' 
+        ? entries 
+        : entries.filter(e => e.mandantId === selectedMandant);
+      const avgConfidence = entriesForMandant.length > 0
+        ? entriesForMandant.reduce((sum, e) => sum + (e.confidence || 0), 0) / entriesForMandant.length
         : 0;
 
       const newStats = {
@@ -242,7 +256,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
   useEffect(() => {
     calculateStats();
-  }, [filteredEntries]);
+  }, [filteredEntries, selectedMandant]);
 
 
   const handleApprove = async (entryId: string) => {
