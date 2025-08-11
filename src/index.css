@@ -9,14 +9,14 @@ Alle Farben MÜSSEN HSL sein.
 @layer base {
   :root {
     /* Taxagent Fintech 2025 Color Palette - Trust & Innovation */
-    --background: 248 250 252; /* gray-50 equivalent */
-    --foreground: 15 23 42; /* slate-800 equivalent */
+    --background: 210 40% 98%; /* gray-50 equivalent */
+    --foreground: 222.2 47.4% 11.2%; /* slate-900 for strong contrast */
 
     --card: 0 0% 100%;
-    --card-foreground: 15 23 42;
+    --card-foreground: 222.2 47.4% 11.2%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 15 23 42;
+    --popover-foreground: 222.2 47.4% 11.2%;
 
     /* Primary Colors - Professional Blue */
     --primary: 220 90% 40%; /* Deep professional blue */
@@ -25,10 +25,10 @@ Alle Farben MÜSSEN HSL sein.
     --primary-dark: 224 90% 25%; /* Darker blue for premium features */
 
     --secondary: 210 40% 95%;
-    --secondary-foreground: 15 23 42;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96%;
-    --muted-foreground: 100 116 139; /* slate-500 equivalent */
+    --muted-foreground: 215 20.2% 65.1%; /* slate-500 equivalent */
 
     /* Accent Colors - Modern Vibrancy */
     --accent: 45 93% 60%; /* Gold for premium/important CTAs */
