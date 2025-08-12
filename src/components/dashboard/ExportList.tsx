@@ -94,7 +94,12 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
       )
       .subscribe();
 
+    // Sofortige Aktualisierung, wenn Export aus UI angestoßen wurde
+    const onExportTriggered = () => fetchExportData();
+    window.addEventListener('export-triggered', onExportTriggered);
+
     return () => {
+      window.removeEventListener('export-triggered', onExportTriggered);
       supabase.removeChannel(channel);
     };
   }, [mandantNr]);

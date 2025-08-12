@@ -211,17 +211,40 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
     try {
       setExporting(true);
       const mandantId = selectedMandant === 'all' ? null : selectedMandant;
+      const idsToExport = approvedInvoices.map(i => i.id);
+
+      // Optimistisch: sofort aus der Liste entfernen, damit sie "verschwinden"
+      setApprovedInvoices((prev) => prev.filter((i) => !idsToExport.includes(i.id)));
+
       const { data, error } = await supabase.functions.invoke('export-approved-invoices', {
         body: {
           mandantId,
-          invoiceIds: approvedInvoices.map(i => i.id),
+          invoiceIds: idsToExport,
         },
       });
       if (error) throw error;
+
+      // Markiere die exportierten Rechnungen als processing, damit sie nicht wieder erscheinen
+      if (idsToExport.length > 0) {
+        const { error: updErr } = await supabase
+          .from('approved_bookings')
+          .update({ export_status: 'processing' })
+          .in('id', idsToExport);
+        if (updErr) {
+          console.warn('Konnte export_status nicht aktualisieren:', updErr);
+        }
+      }
+
+      // Andere Komponenten informieren (z. B. Export-Historie)
+      window.dispatchEvent(new CustomEvent('export-triggered'));
+
       toast({
         title: "Export gestartet",
-        description: "n8n Workflow wurde ausgelöst.",
+        description: "Export wurde angestoßen. Die Einträge wurden in die Verarbeitung verschoben.",
       });
+
+      // Sicherheitshalber neu laden
+      fetchApprovedInvoices();
     } catch (error) {
       console.error('Error triggering export:', error);
       toast({
