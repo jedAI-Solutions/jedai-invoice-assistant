@@ -171,28 +171,72 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
       setDownloadingId(entry.id);
       const { signedUrl, key } = await createSignedUrlWithFallback(entry, linkTtl);
 
-      if (!signedUrl) {
-        console.error('Signed URL could not be created for any candidate path', {
-          storage_path: entry.storage_path,
-          filename: entry.filename,
-          client_number: entry.client_number,
-        });
-        toast({
-          title: "Download fehlgeschlagen",
-          description: "Datei im Speicher nicht gefunden (Pfad prüfen).",
-          variant: "destructive",
-        });
+      // 1) Bevorzugt: signierte URL nutzen
+      if (signedUrl) {
+        const link = document.createElement('a');
+        link.href = signedUrl;
+        const suggestedName = entry.filename || entry.batch_number || 'export';
+        link.download = suggestedName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         return;
       }
 
-      // Download auslösen
-      const link = document.createElement('a');
-      link.href = signedUrl;
-      const suggestedName = entry.filename || entry.batch_number || 'export';
-      link.download = suggestedName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // 2) Fallback: Direktdownload über Storage API (ohne signierte URL)
+      const bucket = supabase.storage.from('exports');
+      const candidates: string[] = [];
+      const pushKey = (k?: string | null) => {
+        if (!k) return;
+        const raw = k.replace(/^\/+/, '');
+        // Original
+        if (!candidates.includes(raw)) candidates.push(raw);
+        // Wenn der Pfad mit "exports/" beginnt, auch die Variante ohne Präfix testen
+        if (raw.startsWith('exports/')) {
+          const stripped = raw.replace(/^exports\//, '');
+          if (!candidates.includes(stripped)) candidates.push(stripped);
+        } else {
+          const prefixed = `exports/${raw}`;
+          if (!candidates.includes(prefixed)) candidates.push(prefixed);
+        }
+      };
+
+      // Kandidaten analog zur Signed-URL-Logik
+      pushKey(entry.storage_path);
+      pushKey(entry.filename);
+      pushKey(entry.batch_number);
+      if (entry.client_number && entry.filename) pushKey(`${entry.client_number}/${entry.filename}`);
+      if (entry.client_number && entry.storage_path && !entry.storage_path.includes('/')) pushKey(`${entry.client_number}/${entry.storage_path}`);
+
+      for (const k of candidates) {
+        const { data } = await bucket.download(k.startsWith('exports/') ? k.replace(/^exports\//, '') : k);
+        if (data) {
+          const blobUrl = URL.createObjectURL(data);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          const suggestedName = entry.filename || entry.batch_number || 'export';
+          link.download = suggestedName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          // Objekt-URL wieder freigeben
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+          return;
+        }
+      }
+
+      // Wenn weder signierte URL noch Direktdownload funktioniert
+      console.error('Download failed for all candidate paths', {
+        storage_path: entry.storage_path,
+        filename: entry.filename,
+        client_number: entry.client_number,
+        lastTriedKey: key,
+      });
+      toast({
+        title: "Download fehlgeschlagen",
+        description: "Datei im Speicher nicht gefunden (Pfad prüfen).",
+        variant: "destructive",
+      });
     } finally {
       setDownloadingId(null);
     }
