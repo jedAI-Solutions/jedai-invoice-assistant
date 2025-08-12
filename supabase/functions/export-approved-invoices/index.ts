@@ -25,8 +25,10 @@ serve(async (req: Request): Promise<Response> => {
     const mandantId = body?.mandantId ?? null;
     const invoiceIds = Array.isArray(body?.invoiceIds) ? body.invoiceIds : [];
 
-    const webhookUrl = Deno.env.get("N8N_WEBHOOK_URL")
-      || "https://jedai-solutions.app.n8n.cloud/webhook-test/c9f0b775-5214-41fc-91af-feabfb2bc846"; // fallback test URL
+    const webhookUrl =
+      Deno.env.get("N8N_EXPORT_APPROVED_INVOICES_URL") ||
+      Deno.env.get("N8N_WEBHOOK_URL") ||
+      "https://jedai-solutions.app.n8n.cloud/webhook-test/c9f0b775-5214-41fc-91af-feabfb2bc846"; // fallback test URL
 
     const payload = {
       source: "taxagent-ui",
