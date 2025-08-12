@@ -213,9 +213,6 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
       const mandantId = selectedMandant === 'all' ? null : selectedMandant;
       const idsToExport = approvedInvoices.map(i => i.id);
 
-      // Optimistisch: sofort aus der Liste entfernen, damit sie "verschwinden"
-      setApprovedInvoices((prev) => prev.filter((i) => !idsToExport.includes(i.id)));
-
       const { data, error } = await supabase.functions.invoke('export-approved-invoices', {
         body: {
           mandantId,
@@ -224,27 +221,12 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
       });
       if (error) throw error;
 
-      // Markiere die exportierten Rechnungen als processing, damit sie nicht wieder erscheinen
-      if (idsToExport.length > 0) {
-        const { error: updErr } = await supabase
-          .from('approved_bookings')
-          .update({ export_status: 'processing' })
-          .in('id', idsToExport);
-        if (updErr) {
-          console.warn('Konnte export_status nicht aktualisieren:', updErr);
-        }
-      }
-
-      // Andere Komponenten informieren (z. B. Export-Historie)
-      window.dispatchEvent(new CustomEvent('export-triggered'));
-
       toast({
         title: "Export gestartet",
-        description: "Export wurde angestoßen. Die Einträge wurden in die Verarbeitung verschoben.",
+        description: "Die Tabellen aktualisieren sich automatisch, sobald der Batch-Upload abgeschlossen ist.",
       });
-
-      // Sicherheitshalber neu laden
-      fetchApprovedInvoices();
+      // Kein optimistisches Entfernen und kein manuelles Status-Update mehr.
+      // Die Liste aktualisiert sich über Realtime, wenn export_status geändert wird bzw. ein Batch vorliegt.
     } catch (error) {
       console.error('Error triggering export:', error);
       toast({
