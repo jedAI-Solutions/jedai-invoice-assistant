@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import * as pdfjsLib from "pdfjs-dist";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 
 // Use a workerless setup for maximum bundler/browser compatibility
 // Note: Do not reassign GlobalWorkerOptions (read-only in some environments).

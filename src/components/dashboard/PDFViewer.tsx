@@ -11,6 +11,7 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [useFallback, setUseFallback] = useState(false);
 
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
       try {
         setLoading(true);
         setError(null);
+        setUseFallback(false);
         setSignedUrl(null);
         // Revoke previously created blob URLs
         setBlobUrl((prev) => {
@@ -196,8 +198,20 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
   return (
     <div className="w-full h-96 border border-white/20 rounded-lg overflow-hidden bg-white">
       {viewerSrc ? (
-        // Use PDF.js canvas-based rendering for robust cross-browser support
-        <PDFJsViewer src={viewerSrc} className="w-full h-full" onError={() => setError('Fehler beim Rendern der Vorschau')} />
+        !useFallback ? (
+          // Primary: PDF.js canvas-based rendering
+          <PDFJsViewer src={viewerSrc} className="w-full h-full" onError={() => setUseFallback(true)} />
+        ) : (
+          // Fallback: native PDF embed
+          <object data={viewerSrc} type="application/pdf" className="w-full h-full">
+            <div className="p-4 text-center">
+              <p className="text-sm text-muted-foreground mb-2">Inline-Vorschau nicht möglich.</p>
+              {signedUrl && (
+                <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
+              )}
+            </div>
+          </object>
+        )
       ) : (
         <div className="p-4 text-center">
           <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
