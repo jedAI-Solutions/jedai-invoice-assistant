@@ -30,6 +30,22 @@ serve(async (req: Request): Promise<Response> => {
       Deno.env.get("N8N_WEBHOOK_URL") ||
       "https://jedai-solutions.app.n8n.cloud/webhook-test/c9f0b775-5214-41fc-91af-feabfb2bc846"; // fallback test URL
 
+    // Minimal structured logging (no PII)
+    try {
+      const host = new URL(webhookUrl).host;
+      console.log("export-approved-invoices invoked", {
+        mandantIdPresent: !!mandantId,
+        invoiceCount: invoiceIds.length,
+        webhookHost: host,
+      });
+    } catch (_) {
+      console.log("export-approved-invoices invoked", {
+        mandantIdPresent: !!mandantId,
+        invoiceCount: invoiceIds.length,
+        webhookHost: "invalid-url",
+      });
+    }
+
     const payload = {
       source: "taxagent-ui",
       triggeredAt: new Date().toISOString(),
@@ -37,6 +53,7 @@ serve(async (req: Request): Promise<Response> => {
       invoiceIds,
     };
 
+    console.log("Posting to n8n webhook");
     const resp = await fetch(webhookUrl, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -53,6 +70,7 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
+    console.log("n8n webhook success", { status: resp.status, preview: text.slice(0, 200) });
     return new Response(JSON.stringify({ ok: true, status: resp.status }), {
       status: 200,
       headers: corsHeaders,
