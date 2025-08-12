@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 
 // Use a workerless setup for maximum bundler/browser compatibility
-(pdfjsLib as any).GlobalWorkerOptions = (pdfjsLib as any).GlobalWorkerOptions || {};
+// Note: Do not reassign GlobalWorkerOptions (read-only in some environments).
 // disableWorker is passed per-document below
-
 interface PDFJsViewerProps {
   src: string; // blob: URL or signed HTTPS URL
   className?: string;
