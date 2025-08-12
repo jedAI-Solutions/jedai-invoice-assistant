@@ -85,13 +85,39 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
                   .createSignedUrl(`${normalizedPath}.pdf`, 3600);
                 if (retrySigned.error) throw retrySigned.error;
                 if (cancelled) return;
-                setSignedUrl(retrySigned.data.signedUrl);
+                const su = retrySigned.data.signedUrl;
+                setSignedUrl(su);
+                // Try to fetch into Blob for Safari and strict browsers
+                try {
+                  const resp = await fetch(su, { credentials: 'omit' });
+                  if (resp.ok) {
+                    const b = await resp.blob();
+                    const pdfBlob = b.type === 'application/pdf' ? b : new Blob([b], { type: 'application/pdf' });
+                    if (!cancelled) {
+                      const url = URL.createObjectURL(pdfBlob);
+                      setBlobUrl(url);
+                    }
+                  }
+                } catch {}
                 return;
               }
 
               if (signed.error) throw signed.error;
               if (cancelled) return;
-              setSignedUrl(signed.data.signedUrl);
+              const su = signed.data.signedUrl;
+              setSignedUrl(su);
+              // Try to fetch into Blob for Safari and strict browsers
+              try {
+                const resp = await fetch(su, { credentials: 'omit' });
+                if (resp.ok) {
+                  const b = await resp.blob();
+                  const pdfBlob = b.type === 'application/pdf' ? b : new Blob([b], { type: 'application/pdf' });
+                  if (!cancelled) {
+                    const url = URL.createObjectURL(pdfBlob);
+                    setBlobUrl(url);
+                  }
+                }
+              } catch {}
               return;
             }
           } else {
@@ -164,20 +190,8 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
   return (
     <div className="w-full h-96 border border-white/20 rounded-lg overflow-hidden bg-white">
       {isSafari ? (
-        // Safari: prefer <object>/<embed> for PDFs; iframe with blob often fails
-        signedUrl ? (
-          <object
-            data={`${signedUrl}#view=FitH`}
-            type="application/pdf"
-            width="100%"
-            height="100%"
-          >
-            <div className="p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
-              <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
-            </div>
-          </object>
-        ) : blobUrl ? (
+        // Safari: prefer <object>/<embed> and try blob first
+        blobUrl ? (
           <object
             data={blobUrl}
             type="application/pdf"
@@ -187,6 +201,18 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
             <div className="p-4 text-center">
               <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
               <a href={blobUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
+            </div>
+          </object>
+        ) : signedUrl ? (
+          <object
+            data={`${signedUrl}#view=FitH`}
+            type="application/pdf"
+            width="100%"
+            height="100%"
+          >
+            <div className="p-4 text-center">
+              <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
+              <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
             </div>
           </object>
         ) : null
