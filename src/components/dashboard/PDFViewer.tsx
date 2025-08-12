@@ -192,13 +192,24 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
   }
 
   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
+  
   const viewerSrc = blobUrl || signedUrl || "";
+  const safariSrc = signedUrl || viewerSrc;
 
   return (
     <div className="w-full h-96 border border-white/20 rounded-lg overflow-hidden bg-white">
       {viewerSrc ? (
-        !useFallback ? (
+        isSafari ? (
+          // Safari: native PDF embed is more reliable
+          <object data={safariSrc} type="application/pdf" className="w-full h-full">
+            <div className="p-4 text-center">
+              <p className="text-sm text-muted-foreground mb-2">Inline-Vorschau nicht möglich (Safari).</p>
+              {safariSrc && (
+                <a href={safariSrc} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
+              )}
+            </div>
+          </object>
+        ) : !useFallback ? (
           // Primary: PDF.js canvas-based rendering
           <PDFJsViewer src={viewerSrc} className="w-full h-full" onError={() => setUseFallback(true)} />
         ) : (
