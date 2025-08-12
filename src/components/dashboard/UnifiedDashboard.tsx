@@ -196,14 +196,8 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
       }
       const { count: totalEntries } = await totalQuery;
 
-      let pendingQuery = supabase
-        .from('ai_classifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-      if (selectedMandant !== 'all') {
-        pendingQuery = pendingQuery.eq('mandant_id', selectedMandant);
-      }
-      const { count: pendingReviews } = await pendingQuery;
+      // Pending KPI soll alle in der Buchungsübersicht sichtbaren Belege (abhängig vom Mandantenfilter) zeigen
+      const pendingReviews = filteredEntries.length;
 
       // Apply Mandant filter to approved_bookings count
       let approvedQuery = supabase
