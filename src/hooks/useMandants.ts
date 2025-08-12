@@ -19,7 +19,7 @@ export function useMandants() {
     try {
       console.log('useMandants: fetching mandants...');
       const { data, error } = await supabase
-        .from('mandants')
+        .from('mandant_public_view')
         .select('id, mandant_nr, name1')
         .eq('status', 'active')
         .order('mandant_nr');

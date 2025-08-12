@@ -24,58 +24,22 @@ export default function MandantSelector({ selectedMandant, onMandantChange }: Ma
     try {
       setLoading(true);
       
-      // Get distinct mandants that have entries in either ai_classifications or approved_bookings
-      const { data: classifiedMandants, error: classifiedError } = await supabase
-        .from('ai_classifications')
-        .select(`
-          mandant_id,
-          mandants!inner(name1, mandant_nr)
-        `)
-        .not('mandant_id', 'is', null);
+      // Load all active mandants from public view (unrestricted listing)
+      const { data: allMandants, error } = await supabase
+        .from('mandant_public_view')
+        .select('id, mandant_nr, name1')
+        .eq('status', 'active')
+        .order('name1');
 
-      if (classifiedError) throw classifiedError;
+      if (error) throw error;
 
-      const { data: approvedMandants, error: approvedError } = await supabase
-        .from('approved_bookings')
-        .select(`
-          mandant_id,
-          mandant_name,
-          mandant_nr
-        `)
-        .not('mandant_id', 'is', null);
+      const mapped: Mandant[] = (allMandants || []).map((m: any) => ({
+        mandant_id: m.id,
+        mandant_nr: m.mandant_nr,
+        name1: m.name1,
+      }));
 
-      if (approvedError) throw approvedError;
-
-      // Combine and deduplicate mandants
-      const mandantMap = new Map<string, Mandant>();
-
-      // Add mandants from classified entries
-      classifiedMandants?.forEach((item: any) => {
-        if (item.mandants) {
-          mandantMap.set(item.mandant_id, {
-            mandant_id: item.mandant_id,
-            mandant_nr: item.mandants.mandant_nr,
-            name1: item.mandants.name1
-          });
-        }
-      });
-
-      // Add mandants from approved entries
-      approvedMandants?.forEach((item: any) => {
-        if (item.mandant_nr && item.mandant_name) {
-          mandantMap.set(item.mandant_id, {
-            mandant_id: item.mandant_id,
-            mandant_nr: item.mandant_nr,
-            name1: item.mandant_name
-          });
-        }
-      });
-
-      // Convert map to array and sort by name
-      const uniqueMandanten = Array.from(mandantMap.values())
-        .sort((a, b) => a.name1.localeCompare(b.name1));
-
-      setMandanten(uniqueMandanten);
+      setMandanten(mapped);
     } catch (error) {
       console.error('Error fetching mandanten:', error);
       toast({

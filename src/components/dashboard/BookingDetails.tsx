@@ -55,7 +55,7 @@ export const BookingDetails = ({
     setLoadingMandanten(true);
     try {
       const { data, error } = await supabase
-        .from('mandants')
+        .from('mandant_public_view')
         .select('name1, mandant_nr')
         .eq('status', 'active')
         .order('name1');

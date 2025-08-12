@@ -56,7 +56,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
       let mandantMap: Record<string, { name1?: string; mandant_nr?: string }> = {};
       if (mandantIds.length > 0) {
         const { data: mandantRows, error: mErr } = await supabase
-          .from('mandants')
+           .from('mandant_public_view')
           .select('id, name1, mandant_nr')
           .in('id', mandantIds);
         if (!mErr && mandantRows) {
@@ -351,7 +351,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
           resolvedMandantId = candidateMandant;
         } else {
           const { data: m, error: mErr } = await supabase
-            .from('mandants')
+            .from('mandant_public_view')
             .select('id')
             .eq('mandant_nr', candidateMandant)
             .maybeSingle();

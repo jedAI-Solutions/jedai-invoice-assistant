@@ -37,7 +37,7 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
     const resolveMandantNr = async () => {
       if (selectedMandant && selectedMandant !== "all") {
         const { data, error } = await supabase
-          .from('mandants')
+          .from('mandant_public_view')
           .select('mandant_nr,name1')
           .eq('id', selectedMandant)
           .maybeSingle();

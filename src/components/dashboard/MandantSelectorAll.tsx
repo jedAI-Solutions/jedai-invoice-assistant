@@ -26,7 +26,7 @@ export default function MandantSelectorAll({ selectedMandant, onMandantChange }:
       
       // Get all active mandants from the mandants table
       const { data: allMandants, error } = await supabase
-        .from('mandants')
+        .from('mandant_public_view')
         .select('id, mandant_nr, name1')
         .eq('status', 'active')
         .order('name1');
