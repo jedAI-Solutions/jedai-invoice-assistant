@@ -129,14 +129,20 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
     const bucket = supabase.storage.from('exports');
     const candidates: string[] = [];
 
-    const normalizeKey = (k: string) => k.replace(/^\/+/, '').replace(/^exports\//, '');
     const addCandidate = (k?: string | null) => {
       if (!k) return;
-      const norm = normalizeKey(k);
-      if (!candidates.includes(norm)) candidates.push(norm);
+      const raw = k.replace(/^\/+/, '');
+      if (!candidates.includes(raw)) candidates.push(raw);
+      if (raw.startsWith('exports/')) {
+        const stripped = raw.replace(/^exports\//, '');
+        if (!candidates.includes(stripped)) candidates.push(stripped);
+      } else {
+        const prefixed = `exports/${raw}`;
+        if (!candidates.includes(prefixed)) candidates.push(prefixed);
+      }
     };
 
-    // As-is from DB (may include bucket prefix -> normalized)
+    // As-is from DB and variants
     addCandidate(entry.storage_path);
     // Plain filename as fallback
     addCandidate(entry.filename);
