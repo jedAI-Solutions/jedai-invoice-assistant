@@ -9,10 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { BookingEntry } from "@/types/booking";
 import { supabase } from "@/integrations/supabase/client";
-import type { Mandantenstammdaten } from "@/types/mandantenstammdaten";
 import { PDFViewer } from "./PDFViewer";
 
-type Mandant = Pick<Mandantenstammdaten, 'name1' | 'mandant_nr'>;
+interface Mandant { id: string; name1: string | null; mandant_nr: string | null; }
 
 interface BookingDetailsProps {
   selectedEntry: BookingEntry | null;
@@ -56,13 +55,12 @@ export const BookingDetails = ({
     try {
       const { data, error } = await supabase
         .from('mandant_public_view')
-        .select('name1, mandant_nr')
-        .eq('status', 'active')
+        .select('id, name1, mandant_nr')
         .order('name1');
 
       if (error) throw error;
 
-      setMandanten(data || []);
+      setMandanten((data as Mandant[]) || []);
     } catch (error) {
       console.error('Error loading mandanten:', error);
       setMandanten([]);
@@ -167,6 +165,8 @@ export const BookingDetails = ({
     if (selectedEntry.status === 'approved') return 'Genehmigt';
     return 'Status';
   };
+
+  const resolvedMandantNr = editedEntry?.mandantNr || mandanten.find(m => m.id === selectedEntry.mandantId)?.mandant_nr || undefined;
 
   return (
     <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -423,14 +423,14 @@ export const BookingDetails = ({
                   <p className="text-sm text-muted-foreground mb-4">
                     Original PDF-Dokument
                   </p>
-                  {(selectedEntry.mandantNr && selectedEntry.document) ? (
+                  {(resolvedMandantNr && selectedEntry.document) ? (
                     <div className="space-y-3">
-                      <PDFViewer documentUrl={`taxagent-documents/${selectedEntry.mandantNr}/${selectedEntry.document}`} />
+                      <PDFViewer documentUrl={`taxagent-documents/${resolvedMandantNr}/${selectedEntry.document}`} />
                       <div className="flex gap-2 justify-center">
                         <Button 
                           variant="outline" 
                           className="bg-white/10 backdrop-blur-glass border-white/20"
-                          onClick={() => downloadDocument(`taxagent-documents/${selectedEntry.mandantNr}/${selectedEntry.document}`, selectedEntry.document)}
+                          onClick={() => downloadDocument(`taxagent-documents/${resolvedMandantNr}/${selectedEntry.document}`, selectedEntry.document)}
                         >
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -440,7 +440,7 @@ export const BookingDetails = ({
                         <Button 
                           variant="outline" 
                           className="bg-white/10 backdrop-blur-glass border-white/20"
-                          onClick={() => openDocumentInNewTab(`taxagent-documents/${selectedEntry.mandantNr}/${selectedEntry.document}`)}
+                          onClick={() => openDocumentInNewTab(`taxagent-documents/${resolvedMandantNr}/${selectedEntry.document}`)}
                         >
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

@@ -32,9 +32,21 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
           .from(BUCKET)
           .createSignedUrl(normalizedPath, 3600); // 1 hour expiry
 
-        if (error) throw error;
-
-        setSignedUrl(data.signedUrl);
+        if (error) {
+          // Retry with .pdf suffix if missing
+          if (!/\.pdf$/i.test(normalizedPath)) {
+            const altPath = `${normalizedPath}.pdf`;
+            const retry = await supabase.storage
+              .from(BUCKET)
+              .createSignedUrl(altPath, 3600);
+            if (retry.error) throw retry.error;
+            setSignedUrl(retry.data.signedUrl);
+          } else {
+            throw error;
+          }
+        } else {
+          setSignedUrl(data.signedUrl);
+        }
       } catch (err) {
         console.error('Error getting signed URL:', err);
         setError('Fehler beim Laden des Dokuments');
