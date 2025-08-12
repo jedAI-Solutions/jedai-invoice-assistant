@@ -124,9 +124,30 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
 
   const visibleBatches = useMemo(() => batches, [batches]);
 
+  // Try to create a signed URL with sensible fallbacks (some exports are stored under client_number/<filename>)
+  const createSignedUrlWithFallback = async (entry: ExportBatchEntry, ttl: number) => {
+    const bucket = supabase.storage.from('exports');
+    const candidates: string[] = [];
+
+    if (entry.storage_path) candidates.push(entry.storage_path);
+    if (entry.storage_path && entry.client_number && !entry.storage_path.includes('/')) {
+      candidates.push(`${entry.client_number}/${entry.storage_path}`);
+    }
+    if (entry.filename && entry.client_number) {
+      const alt = `${entry.client_number}/${entry.filename}`;
+      if (!candidates.includes(alt)) candidates.push(alt);
+    }
+
+    for (const key of candidates) {
+      const { data } = await bucket.createSignedUrl(key, ttl);
+      if (data?.signedUrl) return { signedUrl: data.signedUrl, key };
+    }
+    return { signedUrl: null as string | null, key: null as string | null };
+  };
+
   const handleDownload = async (entry: ExportBatchEntry) => {
     try {
-      if (!entry.storage_path || entry.export_status !== 'completed') {
+      if (entry.export_status !== 'completed') {
         toast({
           title: "Noch nicht verfügbar",
           description: "Für diesen Export liegt noch keine Datei vor.",
@@ -135,18 +156,17 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
       }
 
       setDownloadingId(entry.id);
-      console.log('Creating signed URL for:', entry.storage_path);
+      const { signedUrl, key } = await createSignedUrlWithFallback(entry, linkTtl);
 
-      const { data, error } = await supabase
-        .storage
-        .from('exports')
-        .createSignedUrl(entry.storage_path, linkTtl);
-
-      if (error || !data?.signedUrl) {
-        console.error('Signed URL error:', error);
+      if (!signedUrl) {
+        console.error('Signed URL could not be created for any candidate path', {
+          storage_path: entry.storage_path,
+          filename: entry.filename,
+          client_number: entry.client_number,
+        });
         toast({
           title: "Download fehlgeschlagen",
-          description: "Die Datei konnte nicht abgerufen werden.",
+          description: "Datei im Speicher nicht gefunden (Pfad prüfen).",
           variant: "destructive",
         });
         return;
@@ -154,8 +174,7 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
 
       // Download auslösen
       const link = document.createElement('a');
-      link.href = data.signedUrl;
-      // Dateiname aus DB verwenden, falls vorhanden
+      link.href = signedUrl;
       const suggestedName = entry.filename || entry.batch_number || 'export';
       link.download = suggestedName;
       document.body.appendChild(link);
@@ -167,29 +186,27 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
   };
 
   const handleCopyLink = async (entry: ExportBatchEntry) => {
-    if (!entry.storage_path || entry.export_status !== 'completed') {
+    if (entry.export_status !== 'completed') {
       toast({
         title: "Noch nicht verfügbar",
         description: "Für diesen Export liegt noch keine Datei vor.",
       });
       return;
     }
-    const { data, error } = await supabase
-      .storage
-      .from('exports')
-      .createSignedUrl(entry.storage_path, linkTtl);
 
-    if (error || !data?.signedUrl) {
+    const { signedUrl } = await createSignedUrlWithFallback(entry, linkTtl);
+
+    if (!signedUrl) {
       toast({
         title: "Link konnte nicht erstellt werden",
-        description: "Bitte später erneut versuchen.",
+        description: "Datei im Speicher nicht gefunden (Pfad prüfen).",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      await navigator.clipboard.writeText(data.signedUrl);
+      await navigator.clipboard.writeText(signedUrl);
       toast({
         title: "Link kopiert",
         description: `Signierter Link ist für ${Math.round(linkTtl / 60)} Minuten gültig.`,
