@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PDFJsViewer } from "./PDFJsViewer";
 
 interface PDFViewerProps {
   documentUrl: string;
@@ -180,6 +181,9 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
           <p className="text-sm text-muted-foreground">{error || 'Dokument konnte nicht geladen werden'}</p>
+          {signedUrl && (
+            <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline mt-2 inline-block">In neuem Tab öffnen</a>
+          )}
         </div>
       </div>
     );
@@ -187,57 +191,20 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
 
   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
+  const viewerSrc = blobUrl || signedUrl || "";
+
   return (
     <div className="w-full h-96 border border-white/20 rounded-lg overflow-hidden bg-white">
-      {isSafari ? (
-        // Safari: prefer <object>/<embed> and try blob first
-        blobUrl ? (
-          <object
-            data={blobUrl}
-            type="application/pdf"
-            width="100%"
-            height="100%"
-          >
-            <div className="p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
-              <a href={blobUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
-            </div>
-          </object>
-        ) : signedUrl ? (
-          <object
-            data={`${signedUrl}#view=FitH`}
-            type="application/pdf"
-            width="100%"
-            height="100%"
-          >
-            <div className="p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
-              <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
-            </div>
-          </object>
-        ) : null
+      {viewerSrc ? (
+        // Use PDF.js canvas-based rendering for robust cross-browser support
+        <PDFJsViewer src={viewerSrc} className="w-full h-full" onError={() => setError('Fehler beim Rendern der Vorschau')} />
       ) : (
-        blobUrl ? (
-          <iframe
-            src={blobUrl}
-            width="100%"
-            height="100%"
-            className="border-0"
-            title="PDF Vorschau"
-          />
-        ) : (
-          <object
-            data={signedUrl ? `${signedUrl}#view=FitH` : undefined}
-            type="application/pdf"
-            width="100%"
-            height="100%"
-          >
-            <div className="p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
-              <a href={signedUrl || '#'} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
-            </div>
-          </object>
-        )
+        <div className="p-4 text-center">
+          <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
+          {signedUrl && (
+            <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
+          )}
+        </div>
       )}
     </div>
   );
