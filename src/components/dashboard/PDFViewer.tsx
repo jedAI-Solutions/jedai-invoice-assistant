@@ -36,8 +36,9 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
             const resp = await fetch(documentUrl, { credentials: 'omit' });
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             const blob = await resp.blob();
+            const pdfBlob = blob.type === 'application/pdf' ? blob : new Blob([blob], { type: 'application/pdf' });
             if (cancelled) return;
-            const url = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(pdfBlob);
             setBlobUrl(url);
             return;
           } catch (e) {
@@ -106,8 +107,9 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
         }
 
         if (blob) {
+          const pdfBlob = blob.type === 'application/pdf' ? blob : new Blob([blob], { type: 'application/pdf' });
           if (cancelled) return;
-          const url = URL.createObjectURL(blob);
+          const url = URL.createObjectURL(pdfBlob);
           setBlobUrl(url);
           return;
         }
@@ -144,7 +146,7 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
     );
   }
 
-  if (error || !signedUrl) {
+  if (error || (!signedUrl && !blobUrl)) {
     return (
       <div className="w-full h-96 border border-white/20 rounded-lg bg-white/5 flex items-center justify-center">
         <div className="text-center">
@@ -159,17 +161,27 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
 
   return (
     <div className="w-full h-96 border border-white/20 rounded-lg overflow-hidden bg-white">
-      <object
-        data={blobUrl || (signedUrl ? `${signedUrl}#view=FitH` : undefined)}
-        type="application/pdf"
-        width="100%"
-        height="100%"
-      >
-        <div className="p-4 text-center">
-          <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
-          <a href={blobUrl || signedUrl || '#'} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
-        </div>
-      </object>
+      {blobUrl ? (
+        <iframe
+          src={blobUrl}
+          width="100%"
+          height="100%"
+          className="border-0"
+          title="PDF Vorschau"
+        />
+      ) : (
+        <object
+          data={signedUrl ? `${signedUrl}#view=FitH` : undefined}
+          type="application/pdf"
+          width="100%"
+          height="100%"
+        >
+          <div className="p-4 text-center">
+            <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
+            <a href={signedUrl || '#'} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
+          </div>
+        </object>
+      )}
     </div>
   );
 };
