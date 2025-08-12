@@ -200,7 +200,7 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   
   const viewerSrc = blobUrl || signedUrl || "";
-  const safariSrc = signedUrl || viewerSrc;
+  const safariSrc = viewerSrc;
 
   return (
     <div className="w-full h-96 border border-white/20 rounded-lg overflow-hidden bg-white">
