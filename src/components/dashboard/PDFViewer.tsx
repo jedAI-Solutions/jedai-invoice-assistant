@@ -7,20 +7,45 @@ interface PDFViewerProps {
 
 export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
 
   useEffect(() => {
-    const getSignedUrl = async () => {
+    let cancelled = false;
+
+    const load = async () => {
       try {
         setLoading(true);
         setError(null);
+        setSignedUrl(null);
+        // Revoke previously created blob URLs
+        setBlobUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return null;
+        });
 
-        // If a full URL is provided, use it directly
+        if (!documentUrl) {
+          throw new Error('Kein Dokumentenpfad übergeben');
+        }
+
+        // If a full URL is provided, try to fetch as Blob for reliable inline preview
         if (/^https?:\/\//.test(documentUrl)) {
-          setSignedUrl(documentUrl);
-          return;
+          try {
+            const resp = await fetch(documentUrl, { credentials: 'omit' });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const blob = await resp.blob();
+            if (cancelled) return;
+            const url = URL.createObjectURL(blob);
+            setBlobUrl(url);
+            return;
+          } catch (e) {
+            // Fallback to using the direct URL in the embed
+            if (cancelled) return;
+            setSignedUrl(documentUrl);
+            return;
+          }
         }
 
         const BUCKET = 'taxagent-documents';
@@ -29,37 +54,84 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
           .replace(/^\/?taxagent-documents\//, '')
           .replace(/^\/+/, '');
 
-        const { data, error } = await supabase.storage
-          .from(BUCKET)
-          .createSignedUrl(normalizedPath, 3600); // 1 hour expiry
+        // Attempt to download the file as a Blob for stable inline preview
+        const tryDownload = async (path: string) => {
+          const { data, error } = await supabase.storage
+            .from(BUCKET)
+            .download(path);
+          if (error || !data) throw error || new Error('Download fehlgeschlagen');
+          return data;
+        };
 
-        if (error) {
+        let blob: Blob | null = null;
+        try {
+          blob = await tryDownload(normalizedPath);
+        } catch (e) {
           // Retry with .pdf suffix if missing
           if (!/\.pdf$/i.test(normalizedPath)) {
             const altPath = `${normalizedPath}.pdf`;
-            const retry = await supabase.storage
-              .from(BUCKET)
-              .createSignedUrl(altPath, 3600);
-            if (retry.error) throw retry.error;
-            setSignedUrl(retry.data.signedUrl);
+            try {
+              blob = await tryDownload(altPath);
+            } catch (e2) {
+              // Final fallback: create a signed URL for embedding
+              const signed = await supabase.storage
+                .from(BUCKET)
+                .createSignedUrl(normalizedPath, 3600);
+
+              if (signed.error && !/\.pdf$/i.test(normalizedPath)) {
+                const retrySigned = await supabase.storage
+                  .from(BUCKET)
+                  .createSignedUrl(`${normalizedPath}.pdf`, 3600);
+                if (retrySigned.error) throw retrySigned.error;
+                if (cancelled) return;
+                setSignedUrl(retrySigned.data.signedUrl);
+                return;
+              }
+
+              if (signed.error) throw signed.error;
+              if (cancelled) return;
+              setSignedUrl(signed.data.signedUrl);
+              return;
+            }
           } else {
-            throw error;
+            // Path had .pdf but download failed: fallback to signed URL
+            const signed = await supabase.storage
+              .from(BUCKET)
+              .createSignedUrl(normalizedPath, 3600);
+            if (signed.error) throw signed.error;
+            if (cancelled) return;
+            setSignedUrl(signed.data.signedUrl);
+            return;
           }
-        } else {
-          setSignedUrl(data.signedUrl);
+        }
+
+        if (blob) {
+          if (cancelled) return;
+          const url = URL.createObjectURL(blob);
+          setBlobUrl(url);
+          return;
         }
       } catch (err) {
-        console.error('Error getting signed URL:', err);
-        setError('Fehler beim Laden des Dokuments');
+        console.error('Error preparing PDF preview:', err);
+        if (!cancelled) setError('Fehler beim Laden der Vorschau');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    if (documentUrl) {
-      getSignedUrl();
-    }
+    load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [documentUrl]);
+
+  // Cleanup any object URLs when they change/unmount
+  useEffect(() => {
+    return () => {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
+  }, [blobUrl]);
 
   if (loading) {
     return (
@@ -88,14 +160,14 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
   return (
     <div className="w-full h-96 border border-white/20 rounded-lg overflow-hidden bg-white">
       <object
-        data={`${signedUrl}#view=FitH`}
+        data={blobUrl || (signedUrl ? `${signedUrl}#view=FitH` : undefined)}
         type="application/pdf"
         width="100%"
         height="100%"
       >
         <div className="p-4 text-center">
           <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
-          <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
+          <a href={blobUrl || signedUrl || '#'} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
         </div>
       </object>
     </div>
