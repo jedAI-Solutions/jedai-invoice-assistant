@@ -151,8 +151,12 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
     if (entry.client_number && entry.filename) addCandidate(`${entry.client_number}/${entry.filename}`);
     if (entry.client_number && entry.storage_path && !entry.storage_path.includes('/')) addCandidate(`${entry.client_number}/${entry.storage_path}`);
 
+    // Gewünschter Download-Dateiname erzwingen (CSV)
+    const baseName = entry.filename || entry.batch_number || 'export';
+    const suggestedName = /\.csv$/i.test(baseName) ? baseName : `${baseName}.csv`;
+
     for (const key of candidates) {
-      const { data } = await bucket.createSignedUrl(key, ttl);
+      const { data } = await bucket.createSignedUrl(key, ttl, { download: suggestedName });
       if (data?.signedUrl) return { signedUrl: data.signedUrl, key };
     }
     return { signedUrl: null as string | null, key: null as string | null };
