@@ -16,9 +16,21 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
         setLoading(true);
         setError(null);
 
+        // If a full URL is provided, use it directly
+        if (/^https?:\/\//.test(documentUrl)) {
+          setSignedUrl(documentUrl);
+          return;
+        }
+
+        const BUCKET = 'taxagent-documents';
+        // Normalize to a path relative to the bucket
+        const normalizedPath = documentUrl
+          .replace(/^\/?taxagent-documents\//, '')
+          .replace(/^\/+/, '');
+
         const { data, error } = await supabase.storage
-          .from('documents')
-          .createSignedUrl(documentUrl, 3600); // 1 hour expiry
+          .from(BUCKET)
+          .createSignedUrl(normalizedPath, 3600); // 1 hour expiry
 
         if (error) throw error;
 

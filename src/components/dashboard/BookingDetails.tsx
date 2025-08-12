@@ -100,18 +100,24 @@ export const BookingDetails = ({
     }
   };
 
+  // Normalize storage path to be relative to the 'taxagent-documents' bucket
+  const normalizeStoragePath = (path: string) => {
+    return path.replace(/^\/?taxagent-documents\//, '').replace(/^\/+/, '');
+  };
+
   const downloadDocument = async (documentUrl: string, filename: string) => {
     try {
+      const path = normalizeStoragePath(documentUrl);
       const { data, error } = await supabase.storage
-        .from('documents')
-        .download(documentUrl);
+        .from('taxagent-documents')
+        .download(path);
 
       if (error) throw error;
 
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = filename;
+      a.download = filename || 'dokument.pdf';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -123,13 +129,14 @@ export const BookingDetails = ({
 
   const openDocumentInNewTab = async (documentUrl: string) => {
     try {
+      const path = normalizeStoragePath(documentUrl);
       const { data, error } = await supabase.storage
-        .from('documents')
-        .createSignedUrl(documentUrl, 3600); // 1 hour expiry
+        .from('taxagent-documents')
+        .createSignedUrl(path, 3600); // 1 hour expiry
 
       if (error) throw error;
 
-      window.open(data.signedUrl, '_blank');
+      window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Error opening document:', error);
     }
@@ -173,11 +180,10 @@ export const BookingDetails = ({
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="buchung" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-glass border border-white/20">
-            <TabsTrigger value="buchung" className="data-[state=active]:bg-white/20">Buchungsdaten</TabsTrigger>
-            <TabsTrigger value="beleg" className="data-[state=active]:bg-white/20">Belegansicht</TabsTrigger>
-            <TabsTrigger value="pdf" className="data-[state=active]:bg-white/20">Original PDF</TabsTrigger>
-          </TabsList>
+            <TabsList className="grid w-full grid-cols-2 bg-white/10 backdrop-blur-glass border border-white/20">
+              <TabsTrigger value="buchung" className="data-[state=active]:bg-white/20">Buchungsdaten</TabsTrigger>
+              <TabsTrigger value="beleg" className="data-[state=active]:bg-white/20">Belegansicht</TabsTrigger>
+            </TabsList>
           
           <TabsContent value="buchung" className="space-y-6">
             {/* KI-Entscheidungsgrundlage */}
@@ -405,27 +411,6 @@ export const BookingDetails = ({
           </TabsContent>
           
           <TabsContent value="beleg" className="mt-6">
-            <div className="border border-white/20 rounded-lg p-6 bg-white/10 backdrop-blur-glass text-center">
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-foreground">{selectedEntry.document}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Belegvorschau wird hier angezeigt
-                  </p>
-                </div>
-                <Button variant="outline" className="bg-white/10 backdrop-blur-glass border-white/20">
-                  Beleg öffnen
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="pdf" className="mt-6">
             <div className="border border-white/20 rounded-lg p-6 bg-white/10 backdrop-blur-glass">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -482,6 +467,7 @@ export const BookingDetails = ({
               </div>
             </div>
           </TabsContent>
+          
         </Tabs>
       </CardContent>
     </Card>
