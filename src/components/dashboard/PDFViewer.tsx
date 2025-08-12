@@ -10,6 +10,9 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Ensure PDFs render inline in iframe (avoid forced download)
+  const toInline = (url: string) => (url.includes("?") ? `${url}&download=inline` : `${url}?download=inline`);
+
   useEffect(() => {
     const getSignedUrl = async () => {
       try {
@@ -18,7 +21,7 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
 
         // If a full URL is provided, use it directly
         if (/^https?:\/\//.test(documentUrl)) {
-          setSignedUrl(documentUrl);
+          setSignedUrl(toInline(documentUrl));
           return;
         }
 
@@ -40,12 +43,12 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
               .from(BUCKET)
               .createSignedUrl(altPath, 3600);
             if (retry.error) throw retry.error;
-            setSignedUrl(retry.data.signedUrl);
+            setSignedUrl(toInline(retry.data.signedUrl));
           } else {
             throw error;
           }
         } else {
-          setSignedUrl(data.signedUrl);
+          setSignedUrl(toInline(data.signedUrl));
         }
       } catch (err) {
         console.error('Error getting signed URL:', err);
