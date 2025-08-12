@@ -124,19 +124,26 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
 
   const visibleBatches = useMemo(() => batches, [batches]);
 
-  // Try to create a signed URL with sensible fallbacks (some exports are stored under client_number/<filename>)
+  // Try to create a signed URL with sensible fallbacks (normalize keys and try multiple locations)
   const createSignedUrlWithFallback = async (entry: ExportBatchEntry, ttl: number) => {
     const bucket = supabase.storage.from('exports');
     const candidates: string[] = [];
 
-    if (entry.storage_path) candidates.push(entry.storage_path);
-    if (entry.storage_path && entry.client_number && !entry.storage_path.includes('/')) {
-      candidates.push(`${entry.client_number}/${entry.storage_path}`);
-    }
-    if (entry.filename && entry.client_number) {
-      const alt = `${entry.client_number}/${entry.filename}`;
-      if (!candidates.includes(alt)) candidates.push(alt);
-    }
+    const normalizeKey = (k: string) => k.replace(/^\/+/, '').replace(/^exports\//, '');
+    const addCandidate = (k?: string | null) => {
+      if (!k) return;
+      const norm = normalizeKey(k);
+      if (!candidates.includes(norm)) candidates.push(norm);
+    };
+
+    // As-is from DB (may include bucket prefix -> normalized)
+    addCandidate(entry.storage_path);
+    // Plain filename as fallback
+    addCandidate(entry.filename);
+    addCandidate(entry.batch_number);
+    // Common folder pattern: <client_number>/<filename>
+    if (entry.client_number && entry.filename) addCandidate(`${entry.client_number}/${entry.filename}`);
+    if (entry.client_number && entry.storage_path && !entry.storage_path.includes('/')) addCandidate(`${entry.client_number}/${entry.storage_path}`);
 
     for (const key of candidates) {
       const { data } = await bucket.createSignedUrl(key, ttl);
