@@ -30,17 +30,28 @@ export const PDFJsViewer = ({ src, className, onError }: PDFJsViewerProps) => {
         const canvas = canvasRef.current;
         if (!container || !canvas) return;
 
-        // Fetch the bytes (works for both blob: and https: URLs)
-        const resp = await fetch(src, { credentials: "omit" });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const buf = await resp.arrayBuffer();
-        if (cancelled) return;
+        // Try to fetch bytes first (handles https and most blob URLs)
+        let loadingTask: any;
+        try {
+          const resp = await fetch(src, { credentials: "omit" });
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const buf = await resp.arrayBuffer();
+          if (cancelled) return;
 
-        const loadingTask = (pdfjsLib as any).getDocument({
-          data: buf,
-          disableWorker: true,
-          isEvalSupported: true,
-        });
+          loadingTask = (pdfjsLib as any).getDocument({
+            data: buf,
+            disableWorker: true,
+            isEvalSupported: false,
+          });
+        } catch (fetchErr) {
+          // Fallback: let PDF.js fetch via its own loader (helps with some Safari blob/CORS cases)
+          if (cancelled) return;
+          loadingTask = (pdfjsLib as any).getDocument({
+            url: src,
+            disableWorker: true,
+            isEvalSupported: false,
+          });
+        }
 
         const pdf = await loadingTask.promise;
         if (cancelled) return;
@@ -65,6 +76,7 @@ export const PDFJsViewer = ({ src, className, onError }: PDFJsViewerProps) => {
         if (cancelled) return;
       } catch (e) {
         if (!cancelled) {
+          console.error("PDFJsViewer render error:", e);
           setError("Fehler beim Rendern der PDF-Vorschau");
           onError?.(e);
         }
