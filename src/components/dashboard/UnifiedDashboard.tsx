@@ -196,8 +196,10 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
       }
       const { count: totalEntries } = await totalQuery;
 
-      // Pending KPI soll alle in der Buchungsübersicht sichtbaren Belege (abhängig vom Mandantenfilter) zeigen
-      const pendingReviews = filteredEntries.length;
+      // Pending KPI soll exakt die aktuell sichtbaren Zeilen (Mandant-, Confidence- und Statusfilter) zählen
+      const pendingReviews = filteredEntries.filter(e => (
+        statusFilter === 'all' ? e.status !== 'approved' : e.status === statusFilter
+      )).length;
 
       // Apply Mandant filter to approved_bookings count
       let approvedQuery = supabase
