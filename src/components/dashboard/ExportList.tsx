@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Download, Copy, RefreshCw } from "lucide-react";
 
 interface ExportBatchEntry {
   id: string;
@@ -29,6 +30,7 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
   const [mandantNr, setMandantNr] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { toast } = useToast();
+  const [linkTtl, setLinkTtl] = useState<number>(3600);
 
   // Resolve mandant_nr for filtering when a specific mandant is selected
   useEffect(() => {
@@ -110,6 +112,15 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
     const d = new Date(dateString);
     return `${d.toLocaleDateString('de-DE')} ${d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
   };
+  
+  const bytesToSize = (bytes?: number | null) => {
+    if (bytes == null) return null;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    if (bytes === 0) return '0 Bytes';
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    const val = bytes / Math.pow(1024, i);
+    return `${val.toFixed(val >= 100 ? 0 : val >= 10 ? 1 : 2)} ${sizes[i]}`;
+  };
 
   const visibleBatches = useMemo(() => batches, [batches]);
 
@@ -129,7 +140,7 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
       const { data, error } = await supabase
         .storage
         .from('exports')
-        .createSignedUrl(entry.storage_path, 3600);
+        .createSignedUrl(entry.storage_path, linkTtl);
 
       if (error || !data?.signedUrl) {
         console.error('Signed URL error:', error);
@@ -155,6 +166,43 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
     }
   };
 
+  const handleCopyLink = async (entry: ExportBatchEntry) => {
+    if (!entry.storage_path || entry.export_status !== 'completed') {
+      toast({
+        title: "Noch nicht verfügbar",
+        description: "Für diesen Export liegt noch keine Datei vor.",
+      });
+      return;
+    }
+    const { data, error } = await supabase
+      .storage
+      .from('exports')
+      .createSignedUrl(entry.storage_path, linkTtl);
+
+    if (error || !data?.signedUrl) {
+      toast({
+        title: "Link konnte nicht erstellt werden",
+        description: "Bitte später erneut versuchen.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(data.signedUrl);
+      toast({
+        title: "Link kopiert",
+        description: `Signierter Link ist für ${Math.round(linkTtl / 60)} Minuten gültig.`,
+      });
+    } catch {
+      toast({
+        title: "Kopieren fehlgeschlagen",
+        description: "Der Link konnte nicht in die Zwischenablage kopiert werden.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
@@ -176,6 +224,31 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
         <CardTitle>Export-Historie</CardTitle>
         <div className="flex items-center gap-2">
           <Badge variant="secondary">{visibleBatches.length} Batches</Badge>
+          <div className="flex items-center gap-2">
+            <Select
+              value={String(linkTtl)}
+              onValueChange={(v) => setLinkTtl(Number(v))}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Link TTL" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="600">10 Min</SelectItem>
+                <SelectItem value="3600">1 Std</SelectItem>
+                <SelectItem value="86400">24 Std</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={fetchExportData}
+              disabled={loading}
+              title="Liste aktualisieren"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -199,6 +272,13 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
                     <div className="text-sm text-muted-foreground">
                       {entry.filename}
                     </div>
+                    {(entry.file_size || entry.mime_type) && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {entry.file_size ? bytesToSize(entry.file_size) : null}
+                        {entry.file_size && entry.mime_type ? " · " : ""}
+                        {entry.mime_type || null}
+                      </div>
+                    )}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {formatDateTime(entry.generated_at)}
@@ -216,7 +296,18 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
                       {entry.export_status || 'preparing'}
                     </Badge>
                   </div>
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopyLink(entry)}
+                      disabled={!canDownload}
+                      title={canDownload ? 'Signierten Link kopieren' : 'Datei noch nicht verfügbar'}
+                      className="gap-2"
+                    >
+                      <Copy className="h-4 w-4" />
+                      Link
+                    </Button>
                     <Button
                       variant="secondary"
                       size="sm"
