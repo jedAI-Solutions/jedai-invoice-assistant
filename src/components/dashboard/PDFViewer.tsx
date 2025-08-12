@@ -87,13 +87,17 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
 
   return (
     <div className="w-full h-96 border border-white/20 rounded-lg overflow-hidden bg-white">
-      <iframe
-        src={signedUrl}
+      <object
+        data={`${signedUrl}#view=FitH`}
+        type="application/pdf"
         width="100%"
         height="100%"
-        className="border-0"
-        title="PDF Dokument"
-      />
+      >
+        <div className="p-4 text-center">
+          <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
+          <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
+        </div>
+      </object>
     </div>
   );
 };
