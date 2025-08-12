@@ -99,10 +99,11 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
                   if (resp.ok) {
                     const b = await resp.blob();
                     const pdfBlob = b.type === 'application/pdf' ? b : new Blob([b], { type: 'application/pdf' });
-                    if (!cancelled) {
-                      const url = URL.createObjectURL(pdfBlob);
-                      setBlobUrl(url);
-                    }
+                  if (!cancelled) {
+                    const url = URL.createObjectURL(pdfBlob);
+                    setPdfBlob(pdfBlob);
+                    setBlobUrl(url);
+                  }
                   }
                 } catch {}
                 return;
@@ -120,6 +121,7 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
                   const pdfBlob = b.type === 'application/pdf' ? b : new Blob([b], { type: 'application/pdf' });
                   if (!cancelled) {
                     const url = URL.createObjectURL(pdfBlob);
+                    setPdfBlob(pdfBlob);
                     setBlobUrl(url);
                   }
                 }
@@ -142,6 +144,7 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
           const pdfBlob = blob.type === 'application/pdf' ? blob : new Blob([blob], { type: 'application/pdf' });
           if (cancelled) return;
           const url = URL.createObjectURL(pdfBlob);
+          setPdfBlob(pdfBlob);
           setBlobUrl(url);
           return;
         }
@@ -214,7 +217,7 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
           </object>
         ) : !useFallback ? (
           // Primary: PDF.js canvas-based rendering
-          <PDFJsViewer src={viewerSrc} className="w-full h-full" onError={() => setUseFallback(true)} />
+          <PDFJsViewer src={viewerSrc} data={pdfBlob || undefined} className="w-full h-full" onError={() => setUseFallback(true)} />
         ) : (
           // Fallback: native PDF embed
           <object data={viewerSrc} type="application/pdf" className="w-full h-full">
