@@ -6,11 +6,12 @@ import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 // disableWorker is passed per-document below
 interface PDFJsViewerProps {
   src: string; // blob: URL or signed HTTPS URL
+  data?: ArrayBuffer | Uint8Array | Blob; // raw bytes if available (avoids blob fetch issues)
   className?: string;
   onError?: (error: unknown) => void;
 }
 
-export const PDFJsViewer = ({ src, className, onError }: PDFJsViewerProps) => {
+export const PDFJsViewer = ({ src, data, className, onError }: PDFJsViewerProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,27 +31,47 @@ export const PDFJsViewer = ({ src, className, onError }: PDFJsViewerProps) => {
         const canvas = canvasRef.current;
         if (!container || !canvas) return;
 
-        // Try to fetch bytes first (handles https and most blob URLs)
+        // Build loadingTask using provided data when available to avoid blob URL fetch issues (e.g., Safari)
         let loadingTask: any;
-        try {
-          const resp = await fetch(src, { credentials: "omit" });
-          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        if (data) {
+          const bytes = data instanceof Blob ? await data.arrayBuffer() : data;
+          if (cancelled) return;
+          loadingTask = (pdfjsLib as any).getDocument({
+            data: bytes,
+            disableWorker: true,
+            isEvalSupported: false,
+          });
+        } else if (src.startsWith("blob:")) {
+          // blob: URLs are not reliably fetchable in Safari; try fetch and surface errors to fallback
+          const resp = await fetch(src).catch((e) => { throw e; });
+          if (!resp || !resp.ok) throw new Error(`HTTP ${resp?.status}`);
           const buf = await resp.arrayBuffer();
           if (cancelled) return;
-
           loadingTask = (pdfjsLib as any).getDocument({
             data: buf,
             disableWorker: true,
             isEvalSupported: false,
           });
-        } catch (fetchErr) {
-          // Fallback: let PDF.js fetch via its own loader (helps with some Safari blob/CORS cases)
-          if (cancelled) return;
-          loadingTask = (pdfjsLib as any).getDocument({
-            url: src,
-            disableWorker: true,
-            isEvalSupported: false,
-          });
+        } else {
+          // HTTPS URL: try fetch bytes first, then let PDF.js loader handle URL as fallback
+          try {
+            const resp = await fetch(src, { credentials: "omit" });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const buf = await resp.arrayBuffer();
+            if (cancelled) return;
+            loadingTask = (pdfjsLib as any).getDocument({
+              data: buf,
+              disableWorker: true,
+              isEvalSupported: false,
+            });
+          } catch (fetchErr) {
+            if (cancelled) return;
+            loadingTask = (pdfjsLib as any).getDocument({
+              url: src,
+              disableWorker: true,
+              isEvalSupported: false,
+            });
+          }
         }
 
         const pdf = await loadingTask.promise;
@@ -93,7 +114,7 @@ export const PDFJsViewer = ({ src, className, onError }: PDFJsViewerProps) => {
         renderTask?.cancel();
       } catch {}
     };
-  }, [src, onError]);
+  }, [src, data, onError]);
 
   return (
     <div ref={containerRef} className={className} style={{ width: "100%", height: "100%", position: "relative" }}>

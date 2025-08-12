@@ -12,6 +12,7 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [useFallback, setUseFallback] = useState(false);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
 
 
   useEffect(() => {
@@ -23,6 +24,7 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
         setError(null);
         setUseFallback(false);
         setSignedUrl(null);
+        setPdfBlob(null);
         // Revoke previously created blob URLs
         setBlobUrl((prev) => {
           if (prev) URL.revokeObjectURL(prev);
@@ -43,6 +45,7 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
             if (cancelled) return;
             const url = URL.createObjectURL(pdfBlob);
             setBlobUrl(url);
+            setPdfBlob(pdfBlob);
             return;
           } catch (e) {
             // Fallback to using the direct URL in the embed
