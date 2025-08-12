@@ -259,74 +259,64 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
     try {
       console.log('📁 sendToN8nWebhook: starting upload process for', files.length, 'files');
       
-      // Process each file: upload to storage and create registry entry
-      for (let i = 0; i < files.length; i++) {
-        const uploadFile = files[i];
-        console.log(`📄 Processing file ${i + 1}/${files.length}:`, uploadFile.file.name);
-        
-        // Update progress to uploading
-        setFiles(prev => prev.map((f, idx) => 
-          idx === i ? { ...f, status: 'uploading', progress: 30 } : f
-        ));
+      // Mark all as uploading
+      setFiles(prev => prev.map(f => ({ ...f, status: 'uploading', progress: 30 })));
 
-        try {
-          // Send file securely via Edge Function (secure-file-upload)
-          console.log('🛡️ Sending file to secure edge upload...');
-          const { data: sessionData } = await supabase.auth.getSession();
-          const accessToken = sessionData?.session?.access_token;
-          if (!accessToken) throw new Error('Nicht angemeldet');
+      // Send files securely via Edge Function (secure-file-upload) as a single batch
+      console.log('🛡️ Sending batch to secure edge upload...');
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error('Nicht angemeldet');
 
-          // Prepare multipart form data
-          const form = new FormData();
-          form.append('mandant_id', currentMandant.id);
-          form.append('files', uploadFile.file, uploadFile.file.name);
+      // Prepare multipart form data (batch)
+      const form = new FormData();
+      form.append('mandant_id', currentMandant.id);
+      files.forEach((f) => {
+        form.append('files', f.file, f.file.name);
+      });
 
-          // Update progress
-          setFiles(prev => prev.map((f, idx) => 
-            idx === i ? { ...f, progress: 60 } : f
-          ));
+      // Update progress mid-way
+      setFiles(prev => prev.map(f => ({ ...f, progress: 60 })));
 
-          const functionUrl = 'https://awrduehwnyxbwtjbbrhw.supabase.co/functions/v1/secure-file-upload';
-          const response = await fetch(functionUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3cmR1ZWh3bnl4Ynd0amJicmh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTA3NzQsImV4cCI6MjA2ODA4Njc3NH0.D9qdE99x88EKAFJxRHbseuaphVlncOGyICMbd1vZUSw'
-            },
-            body: form
-          });
+      const functionUrl = 'https://awrduehwnyxbwtjbbrhw.supabase.co/functions/v1/secure-file-upload';
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3cmR1ZWh3bnl4Ynd0amJicmh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTA3NzQsImV4cCI6MjA2ODA4Njc3NH0.D9qdE99x88EKAFJxRHbseuaphVlncOGyICMbd1vZUSw'
+        },
+        body: form
+      });
 
-console.log('📊 Edge upload status:', response.status);
-if (!response.ok) {
-  const raw = await response.text();
-  let parsed: any = null;
-  try { parsed = raw ? JSON.parse(raw) : null; } catch {}
-  console.error('❌ Edge upload error:', raw);
-  const fd = parsed?.forwarding_details;
-  const msg = parsed?.message || `Edge upload failed`;
-  const extra = fd
-    ? ` [n8n ${fd.status} ${fd.status_text}] ${fd.response_snippet?.slice(0,200) || ''}`
-    : raw ? ` ${raw.slice(0,200)}` : '';
-  throw new Error(`${msg} (${response.status})${extra}`);
-}
-
-          // Success
-          setFiles(prev => prev.map((f, idx) => 
-            idx === i ? { ...f, progress: 100, status: 'success' } : f
-          ));
-        } catch (fileError) {
-          console.error(`❌ Error processing file ${uploadFile.file.name}:`, fileError);
-          setFiles(prev => prev.map((f, idx) => 
-            idx === i ? { ...f, status: 'error' } : f
-          ));
-          throw fileError;
-        }
+      console.log('📊 Edge upload status:', response.status);
+      const raw = await response.text();
+      let parsed: any = null;
+      try { parsed = raw ? JSON.parse(raw) : null; } catch {}
+      if (!response.ok) {
+        const fd = parsed?.forwarding_details;
+        const msg = parsed?.message || `Edge upload failed`;
+        const extra = fd
+          ? ` [n8n ${fd.status} ${fd.status_text}] ${fd.response_snippet?.slice(0,200) || ''}`
+          : raw ? ` ${raw.slice(0,200)}` : '';
+        throw new Error(`${msg} (${response.status})${extra}`);
       }
 
-      // All files uploaded via secure edge function
+      // Success mapping per returned files
+      const processed = parsed?.processed_files as Array<{ file_name: string }> | undefined;
+      if (processed && Array.isArray(processed)) {
+        setFiles(prev => prev.map(f => {
+          const ok = processed.some(p => p.file_name === f.file.name);
+          return ok ? { ...f, progress: 100, status: 'success' } : { ...f, status: 'error' };
+        }));
+      } else {
+        // Fallback: mark all as success
+        setFiles(prev => prev.map(f => ({ ...f, progress: 100, status: 'success' })));
+      }
+
+      const failedCount = (parsed?.validation_errors?.length || 0);
       toast({
         title: "Upload erfolgreich",
-        description: `${files.length} Datei(en) wurden sicher übermittelt.`,
+        description: `${files.length - failedCount} von ${files.length} Dateien wurden sicher übermittelt.`,
       });
 
       // Clear files after 3 seconds

@@ -273,15 +273,16 @@ for (let i = 0; i < processedFiles.length; i++) {
   n8nFormData.append(`fileSize_${i}`, file.size.toString());
   n8nFormData.append(`documentId_${i}`, documentId);
   n8nFormData.append(`registryId_${i}`, registryId);
-  // Generic first-file fields (compat with simple webhooks expecting single keys)
-  if (i === 0) {
-    n8nFormData.append('file', file);
-    n8nFormData.append('filename', file.name);
-    n8nFormData.append('fileType', file.type);
-    n8nFormData.append('fileSize', file.size.toString());
-    n8nFormData.append('documentId', documentId);
-    n8nFormData.append('registryId', registryId);
-  }
+}
+// Only add generic single-file fields when exactly one file is present
+if (processedFiles.length === 1) {
+  const { file, documentId, registryId } = processedFiles[0];
+  n8nFormData.append('file', file);
+  n8nFormData.append('filename', file.name);
+  n8nFormData.append('fileType', file.type);
+  n8nFormData.append('fileSize', file.size.toString());
+  n8nFormData.append('documentId', documentId);
+  n8nFormData.append('registryId', registryId);
 }
       
       // Add Supabase callback URL for document storage
