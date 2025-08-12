@@ -159,28 +159,59 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
     );
   }
 
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
   return (
     <div className="w-full h-96 border border-white/20 rounded-lg overflow-hidden bg-white">
-      {blobUrl ? (
-        <iframe
-          src={blobUrl}
-          width="100%"
-          height="100%"
-          className="border-0"
-          title="PDF Vorschau"
-        />
+      {isSafari ? (
+        // Safari: prefer <object>/<embed> for PDFs; iframe with blob often fails
+        signedUrl ? (
+          <object
+            data={`${signedUrl}#view=FitH`}
+            type="application/pdf"
+            width="100%"
+            height="100%"
+          >
+            <div className="p-4 text-center">
+              <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
+              <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
+            </div>
+          </object>
+        ) : blobUrl ? (
+          <object
+            data={blobUrl}
+            type="application/pdf"
+            width="100%"
+            height="100%"
+          >
+            <div className="p-4 text-center">
+              <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
+              <a href={blobUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
+            </div>
+          </object>
+        ) : null
       ) : (
-        <object
-          data={signedUrl ? `${signedUrl}#view=FitH` : undefined}
-          type="application/pdf"
-          width="100%"
-          height="100%"
-        >
-          <div className="p-4 text-center">
-            <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
-            <a href={signedUrl || '#'} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
-          </div>
-        </object>
+        blobUrl ? (
+          <iframe
+            src={blobUrl}
+            width="100%"
+            height="100%"
+            className="border-0"
+            title="PDF Vorschau"
+          />
+        ) : (
+          <object
+            data={signedUrl ? `${signedUrl}#view=FitH` : undefined}
+            type="application/pdf"
+            width="100%"
+            height="100%"
+          >
+            <div className="p-4 text-center">
+              <p className="text-sm text-muted-foreground mb-2">PDF-Vorschau wird nicht unterstützt.</p>
+              <a href={signedUrl || '#'} target="_blank" rel="noopener noreferrer" className="text-primary underline">In neuem Tab öffnen</a>
+            </div>
+          </object>
+        )
       )}
     </div>
   );
