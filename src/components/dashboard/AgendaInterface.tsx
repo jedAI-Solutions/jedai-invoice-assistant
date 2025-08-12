@@ -208,10 +208,10 @@ export const AgendaInterface = () => {
                     <div>
                       <Label htmlFor="konto">SKR-Konto</Label>
                       <Select value={selectedEntry.account}>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">
                           <SelectItem value="6400">6400 - Strom/Gas/Wasser</SelectItem>
                           <SelectItem value="6815">6815 - Büromaterial</SelectItem>
                           <SelectItem value="6320">6320 - Kommunikation</SelectItem>
