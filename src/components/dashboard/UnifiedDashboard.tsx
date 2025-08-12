@@ -44,48 +44,65 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
   // Load entries from ai_classifications table
   const fetchEntries = async () => {
     try {
-      const { data: classifications, error } = await supabase
+      // 1) Klassifikationen ohne Join laden (robuster bzgl. RLS/Joins)
+      const { data: classifications, error: clsError } = await supabase
         .from('ai_classifications')
-        .select(`
-          *,
-          mandants!inner(id, name1, mandant_nr)
-        `);
+        .select('*');
 
-      if (error) throw error;
+      if (clsError) throw clsError;
 
-      const mappedEntries: BookingEntry[] = classifications?.map((item: any) => ({
-        id: item.id,
-        document: item.belegnummer || 'Unbekannter Beleg',
-        date: item.belegdatum || new Date().toISOString().split('T')[0],
-        amount: item.betrag || 0,
-        description: item.buchungstext || 'Keine Beschreibung',
-        account: item.konto || '',
-        taxRate: item.uststeuerzahl ? `${item.uststeuerzahl}%` : '19%',
-        confidence: Math.round((item.overall_confidence || 0) * 100),
-        status: (item.status || 'pending') as any,
-        mandant: item.mandants?.name1 || item.mandant_resolved || 'Unbekannt',
-        mandantId: item.mandant_id || '',
-        mandantNr: item.mandants?.mandant_nr || '',
-        aiHints: item.check_notes || [],
-        aiReasoning: item.reasoning || '',
-        createdAt: item.created_at || new Date().toISOString(),
-        lastModified: item.updated_at || new Date().toISOString(),
-        // Additional AI classification fields
-        belegnummer: item.belegnummer,
-        belegdatum: item.belegdatum,
-        betrag: item.betrag,
-        buchungstext: item.buchungstext,
-        konto: item.konto,
-        gegenkonto: item.gegenkonto,
-        uststeuerzahl: item.uststeuerzahl,
-        mandant_resolved: item.mandant_resolved,
-        overall_confidence: item.overall_confidence,
-        ai_result: item.ai_result,
-        reasoning: item.reasoning,
-        uncertainty_factors: item.uncertainty_factors,
-        document_id: item.document_id,
-        check_notes: item.check_notes
-      })) || [];
+      // 2) Zugehörige Mandanten separat laden und mappen
+      const mandantIds = Array.from(new Set((classifications || []).map((c: any) => c.mandant_id).filter(Boolean)));
+      let mandantMap: Record<string, { name1?: string; mandant_nr?: string }> = {};
+      if (mandantIds.length > 0) {
+        const { data: mandantRows, error: mErr } = await supabase
+          .from('mandants')
+          .select('id, name1, mandant_nr')
+          .in('id', mandantIds);
+        if (!mErr && mandantRows) {
+          mandantMap = mandantRows.reduce((acc: any, m: any) => {
+            acc[m.id] = { name1: m.name1, mandant_nr: m.mandant_nr };
+            return acc;
+          }, {});
+        }
+      }
+
+      const mappedEntries: BookingEntry[] = (classifications || []).map((item: any) => {
+        const mInfo = item.mandant_id ? mandantMap[item.mandant_id] : undefined;
+        return {
+          id: item.id,
+          document: item.belegnummer || 'Unbekannter Beleg',
+          date: item.belegdatum || new Date().toISOString().split('T')[0],
+          amount: item.betrag || 0,
+          description: item.buchungstext || 'Keine Beschreibung',
+          account: item.konto || '',
+          taxRate: item.uststeuerzahl ? `${item.uststeuerzahl}%` : '19%',
+          confidence: Math.round((item.overall_confidence || 0) * 100),
+          status: (item.status || 'pending') as any,
+          mandant: mInfo?.name1 || item.mandant_resolved || 'Unbekannt',
+          mandantId: item.mandant_id || '',
+          mandantNr: mInfo?.mandant_nr || '',
+          aiHints: item.check_notes || [],
+          aiReasoning: item.reasoning || '',
+          createdAt: item.created_at || new Date().toISOString(),
+          lastModified: item.updated_at || new Date().toISOString(),
+          // Additional AI classification fields
+          belegnummer: item.belegnummer,
+          belegdatum: item.belegdatum,
+          betrag: item.betrag,
+          buchungstext: item.buchungstext,
+          konto: item.konto,
+          gegenkonto: item.gegenkonto,
+          uststeuerzahl: item.uststeuerzahl,
+          mandant_resolved: item.mandant_resolved,
+          overall_confidence: item.overall_confidence,
+          ai_result: item.ai_result,
+          reasoning: item.reasoning,
+          uncertainty_factors: item.uncertainty_factors,
+          document_id: item.document_id,
+          check_notes: item.check_notes
+        };
+      });
 
       setEntries(mappedEntries);
       setAllEntries(mappedEntries);
