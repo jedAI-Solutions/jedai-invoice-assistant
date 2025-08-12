@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMandants } from "@/hooks/useMandants";
@@ -362,21 +364,22 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
         {/* Mandant Selection */}
         {!loading && mandants.length > 0 && (
           <div className="mb-4">
-            <label className="block text-sm font-medium text-white mb-2">
+            <Label htmlFor="mandant-select" className="mb-2 block">
               Mandant auswählen
-            </label>
-            <select
-              value={selectedMandant}
-              onChange={(e) => setSelectedMandant(e.target.value)}
-              className="w-full p-2 bg-white/10 border border-white/20 rounded-lg text-white"
-            >
-              <option value="all">Bitte Mandant auswählen</option>
-              {mandants.map((mandant) => (
-                <option key={mandant.id} value={mandant.id} className="text-gray-900">
-                  {mandant.mandant_nr} - {mandant.name1}
-                </option>
-              ))}
-            </select>
+            </Label>
+            <Select value={selectedMandant} onValueChange={(v) => setSelectedMandant(v)}>
+              <SelectTrigger id="mandant-select" className="w-full bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
+                <SelectValue placeholder="Bitte Mandant auswählen" />
+              </SelectTrigger>
+              <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">
+                <SelectItem value="all">Bitte Mandant auswählen</SelectItem>
+                {mandants.map((mandant) => (
+                  <SelectItem key={mandant.id} value={mandant.id}>
+                    {mandant.mandant_nr} - {mandant.name1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
         
