@@ -423,7 +423,33 @@ export const BookingDetails = ({
                   <p className="text-sm text-muted-foreground mb-4">
                     Original PDF-Dokument
                   </p>
-                  {selectedEntry.document_url ? (
+                  {(selectedEntry.mandantNr && selectedEntry.document) ? (
+                    <div className="space-y-3">
+                      <PDFViewer documentUrl={`taxagent-documents/${selectedEntry.mandantNr}/${selectedEntry.document}`} />
+                      <div className="flex gap-2 justify-center">
+                        <Button 
+                          variant="outline" 
+                          className="bg-white/10 backdrop-blur-glass border-white/20"
+                          onClick={() => downloadDocument(`taxagent-documents/${selectedEntry.mandantNr}/${selectedEntry.document}`, selectedEntry.document)}
+                        >
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          PDF herunterladen
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="bg-white/10 backdrop-blur-glass border-white/20"
+                          onClick={() => openDocumentInNewTab(`taxagent-documents/${selectedEntry.mandantNr}/${selectedEntry.document}`)}
+                        >
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                          In neuem Tab öffnen
+                        </Button>
+                      </div>
+                    </div>
+                  ) : selectedEntry.document_url ? (
                     <div className="space-y-3">
                       <PDFViewer documentUrl={selectedEntry.document_url} />
                       <div className="flex gap-2 justify-center">
