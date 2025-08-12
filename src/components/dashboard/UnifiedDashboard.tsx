@@ -100,6 +100,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
           reasoning: item.reasoning,
           uncertainty_factors: item.uncertainty_factors,
           document_id: item.document_id,
+          document_url: item.document_url,
           check_notes: item.check_notes
         };
       });

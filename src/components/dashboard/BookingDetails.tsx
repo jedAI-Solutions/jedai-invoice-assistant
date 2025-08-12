@@ -105,6 +105,21 @@ export const BookingDetails = ({
 
   const downloadDocument = async (documentUrl: string, filename: string) => {
     try {
+      // If it's already a full URL, download directly
+      if (/^https?:\/\//.test(documentUrl)) {
+        const res = await fetch(documentUrl);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename || 'dokument.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        return;
+      }
+
       const path = normalizeStoragePath(documentUrl);
       const { data, error } = await supabase.storage
         .from('taxagent-documents')
@@ -127,6 +142,12 @@ export const BookingDetails = ({
 
   const openDocumentInNewTab = async (documentUrl: string) => {
     try {
+      // If it's already a full URL, open it directly
+      if (/^https?:\/\//.test(documentUrl)) {
+        window.open(documentUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
       const path = normalizeStoragePath(documentUrl);
       const { data, error } = await supabase.storage
         .from('taxagent-documents')
