@@ -139,13 +139,30 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log("Posting to n8n webhook:", webhookUrl);
     console.log("Payload being sent:", JSON.stringify(payload, null, 2));
+    
+    // Test the webhook URL first
+    try {
+      const testResp = await fetch(webhookUrl, {
+        method: "HEAD",
+      });
+      console.log("Webhook test response:", testResp.status, testResp.statusText);
+    } catch (testError) {
+      console.error("Webhook test failed:", testError);
+    }
+    
     const resp = await fetch(webhookUrl, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { 
+        "content-type": "application/json",
+        "user-agent": "taxagent-export-function/1.0"
+      },
       body: JSON.stringify(payload),
     });
 
     const text = await resp.text();
+    console.log("Webhook response status:", resp.status);
+    console.log("Webhook response headers:", Object.fromEntries(resp.headers.entries()));
+    console.log("Webhook response body:", text.slice(0, 500));
 
     if (!resp.ok) {
       console.error("n8n webhook failed", { status: resp.status, preview: text.slice(0, 200) });
