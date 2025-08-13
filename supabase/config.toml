@@ -24,3 +24,6 @@ verify_jwt = true
 
 [functions.export-approved-invoices]
 verify_jwt = true
+
+[functions.test-webhook]
+verify_jwt = false
