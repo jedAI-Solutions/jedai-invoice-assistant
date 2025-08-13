@@ -213,12 +213,17 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
       const mandantId = selectedMandant === 'all' ? null : selectedMandant;
       const idsToExport = approvedInvoices.map(i => i.id);
 
+      console.log('Starting export with:', { mandantId, idsToExport });
+
       const { data, error } = await supabase.functions.invoke('export-approved-invoices', {
         body: {
           mandantId,
           invoiceIds: idsToExport,
         },
       });
+      
+      console.log('Export function response:', { data, error });
+      
       if (error) throw error;
 
       toast({
