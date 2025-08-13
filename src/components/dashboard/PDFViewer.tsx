@@ -203,7 +203,7 @@ export const PDFViewer = ({ documentUrl }: PDFViewerProps) => {
   const safariSrc = viewerSrc;
 
   return (
-    <div className="w-full h-96 border border-white/20 rounded-lg overflow-hidden bg-white">
+    <div className="w-full h-96 border border-white/20 rounded-lg overflow-hidden bg-white/10 backdrop-blur-md">
       {viewerSrc ? (
         isSafari ? (
           // Safari: native PDF embed is more reliable

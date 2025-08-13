@@ -120,7 +120,7 @@ export const ExportQueue = () => {
             {exportQueue.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between p-3 border rounded-lg bg-card"
+                className="flex items-center justify-between p-3 border rounded-lg bg-white/10 backdrop-blur-md border-white/20"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">

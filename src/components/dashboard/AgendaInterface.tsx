@@ -208,7 +208,7 @@ export const AgendaInterface = () => {
                     <div>
                       <Label htmlFor="konto">SKR-Konto</Label>
                       <Select value={selectedEntry.account}>
-                        <SelectTrigger className="bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
+                        <SelectTrigger className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg text-white">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">

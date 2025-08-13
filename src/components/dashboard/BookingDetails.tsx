@@ -295,7 +295,7 @@ export const BookingDetails = ({
                     disabled={loadingMandanten}
                     required
                   >
-                    <SelectTrigger className="bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
+                    <SelectTrigger className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg text-white">
                       <SelectValue placeholder={loadingMandanten ? "Lade Mandanten..." : "Mandant auswählen..."} />
                     </SelectTrigger>
                     <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">
@@ -336,7 +336,7 @@ export const BookingDetails = ({
                     onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, account: value} : null)}
                     disabled={loadingAccounts}
                   >
-                    <SelectTrigger className="bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
+                    <SelectTrigger className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg text-white">
                       <SelectValue placeholder={loadingAccounts ? "Lade Konten..." : "SKR-Konto auswählen"} />
                     </SelectTrigger>
                     <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">
@@ -359,7 +359,7 @@ export const BookingDetails = ({
                     value={editedEntry.taxRate} 
                     onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, taxRate: value} : null)}
                   >
-                    <SelectTrigger className="bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
+                    <SelectTrigger className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg text-white">
                       <SelectValue placeholder="Steuersatz auswählen" />
                     </SelectTrigger>
                     <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">
@@ -385,7 +385,7 @@ export const BookingDetails = ({
             </div>
 
             {/* Aktionsbuttons - Nur drei Optionen für Einträge mit Status "pending" */}
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 sticky bottom-0 bg-background/95 backdrop-blur-sm p-3 -mx-3 -mb-3 rounded-b-lg border-t border-white/10">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 sticky bottom-0 bg-white/10 backdrop-blur-md p-3 -mx-3 -mb-3 rounded-b-lg border-t border-white/10">
               <Button 
                 className="w-full sm:flex-1 bg-gradient-primary text-white border-0 h-10"
                 onClick={() => onApprove(selectedEntry.id)}
