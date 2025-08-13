@@ -26,7 +26,14 @@ serve(async (req: Request): Promise<Response> => {
     // Read and validate env
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
-    const webhookUrl = Deno.env.get("N8N_EXPORT_APPROVED_INVOICES_URL") || Deno.env.get("N8N_WEBHOOK_URL") || "https://jedai-solutions.app.n8n.cloud/webhook-test/c9f0b775-5214-41fc-91af-feabfb2bc846";
+    const webhookUrl = Deno.env.get("N8N_EXPORT_APPROVED_INVOICES_URL") || 
+                      Deno.env.get("N8N_WEBHOOK_URL") || 
+                      "https://jedai-solutions.app.n8n.cloud/webhook-test/c9f0b775-5214-41fc-91af-feabfb2bc846";
+    
+    console.log("Environment variables check:");
+    console.log("- N8N_EXPORT_APPROVED_INVOICES_URL:", Deno.env.get("N8N_EXPORT_APPROVED_INVOICES_URL"));
+    console.log("- N8N_WEBHOOK_URL:", Deno.env.get("N8N_WEBHOOK_URL"));
+    console.log("- Final webhook URL:", webhookUrl);
 
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
       console.error("Missing Supabase env settings");
