@@ -78,7 +78,7 @@ export const DashboardHeader = ({
             <h1 className="text-lg md:text-3xl font-bold text-white font-modern leading-tight
                          [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.8)] filter drop-shadow-lg
                          transition-all duration-500 ease-in-out hover:scale-[1.02] cursor-default">
-              Taxagent
+              TaxAgent
             </h1>
             <p className="text-xs md:text-sm text-white font-modern font-semibold mt-1
                          [text-shadow:_1px_1px_3px_rgb(0_0_0_/_0.9)]
