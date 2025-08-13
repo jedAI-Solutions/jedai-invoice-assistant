@@ -111,12 +111,12 @@ const Auth = () => {
           </p>
         </div>
 
-        <Card className="bg-card/95 backdrop-blur-sm border-border/50 shadow-glass">
+        <Card className="bg-white/95 backdrop-blur-md border-white/30 shadow-xl animate-fade-in">
           <CardHeader>
-            <CardTitle className="text-center text-foreground">
+            <CardTitle className="text-center text-gray-900 font-semibold">
               {activeTab === 'signin' ? 'Anmelden' : 'Konto erstellen'}
             </CardTitle>
-            <CardDescription className="text-center text-muted-foreground">
+            <CardDescription className="text-center text-gray-600">
               {activeTab === 'signin' 
                 ? 'Bitte geben Sie Ihre Zugangsdaten ein'
                 : 'Neues Benutzerkonto für jedAI Taxagent erstellen'
@@ -125,7 +125,7 @@ const Auth = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100/80 border border-gray-200">
                 <TabsTrigger value="signin">Anmelden</TabsTrigger>
                 <TabsTrigger value="signup">Registrieren</TabsTrigger>
               </TabsList>
@@ -133,7 +133,7 @@ const Auth = () => {
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">E-Mail-Adresse</Label>
+                    <Label htmlFor="signin-email" className="text-gray-700 font-medium">E-Mail-Adresse</Label>
                     <Input
                       id="signin-email"
                       type="email"
@@ -141,11 +141,11 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-card/95 backdrop-blur-md border border-border shadow-lg focus-visible:ring-ring"
+                      className="bg-white/95 backdrop-blur-md border-gray-200 shadow-lg text-gray-900 placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Passwort</Label>
+                    <Label htmlFor="signin-password" className="text-gray-700 font-medium">Passwort</Label>
                     <div className="relative">
                       <Input
                         id="signin-password"
@@ -154,7 +154,7 @@ const Auth = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                         className="bg-card/95 backdrop-blur-md border border-border shadow-lg pr-10 focus-visible:ring-ring"
+                         className="bg-white/95 backdrop-blur-md border-gray-200 shadow-lg pr-10 text-gray-900 placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                       />
                       <Button
                         type="button"
@@ -164,9 +164,9 @@ const Auth = () => {
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          <EyeOff className="h-4 w-4 text-gray-500" />
                         ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
+                          <Eye className="h-4 w-4 text-gray-500" />
                         )}
                       </Button>
                     </div>
@@ -191,7 +191,7 @@ const Auth = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">E-Mail-Adresse</Label>
+                    <Label htmlFor="signup-email" className="text-gray-700 font-medium">E-Mail-Adresse</Label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -199,11 +199,11 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-card/95 backdrop-blur-md border border-border shadow-lg focus-visible:ring-ring"
+                      className="bg-white/95 backdrop-blur-md border-gray-200 shadow-lg text-gray-900 placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Passwort</Label>
+                    <Label htmlFor="signup-password" className="text-gray-700 font-medium">Passwort</Label>
                     <div className="relative">
                       <Input
                         id="signup-password"
@@ -213,7 +213,7 @@ const Auth = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         minLength={6}
-                        className="bg-card/95 backdrop-blur-md border border-border shadow-lg pr-10 focus-visible:ring-ring"
+                        className="bg-white/95 backdrop-blur-md border-gray-200 shadow-lg pr-10 text-gray-900 placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                       />
                       <Button
                         type="button"
@@ -223,13 +223,13 @@ const Auth = () => {
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          <EyeOff className="h-4 w-4 text-gray-500" />
                         ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
+                          <Eye className="h-4 w-4 text-gray-500" />
                         )}
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-gray-500">
                       Passwort muss mindestens 6 Zeichen lang sein
                     </p>
                   </div>
