@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Check, X, Eye, ArrowUpDown } from "lucide-react";
 import { BookingEntry, Mandant } from "@/types/booking";
 
@@ -123,134 +124,156 @@ const sortedEntries = [...filteredByStatus].sort((a, b) => {
   );
 
   return (
-    <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
-      <CardHeader className="p-3 md:p-6">
-        <CardTitle className="flex flex-col md:flex-row md:items-center justify-between font-modern gap-3">
-          <span className="text-xl font-semibold">Klassifizierte Rechnungen</span>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-              <Select value={confidenceFilter} onValueChange={onConfidenceFilterChange}>
-                <SelectTrigger className="w-full sm:w-32 md:w-40 text-xs md:text-sm">
-                  <SelectValue placeholder="KI-Filter" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Alle Konfidenz</SelectItem>
-                  <SelectItem value="green">🟢 Hoch (≥90%)</SelectItem>
-                  <SelectItem value="yellow">🟡 Mittel (70-89%)</SelectItem>
-                  <SelectItem value="red">🔴 Niedrig (&lt;70%)</SelectItem>
-                </SelectContent>
-              </Select>
+    <TooltipProvider>
+      <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="flex flex-col md:flex-row md:items-center justify-between font-modern gap-3">
+            <span className="text-xl font-semibold">Klassifizierte Rechnungen</span>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                <Select value={confidenceFilter} onValueChange={onConfidenceFilterChange}>
+                  <SelectTrigger className="w-full sm:w-32 md:w-40 text-xs md:text-sm">
+                    <SelectValue placeholder="KI-Filter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle Konfidenz</SelectItem>
+                    <SelectItem value="green">🟢 Hoch (≥90%)</SelectItem>
+                    <SelectItem value="yellow">🟡 Mittel (70-89%)</SelectItem>
+                    <SelectItem value="red">🔴 Niedrig (&lt;70%)</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={statusFilter} onValueChange={(v) => onStatusFilterChange(v as any)}>
-                <SelectTrigger className="w-full sm:w-32 md:w-40 text-xs md:text-sm">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Alle (ohne Genehmigte)</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="modified">Modified</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-modern text-xs sm:text-sm self-center">
-                {sortedEntries.length} Belege
-              </Badge>
-            </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="max-h-[400px] overflow-y-auto overflow-x-hidden">
-          <Table className="w-full">
-            <TableHeader>
-              <TableRow className="border-white/10 hover:bg-white/5">
-                {/* Mobile: Show only essential columns */}
-                <TableHead className="font-modern text-xs px-2">KI%</TableHead>
-                <TableHead className="font-modern text-xs px-2 hidden sm:table-cell"><SortButton field="date">Datum</SortButton></TableHead>
-                <TableHead className="font-modern text-xs px-2 hidden md:table-cell"><SortButton field="mandant">Mandant</SortButton></TableHead>
-                <TableHead className="font-modern text-xs px-2"><SortButton field="description">Beschreibung</SortButton></TableHead>
-                <TableHead className="font-modern text-xs px-2 hidden lg:table-cell"><SortButton field="account">Konto</SortButton></TableHead>
-                <TableHead className="font-modern text-xs px-2"><SortButton field="amount">Betrag</SortButton></TableHead>
-                <TableHead className="font-modern text-xs px-2 hidden sm:table-cell"><SortButton field="taxRate">USt</SortButton></TableHead>
-                <TableHead className="font-modern text-xs px-2 hidden md:table-cell">Status</TableHead>
-                <TableHead className="font-modern text-xs px-2">Aktionen</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedEntries.map((entry) => (
-                <TableRow 
-                  key={entry.id}
-                  className={`border-white/10 hover:bg-white/10 cursor-pointer transition-all duration-300 ${
-                    selectedEntry?.id === entry.id ? 'bg-white/15 border-l-4 border-l-primary' : ''
-                  }`}
-                  onClick={() => onEntrySelect(entry)}
-                >
-                   <TableCell className="px-2">
-                     <div className="flex items-center gap-1">
-                       <div className={`w-2 h-2 rounded-full ${
-                         entry.confidence >= 90 ? 'bg-success' : 
-                         entry.confidence >= 70 ? 'bg-warning' : 'bg-destructive'
-                       }`} />
-                       <span className="text-xs font-medium font-mono">
-                         {entry.confidence}%
-                       </span>
-                     </div>
-                   </TableCell>
-                    <TableCell className="font-medium font-modern text-xs truncate px-2 hidden sm:table-cell">{entry.date}</TableCell>
-                    <TableCell className="truncate px-2 hidden md:table-cell">
-                      <Badge variant="outline" className="text-xs font-modern truncate">
-                        {entry.mandant}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="truncate font-modern text-xs px-2" title={entry.description}>{entry.description}</TableCell>
-                    <TableCell className="font-mono text-xs truncate px-2 hidden lg:table-cell">{entry.account}</TableCell>
-                    <TableCell className="font-semibold font-modern text-xs truncate px-2">{formatCurrency(entry.amount)}</TableCell>
-                    <TableCell className="font-modern text-xs px-2 hidden sm:table-cell">{entry.taxRate}</TableCell>
-                   <TableCell className="px-2 hidden md:table-cell">
-                     <Badge variant={getStatusColor(entry.status) as any} className="text-xs">
-                       {getStatusText(entry.status)}
-                     </Badge>
-                   </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <div className="flex gap-1">
-                      {(entry.status === 'pending' || entry.status === 'modified') && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 md:h-8 md:w-8 p-0 hover:bg-success/20 hover:text-success"
-                            onClick={() => onApprove(entry.id)}
-                          >
-                            <Check className="h-3 w-3 md:h-4 md:w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 md:h-8 md:w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
-                            onClick={() => {
-                              if (window.confirm('Diesen Eintrag und verbundene Daten wirklich endgültig löschen?')) {
-                                onDelete(entry.id);
-                              }
-                            }}
-                          >
-                            <X className="h-3 w-3 md:h-4 md:w-4" />
-                          </Button>
-                        </>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 md:h-8 md:w-8 p-0 hover:bg-primary/20"
-                        onClick={() => onEntrySelect(entry)}
-                      >
-                        <Eye className="h-3 w-3 md:h-4 md:w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+                <Select value={statusFilter} onValueChange={(v) => onStatusFilterChange(v as any)}>
+                  <SelectTrigger className="w-full sm:w-32 md:w-40 text-xs md:text-sm">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle (ohne Genehmigte)</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="modified">Modified</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-modern text-xs sm:text-sm self-center">
+                  {sortedEntries.length} Belege
+                </Badge>
+              </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="max-h-[400px] overflow-y-auto overflow-x-auto">
+            <Table className="w-full min-w-[800px]">
+              <TableHeader>
+                <TableRow className="border-white/10 hover:bg-white/5">
+                  <TableHead className="font-modern text-xs px-1 w-16">KI%</TableHead>
+                  <TableHead className="font-modern text-xs px-1 w-20 hidden sm:table-cell"><SortButton field="date">Datum</SortButton></TableHead>
+                  <TableHead className="font-modern text-xs px-1 w-24 hidden md:table-cell"><SortButton field="mandant">Mandant</SortButton></TableHead>
+                  <TableHead className="font-modern text-xs px-1 min-w-[150px]"><SortButton field="description">Beschreibung</SortButton></TableHead>
+                  <TableHead className="font-modern text-xs px-1 w-20 hidden lg:table-cell"><SortButton field="account">Konto</SortButton></TableHead>
+                  <TableHead className="font-modern text-xs px-1 w-20"><SortButton field="amount">Betrag</SortButton></TableHead>
+                  <TableHead className="font-modern text-xs px-1 w-16 hidden sm:table-cell"><SortButton field="taxRate">USt</SortButton></TableHead>
+                  <TableHead className="font-modern text-xs px-1 w-20 hidden md:table-cell">Status</TableHead>
+                  <TableHead className="font-modern text-xs px-1 w-24">Aktionen</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {sortedEntries.map((entry) => (
+                  <TableRow 
+                    key={entry.id}
+                    className={`border-white/10 hover:bg-white/10 cursor-pointer transition-all duration-300 ${
+                      selectedEntry?.id === entry.id ? 'bg-white/15 border-l-4 border-l-primary' : ''
+                    }`}
+                    onClick={() => onEntrySelect(entry)}
+                  >
+                     <TableCell className="px-1">
+                       <div className="flex items-center gap-1">
+                         <div className={`w-2 h-2 rounded-full ${
+                           entry.confidence >= 90 ? 'bg-success' : 
+                           entry.confidence >= 70 ? 'bg-warning' : 'bg-destructive'
+                         }`} />
+                         <span className="text-xs font-medium font-mono">
+                           {entry.confidence}%
+                         </span>
+                       </div>
+                     </TableCell>
+                      <TableCell className="font-medium font-modern text-xs truncate px-1 hidden sm:table-cell">{entry.date}</TableCell>
+                      <TableCell className="truncate px-1 hidden md:table-cell">
+                        <Badge variant="outline" className="text-xs font-modern truncate">
+                          {entry.mandant}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="truncate font-modern text-xs px-1" title={entry.description}>{entry.description}</TableCell>
+                      <TableCell className="font-mono text-xs truncate px-1 hidden lg:table-cell">{entry.account}</TableCell>
+                      <TableCell className="font-semibold font-modern text-xs truncate px-1">{formatCurrency(entry.amount)}</TableCell>
+                      <TableCell className="font-modern text-xs px-1 hidden sm:table-cell">{entry.taxRate}</TableCell>
+                     <TableCell className="px-1 hidden md:table-cell">
+                       <Badge variant={getStatusColor(entry.status) as any} className="text-xs">
+                         {getStatusText(entry.status)}
+                       </Badge>
+                     </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()} className="px-1">
+                      <div className="flex gap-1">
+                        {(entry.status === 'pending' || entry.status === 'modified') && (
+                          <>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 md:h-8 md:w-8 p-0 hover:bg-success/20 hover:text-success"
+                                  onClick={() => onApprove(entry.id)}
+                                >
+                                  <Check className="h-3 w-3 md:h-4 md:w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Genehmigen</p>
+                              </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 md:h-8 md:w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
+                                  onClick={() => {
+                                    if (window.confirm('Diesen Eintrag und verbundene Daten wirklich endgültig löschen?')) {
+                                      onDelete(entry.id);
+                                    }
+                                  }}
+                                >
+                                  <X className="h-3 w-3 md:h-4 md:w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Löschen</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </>
+                        )}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 md:h-8 md:w-8 p-0 hover:bg-primary/20"
+                              onClick={() => onEntrySelect(entry)}
+                            >
+                              <Eye className="h-3 w-3 md:h-4 md:w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Anzeigen</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 };
