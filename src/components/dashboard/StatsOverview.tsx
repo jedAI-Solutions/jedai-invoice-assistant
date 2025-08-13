@@ -115,7 +115,7 @@ export const StatsOverview = ({ stats }: StatsOverviewProps) => {
               </Card>
             </TooltipTrigger>
             <TooltipContent className="max-w-xs p-3 bg-white/98 backdrop-blur-md border-white/50 shadow-xl">
-              <p className="text-sm text-gray-900 leading-relaxed font-medium">
+              <p className="text-sm text-gray-700 leading-relaxed font-medium">
                 {stat.tooltip}
               </p>
             </TooltipContent>
