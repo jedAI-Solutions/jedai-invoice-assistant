@@ -487,7 +487,6 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
       {/* Export-Historie */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Export-Historie</h2>
         <ExportList selectedMandant={selectedMandant} />
       </div>
     </div>

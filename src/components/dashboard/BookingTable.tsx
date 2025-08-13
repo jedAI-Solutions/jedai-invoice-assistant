@@ -126,7 +126,7 @@ const sortedEntries = [...filteredByStatus].sort((a, b) => {
     <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
       <CardHeader className="p-3 md:p-6">
         <CardTitle className="flex flex-col md:flex-row md:items-center justify-between font-modern gap-3">
-          <span className="text-lg md:text-xl">Buchungsübersicht</span>
+          <span className="text-xl font-semibold">Klassifizierte Rechnungen</span>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <Select value={confidenceFilter} onValueChange={onConfidenceFilterChange}>
                 <SelectTrigger className="w-full sm:w-32 md:w-40 text-xs md:text-sm">
