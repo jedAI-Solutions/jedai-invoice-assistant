@@ -15,7 +15,7 @@ export const StatsOverview = ({ stats }: StatsOverviewProps) => {
       change: "+12%",
       trend: "up",
       description: "vs. Vortag",
-      tooltip: "Gesamtanzahl aller hochgeladenen und verarbeiteten Belege im gewählten Mandanten. Berechnung: Summe aller Einträge in ai_classifications für den ausgewählten Mandanten oder alle Mandanten (bei 'Alle')."
+      tooltip: "Gesamtanzahl aller verarbeiteten Belege für den ausgewählten Mandanten. Diese Zahl zeigt das Volumen der digitalen Belegverarbeitung und bildet die Basis für alle weiteren Kennzahlen."
     },
     {
       title: "Automatisierungsgrad", 
@@ -23,7 +23,7 @@ export const StatsOverview = ({ stats }: StatsOverviewProps) => {
       change: "+3%",
       trend: "up",
       description: `KI-Konfidenz ⌀ ${stats.avgConfidence}%`,
-      tooltip: "Durchschnittliche KI-Konfidenz aller verarbeiteten Belege. Berechnung: Summe aller confidence-Werte geteilt durch Anzahl Belege. Werte über 80% gelten als hochautomatisiert."
+      tooltip: "Durchschnittliche Genauigkeit der automatischen Belegklassifizierung. Ein Wert über 80% zeigt eine hohe Automatisierungsrate - diese Belege können meist ohne manuelle Prüfung verarbeitet werden."
     },
     {
       title: "Genehmigte Rechnungen",
@@ -31,7 +31,7 @@ export const StatsOverview = ({ stats }: StatsOverviewProps) => {
       change: "0",
       trend: "neutral",
       description: "Bereit für Export",
-      tooltip: "Anzahl der Belege mit Status 'approved', die für den DATEV-Export bereit sind. Berechnung: COUNT(*) WHERE status = 'approved' für den gewählten Mandanten."
+      tooltip: "Anzahl der freigegebenen Belege, die vollständig geprüft sind und für den Export an das Buchhaltungssystem bereitstehen. Diese können direkt übertragen werden."
     },
     {
       title: "Ausstehende Prüfungen",
@@ -39,7 +39,7 @@ export const StatsOverview = ({ stats }: StatsOverviewProps) => {
       change: "0", 
       trend: "neutral",
       description: "Manuelle Reviews",
-      tooltip: "Belege, die eine manuelle Prüfung benötigen. Berechnung: Anzahl aller Einträge OHNE Status 'approved' im aktuellen Filter (Mandant + Konfidenz + Status)."
+      tooltip: "Belege, die noch eine manuelle Kontrolle durch einen Mitarbeiter benötigen. Dies können komplexe Rechnungen oder solche mit niedriger KI-Konfidenz sein."
     },
     {
       title: "Ersparte Zeit",
@@ -47,7 +47,7 @@ export const StatsOverview = ({ stats }: StatsOverviewProps) => {
       change: "+8,2%",
       trend: "up",
       description: "Vs. manuelle Prüfung",
-      tooltip: "Geschätzte Zeitersparnis durch KI-Automatisierung. Berechnung: Anzahl automatisierter Belege × 3 Minuten (durchschnittliche manuelle Bearbeitungszeit pro Beleg)."
+      tooltip: "Geschätzte Zeitersparnis durch die automatische Belegverarbeitung. Basiert auf dem Unterschied zwischen manueller und automatisierter Bearbeitung pro Beleg (ca. 3 Minuten pro Dokument)."
     }
   ];
 
@@ -114,8 +114,8 @@ export const StatsOverview = ({ stats }: StatsOverviewProps) => {
                 </CardContent>
               </Card>
             </TooltipTrigger>
-            <TooltipContent className="max-w-xs p-3 bg-white/95 backdrop-blur-md border-white/50 shadow-xl">
-              <p className="text-sm text-gray-900 leading-relaxed">
+            <TooltipContent className="max-w-xs p-3 bg-white/98 backdrop-blur-md border-white/50 shadow-xl">
+              <p className="text-sm text-gray-900 leading-relaxed font-medium">
                 {stat.tooltip}
               </p>
             </TooltipContent>
