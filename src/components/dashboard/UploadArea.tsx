@@ -368,10 +368,10 @@ export const UploadArea = ({ selectedMandant: propSelectedMandant = "all" }: Upl
               Mandant auswählen
             </Label>
             <Select value={selectedMandant} onValueChange={(v) => setSelectedMandant(v)}>
-              <SelectTrigger id="mandant-select" className="w-full bg-white/95 backdrop-blur-md border-white/30 hover:bg-white shadow-lg">
+              <SelectTrigger id="mandant-select" className="w-full">
                 <SelectValue placeholder="Bitte Mandant auswählen" />
               </SelectTrigger>
-              <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">
+              <SelectContent>
                 <SelectItem value="all">Bitte Mandant auswählen</SelectItem>
                 {mandants.map((mandant) => (
                   <SelectItem key={mandant.id} value={mandant.id}>
