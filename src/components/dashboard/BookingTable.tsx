@@ -172,7 +172,16 @@ const sortedEntries = [...filteredByStatus].sort((a, b) => {
                   <TableHead className="font-modern text-xs px-1 w-20"><SortButton field="amount">Betrag</SortButton></TableHead>
                   <TableHead className="font-modern text-xs px-1 w-16 hidden sm:table-cell"><SortButton field="taxRate">USt</SortButton></TableHead>
                   <TableHead className="font-modern text-xs px-1 w-20 hidden md:table-cell">Status</TableHead>
-                  <TableHead className="font-modern text-xs px-1 w-24">Aktionen</TableHead>
+                  <TableHead className="font-modern text-xs px-1 w-24">
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <span>Aktionen</span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Genehmigen, Löschen oder Details anzeigen</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
