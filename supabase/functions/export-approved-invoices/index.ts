@@ -137,7 +137,8 @@ serve(async (req: Request): Promise<Response> => {
       requestedBy: userData.user.id,
     };
 
-    console.log("Posting to n8n webhook");
+    console.log("Posting to n8n webhook:", webhookUrl);
+    console.log("Payload being sent:", JSON.stringify(payload, null, 2));
     const resp = await fetch(webhookUrl, {
       method: "POST",
       headers: { "content-type": "application/json" },
