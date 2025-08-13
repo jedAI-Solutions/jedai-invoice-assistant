@@ -226,7 +226,8 @@ export const BookingDetails = ({
             </div>
 
             {/* KI-Prüfhinweise */}
-            {selectedEntry.check_notes && Array.isArray(selectedEntry.check_notes) && selectedEntry.check_notes.length > 0 && (
+            {((selectedEntry.check_notes && selectedEntry.check_notes.length > 0) || 
+              (selectedEntry.uncertainty_factors && selectedEntry.uncertainty_factors.length > 0)) && (
               <div className="p-4 bg-white/10 backdrop-blur-glass rounded-lg border border-white/20">
                 <div className="flex items-start gap-3 mb-3">
                   <div className="w-8 h-8 rounded-full bg-warning/80 flex items-center justify-center">
@@ -238,10 +239,16 @@ export const BookingDetails = ({
                   </div>
                 </div>
                 <ul className="space-y-2 ml-11">
-                  {selectedEntry.check_notes.map((hint, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-warning mt-1 text-sm">•</span>
+                  {selectedEntry.check_notes && selectedEntry.check_notes.map((hint, index) => (
+                    <li key={`check-${index}`} className="flex items-start gap-2">
+                      <span className="text-success mt-1 text-sm">✓</span>
                       <span className="text-sm text-foreground">{hint}</span>
+                    </li>
+                  ))}
+                  {selectedEntry.uncertainty_factors && selectedEntry.uncertainty_factors.map((factor, index) => (
+                    <li key={`uncertainty-${index}`} className="flex items-start gap-2">
+                      <span className="text-warning mt-1 text-sm">!</span>
+                      <span className="text-sm text-foreground">{factor}</span>
                     </li>
                   ))}
                 </ul>
