@@ -226,34 +226,52 @@ export const BookingDetails = ({
             </div>
 
             {/* KI-Prüfhinweise */}
-            {((selectedEntry.check_notes && Array.isArray(selectedEntry.check_notes) && selectedEntry.check_notes.length > 0) || 
-              (selectedEntry.uncertainty_factors && Array.isArray(selectedEntry.uncertainty_factors) && selectedEntry.uncertainty_factors.length > 0)) && (
-              <div className="p-4 bg-white/10 backdrop-blur-glass rounded-lg border border-white/20">
-                <div className="flex items-start gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-warning/80 flex items-center justify-center">
-                    <span className="text-sm text-white font-bold">!</span>
+            {(() => {
+              // Parse PostgreSQL array format for check_notes (e.g., "{item1,item2}")
+              const parseCheckNotes = (notes: any): string[] => {
+                if (!notes) return [];
+                if (Array.isArray(notes)) return notes;
+                if (typeof notes === 'string') {
+                  // Handle PostgreSQL array format: "{item1,item2,item3}"
+                  const trimmed = notes.trim();
+                  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                    return trimmed.slice(1, -1).split(',').map(item => item.trim().replace(/^"|"$/g, ''));
+                  }
+                }
+                return [];
+              };
+
+              const checkNotes = parseCheckNotes(selectedEntry.check_notes);
+              const uncertaintyFactors = Array.isArray(selectedEntry.uncertainty_factors) ? selectedEntry.uncertainty_factors : [];
+              
+              return (checkNotes.length > 0 || uncertaintyFactors.length > 0) && (
+                <div className="p-4 bg-white/10 backdrop-blur-glass rounded-lg border border-white/20">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-warning/80 flex items-center justify-center">
+                      <span className="text-sm text-white font-bold">!</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-1">KI-Prüfhinweise</h4>
+                      <p className="text-sm text-muted-foreground">Wichtige Hinweise zur manuellen Überprüfung</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-1">KI-Prüfhinweise</h4>
-                    <p className="text-sm text-muted-foreground">Wichtige Hinweise zur manuellen Überprüfung</p>
-                  </div>
+                  <ul className="space-y-2 ml-11">
+                    {checkNotes.map((hint, index) => (
+                      <li key={`check-${index}`} className="flex items-start gap-2">
+                        <span className="text-success mt-1 text-sm">✓</span>
+                        <span className="text-sm text-foreground">{hint}</span>
+                      </li>
+                    ))}
+                    {uncertaintyFactors.map((factor, index) => (
+                      <li key={`uncertainty-${index}`} className="flex items-start gap-2">
+                        <span className="text-warning mt-1 text-sm">!</span>
+                        <span className="text-sm text-foreground">{factor}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="space-y-2 ml-11">
-                  {selectedEntry.check_notes && Array.isArray(selectedEntry.check_notes) && selectedEntry.check_notes.map((hint, index) => (
-                    <li key={`check-${index}`} className="flex items-start gap-2">
-                      <span className="text-success mt-1 text-sm">✓</span>
-                      <span className="text-sm text-foreground">{hint}</span>
-                    </li>
-                  ))}
-                  {selectedEntry.uncertainty_factors && Array.isArray(selectedEntry.uncertainty_factors) && selectedEntry.uncertainty_factors.map((factor, index) => (
-                    <li key={`uncertainty-${index}`} className="flex items-start gap-2">
-                      <span className="text-warning mt-1 text-sm">!</span>
-                      <span className="text-sm text-foreground">{factor}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+              );
+            })()}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
