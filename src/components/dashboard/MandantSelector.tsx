@@ -60,7 +60,7 @@ export default function MandantSelector({ selectedMandant, onMandantChange }: Ma
     <div className="space-y-2">
       <Label htmlFor="mandant-select">Mandant filtern</Label>
       <Select value={selectedMandant} onValueChange={onMandantChange}>
-        <SelectTrigger className="w-full bg-white/10 backdrop-blur-md border-white/20 shadow-lg text-white">
+        <SelectTrigger className="w-full">
           <SelectValue placeholder={loading ? "Lade Mandanten..." : "Mandant nicht definiert"} />
         </SelectTrigger>
         <SelectContent>

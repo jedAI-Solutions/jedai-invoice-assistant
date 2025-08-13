@@ -295,7 +295,7 @@ export const BookingDetails = ({
                     disabled={loadingMandanten}
                     required
                   >
-                    <SelectTrigger className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg text-white">
+                    <SelectTrigger>
                       <SelectValue placeholder={loadingMandanten ? "Lade Mandanten..." : "Mandant auswählen..."} />
                     </SelectTrigger>
                     <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">
@@ -336,7 +336,7 @@ export const BookingDetails = ({
                     onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, account: value} : null)}
                     disabled={loadingAccounts}
                   >
-                    <SelectTrigger className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg text-white">
+                    <SelectTrigger>
                       <SelectValue placeholder={loadingAccounts ? "Lade Konten..." : "SKR-Konto auswählen"} />
                     </SelectTrigger>
                     <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">
@@ -359,7 +359,7 @@ export const BookingDetails = ({
                     value={editedEntry.taxRate} 
                     onValueChange={(value) => setEditedEntry(prev => prev ? {...prev, taxRate: value} : null)}
                   >
-                    <SelectTrigger className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg text-white">
+                    <SelectTrigger>
                       <SelectValue placeholder="Steuersatz auswählen" />
                     </SelectTrigger>
                     <SelectContent className="bg-white/98 backdrop-blur-md border-white/50 shadow-xl z-50">

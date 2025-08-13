@@ -129,7 +129,7 @@ const sortedEntries = [...filteredByStatus].sort((a, b) => {
           <span className="text-lg md:text-xl">Buchungsübersicht</span>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <Select value={confidenceFilter} onValueChange={onConfidenceFilterChange}>
-                <SelectTrigger className="w-full sm:w-32 md:w-40 bg-white/10 backdrop-blur-md border-white/20 text-xs md:text-sm shadow-lg text-white">
+                <SelectTrigger className="w-full sm:w-32 md:w-40 text-xs md:text-sm">
                   <SelectValue placeholder="KI-Filter" />
                 </SelectTrigger>
                 <SelectContent>
@@ -141,7 +141,7 @@ const sortedEntries = [...filteredByStatus].sort((a, b) => {
               </Select>
 
               <Select value={statusFilter} onValueChange={(v) => onStatusFilterChange(v as any)}>
-                <SelectTrigger className="w-full sm:w-32 md:w-40 bg-white/10 backdrop-blur-md border-white/20 text-xs md:text-sm shadow-lg text-white">
+                <SelectTrigger className="w-full sm:w-32 md:w-40 text-xs md:text-sm">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>

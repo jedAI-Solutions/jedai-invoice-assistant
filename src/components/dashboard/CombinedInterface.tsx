@@ -343,7 +343,7 @@ export const CombinedInterface = () => {
                           setSelectedEntry(prev => prev ? {...prev, account: value} : null);
                         }}
                       >
-                         <SelectTrigger className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg text-white">
+                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -366,7 +366,7 @@ export const CombinedInterface = () => {
                           setSelectedEntry(prev => prev ? {...prev, taxRate: value} : null);
                         }}
                       >
-                        <SelectTrigger className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg text-white">
+                        <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
