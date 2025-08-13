@@ -238,12 +238,14 @@ export const BookingDetails = ({
                   </div>
                 </div>
                 <ul className="space-y-2 ml-11">
-                  {selectedEntry.aiHints.map((hint, index) => (
+                  {selectedEntry.aiHints && Array.isArray(selectedEntry.aiHints) ? selectedEntry.aiHints.map((hint, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <span className="text-warning mt-1 text-sm">•</span>
                       <span className="text-sm text-foreground">{hint}</span>
                     </li>
-                  ))}
+                  )) : (
+                    <li className="text-sm text-muted-foreground">Keine KI-Hinweise verfügbar</li>
+                  )}
                 </ul>
               </div>
             )}
