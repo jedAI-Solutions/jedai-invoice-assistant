@@ -141,7 +141,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-background/50"
+                      className="bg-card/95 backdrop-blur-md border border-border shadow-lg focus-visible:ring-ring"
                     />
                   </div>
                   <div className="space-y-2">
@@ -154,7 +154,7 @@ const Auth = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="bg-background/50 pr-10"
+                         className="bg-card/95 backdrop-blur-md border border-border shadow-lg pr-10 focus-visible:ring-ring"
                       />
                       <Button
                         type="button"
@@ -199,7 +199,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-background/50"
+                      className="bg-card/95 backdrop-blur-md border border-border shadow-lg focus-visible:ring-ring"
                     />
                   </div>
                   <div className="space-y-2">
@@ -213,7 +213,7 @@ const Auth = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         minLength={6}
-                        className="bg-background/50 pr-10"
+                        className="bg-card/95 backdrop-blur-md border border-border shadow-lg pr-10 focus-visible:ring-ring"
                       />
                       <Button
                         type="button"
