@@ -87,7 +87,7 @@ const Auth = () => {
               <img
                 src={jedaiLogoIcon}
                 alt="jedAI Solutions Logo"
-                className="relative h-16 w-auto object-contain transition-all duration-700 ease-in-out
+                className="relative h-20 w-auto object-contain transition-all duration-700 ease-in-out
                          hover:scale-105 hover:brightness-110
                          animate-pulse-subtle group-hover:animate-none
                          filter hover:drop-shadow-sm"
@@ -102,12 +102,12 @@ const Auth = () => {
           <h1 className="text-2xl font-bold text-white font-modern leading-tight
                        [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.8)] filter drop-shadow-lg
                        transition-all duration-500 ease-in-out hover:scale-[1.02] cursor-default mb-2">
-            jedAI Taxagent
-          </h1>
-          <p className="text-white font-modern font-semibold
-                       [text-shadow:_1px_1px_3px_rgb(0_0_0_/_0.9)]
-                       transition-all duration-300 ease-in-out hover:text-gray-100">
-            GoBD-konforme KI-Belegverarbeitung für Steuerberater
+             TaxAgent
+           </h1>
+           <p className="text-white font-modern font-semibold
+                        [text-shadow:_1px_1px_3px_rgb(0_0_0_/_0.9)]
+                        transition-all duration-300 ease-in-out hover:text-gray-100">
+             KI-gestützte Belegverarbeitung
           </p>
         </div>
 
@@ -119,7 +119,7 @@ const Auth = () => {
             <CardDescription className="text-center text-white/80">
               {activeTab === 'signin' 
                 ? 'Bitte geben Sie Ihre Zugangsdaten ein'
-                : 'Neues Benutzerkonto für jedAI Taxagent erstellen'
+                : 'Neues Benutzerkonto für TaxAgent erstellen'
               }
             </CardDescription>
           </CardHeader>
