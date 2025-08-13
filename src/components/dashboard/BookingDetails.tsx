@@ -193,7 +193,7 @@ export const BookingDetails = ({
     <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Buchungsdetails</span>
+          <span>Rechnungsdetails</span>
           <Badge variant="outline" className={getStatusBadgeVariant()}>
             {getStatusText()}
           </Badge>

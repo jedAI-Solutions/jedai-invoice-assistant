@@ -457,7 +457,6 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
       
       {/* Klassifizierte Rechnungen */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Klassifizierte Rechnungen</h2>
         <BookingTable
           entries={filteredEntries}
           onEntrySelect={setSelectedEntry}
@@ -483,7 +482,6 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
       
       {/* Genehmigte Rechnungen */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Export-Übersicht</h2>
         <ApprovedInvoicesTable selectedMandant={selectedMandant} />
       </div>
 
