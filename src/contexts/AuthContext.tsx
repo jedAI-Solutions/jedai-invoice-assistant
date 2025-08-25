@@ -182,18 +182,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      });
+      
+      if (error) {
+        console.error('Google OAuth error:', error);
+        if (error.message.includes('403') || error.message.includes('unauthorized')) {
+          toast.error('Google OAuth not configured properly. Please check the setup instructions.');
+        } else {
+          toast.error(`Google sign-in error: ${error.message}`);
+        }
       }
-    });
-    
-    if (error) {
-      toast.error(`Google sign-in error: ${error.message}`);
+      
+      return { error };
+    } catch (err) {
+      console.error('Google sign-in error:', err);
+      toast.error('Google sign-in failed. Please try again.');
+      return { error: err };
     }
-    
-    return { error };
   };
 
   const signOut = async () => {
