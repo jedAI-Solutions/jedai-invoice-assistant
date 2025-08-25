@@ -27,8 +27,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Check if user has a profile and is active
-  if (profile && !isActive()) {
+  // Require a loaded profile; block access if missing or inactive
+  if (!profile) {
+    return <Navigate to="/pending-approval" replace />;
+  }
+
+  if (!isActive()) {
     if (isPending()) {
       return <Navigate to="/pending-approval" replace />;
     }
