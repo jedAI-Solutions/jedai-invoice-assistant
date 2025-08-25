@@ -89,20 +89,38 @@ const AdminUserManagement = () => {
   useEffect(() => {
     if (authLoading) return;
     const verify = async () => {
-      if (isAdmin()) {
-        setVerifiedAdmin(true);
-        return;
-      }
-      const { data, error } = await supabase.rpc('get_current_user_role');
-      if (error) {
-        console.error('Error checking role:', error);
+      try {
+        if (isAdmin()) {
+          console.log('AdminUserManagement - isAdmin() from profile says: true');
+          setVerifiedAdmin(true);
+          return;
+        }
+        console.log('AdminUserManagement - Verifying admin via RPC is_admin...');
+        const { data, error } = await supabase.rpc('is_admin');
+        console.log('AdminUserManagement - RPC is_admin result:', { data, error });
+        if (error) {
+          console.error('Error checking admin via RPC:', error);
+          setVerifiedAdmin(false);
+          return;
+        }
+        setVerifiedAdmin(Boolean(data));
+      } catch (e) {
+        console.error('Unexpected error during admin verify:', e);
         setVerifiedAdmin(false);
-        return;
       }
-      setVerifiedAdmin(data === 'admin');
     };
     verify();
   }, [authLoading, profile?.role]);
+
+  // Safety net: avoid indefinite loading if verification stalls
+  useEffect(() => {
+    if (verifiedAdmin !== null) return;
+    const t = setTimeout(() => {
+      console.warn('AdminUserManagement - Verification timeout, denying access');
+      setVerifiedAdmin(false);
+    }, 8000);
+    return () => clearTimeout(t);
+  }, [verifiedAdmin]);
 
   useEffect(() => {
     if (verifiedAdmin) {
