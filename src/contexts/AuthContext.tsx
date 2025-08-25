@@ -93,9 +93,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (mounted) {
               fetchProfile(session.user.id).then(userProfile => {
                 if (mounted) {
-                  setProfile(userProfile);
+                  // Check if user is active and approved
+                  if (userProfile && (!userProfile.is_active || userProfile.status !== 'approved')) {
+                    console.log('User is not active or approved, signing out:', userProfile);
+                    supabase.auth.signOut();
+                    toast.error('Your account is not active or approved. Please contact an administrator.');
+                    setProfile(null);
+                    setUser(null);
+                    setSession(null);
+                  } else {
+                    setProfile(userProfile);
+                    console.log('Profile loaded after auth change:', userProfile);
+                  }
                   setLoading(false);
-                  console.log('Profile loaded after auth change:', userProfile);
                 }
               });
             }
@@ -122,8 +132,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           const userProfile = await fetchProfile(session.user.id);
           if (mounted) {
-            setProfile(userProfile);
-            console.log('Initial profile loaded:', userProfile);
+            // Check if user is active and approved
+            if (userProfile && (!userProfile.is_active || userProfile.status !== 'approved')) {
+              console.log('Initial user is not active or approved, signing out:', userProfile);
+              await supabase.auth.signOut();
+              toast.error('Your account is not active or approved. Please contact an administrator.');
+              setProfile(null);
+              setUser(null);
+              setSession(null);
+            } else {
+              setProfile(userProfile);
+              console.log('Initial profile loaded:', userProfile);
+            }
           }
         } else {
           setProfile(null);
