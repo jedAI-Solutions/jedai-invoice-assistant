@@ -37,7 +37,7 @@ interface UserProfile {
 }
 
 const AdminUserManagement = () => {
-  const { isAdmin, profile } = useAuth();
+  const { isAdmin, profile, loading: authLoading } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
@@ -45,6 +45,11 @@ const AdminUserManagement = () => {
   const [actionLoading, setActionLoading] = useState(false);
 
   // Redirect if not admin
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background p-6"><div className="max-w-7xl mx-auto"><div className="text-center">Laden...</div></div></div>
+    );
+  }
   if (!isAdmin()) {
     return <Navigate to="/" replace />;
   }
@@ -75,8 +80,10 @@ const AdminUserManagement = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (isAdmin()) {
+      fetchUsers();
+    }
+  }, [profile?.role]);
 
   const approveUser = async (userId: string) => {
     if (!profile?.id) return;
@@ -157,7 +164,7 @@ const AdminUserManagement = () => {
   const approvedUsers = users.filter(user => user.status === 'approved');
   const rejectedUsers = users.filter(user => user.status === 'rejected');
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
