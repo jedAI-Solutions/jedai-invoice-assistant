@@ -107,7 +107,7 @@ export const DashboardHeader = ({
                 <DropdownMenuItem className="text-xs text-muted-foreground">
                   {user?.email}
                 </DropdownMenuItem>
-                {isAdmin() && (
+                {user && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel className="text-xs">Administration</DropdownMenuLabel>
