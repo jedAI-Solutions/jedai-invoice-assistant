@@ -44,6 +44,11 @@ const AdminUserManagement = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Debug logging
+  console.log('AdminUserManagement - Profile:', profile);
+  console.log('AdminUserManagement - IsAdmin:', isAdmin());
+  console.log('AdminUserManagement - AuthLoading:', authLoading);
+
   // Redirect if not admin
   if (authLoading) {
     return (
@@ -51,6 +56,7 @@ const AdminUserManagement = () => {
     );
   }
   if (!isAdmin()) {
+    console.log('Redirecting because not admin - Profile role:', profile?.role);
     return <Navigate to="/" replace />;
   }
 
