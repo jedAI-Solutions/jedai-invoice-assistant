@@ -86,19 +86,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Defer profile fetching with setTimeout to prevent deadlock
+        // Keep loading true until profile is fetched
         if (session?.user) {
+          setLoading(true);
           setTimeout(() => {
             if (mounted) {
               fetchProfile(session.user.id).then(userProfile => {
                 if (mounted) {
                   setProfile(userProfile);
+                  setLoading(false);
+                  console.log('Profile loaded after auth change:', userProfile);
                 }
               });
             }
           }, 0);
         } else {
           setProfile(null);
+          setLoading(false);
         }
       }
     );
@@ -119,13 +123,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const userProfile = await fetchProfile(session.user.id);
           if (mounted) {
             setProfile(userProfile);
+            console.log('Initial profile loaded:', userProfile);
           }
         } else {
           setProfile(null);
         }
         
         if (mounted) {
-          console.log('Setting loading to false');
+          console.log('Setting initial loading to false');
           setLoading(false);
         }
       } catch (error) {
