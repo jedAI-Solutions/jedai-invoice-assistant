@@ -43,21 +43,22 @@ const AdminUserManagement = () => {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [verifiedAdmin, setVerifiedAdmin] = useState<boolean | null>(null);
 
   // Debug logging
   console.log('AdminUserManagement - Profile:', profile);
   console.log('AdminUserManagement - IsAdmin:', isAdmin());
   console.log('AdminUserManagement - AuthLoading:', authLoading);
 
-  // Redirect if not admin
-  if (authLoading) {
+  // Admin verification/loading guard
+  if (authLoading || verifiedAdmin === null) {
     return (
       <div className="min-h-screen bg-background p-6"><div className="max-w-7xl mx-auto"><div className="text-center">Laden...</div></div></div>
     );
   }
-  if (!isAdmin()) {
-    console.log('Redirecting because not admin - Profile role:', profile?.role);
-    return <Navigate to="/" replace />;
+  if (verifiedAdmin === false) {
+    console.log('Access denied - Profile role:', profile?.role);
+    return <Navigate to="/access-denied" replace />;
   }
 
   const fetchUsers = async () => {
@@ -86,10 +87,28 @@ const AdminUserManagement = () => {
   };
 
   useEffect(() => {
-    if (isAdmin()) {
+    if (authLoading) return;
+    const verify = async () => {
+      if (isAdmin()) {
+        setVerifiedAdmin(true);
+        return;
+      }
+      const { data, error } = await supabase.rpc('get_current_user_role');
+      if (error) {
+        console.error('Error checking role:', error);
+        setVerifiedAdmin(false);
+        return;
+      }
+      setVerifiedAdmin(data === 'admin');
+    };
+    verify();
+  }, [authLoading, profile?.role]);
+
+  useEffect(() => {
+    if (verifiedAdmin) {
       fetchUsers();
     }
-  }, [profile?.role]);
+  }, [verifiedAdmin]);
 
   const approveUser = async (userId: string) => {
     if (!profile?.id) return;
