@@ -43,7 +43,7 @@ const AdminUserManagement = () => {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
-  const [verifiedAdmin, setVerifiedAdmin] = useState<boolean | null>(null);
+  const [verifiedAdmin, setVerifiedAdmin] = useState<boolean | null>(isAdmin() ? true : null);
 
   // Debug logging
   console.log('AdminUserManagement - Profile:', profile);
