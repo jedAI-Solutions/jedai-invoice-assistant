@@ -2807,6 +2807,14 @@ export type Database = {
         Args: { p_approved_by: string; p_user_id: string }
         Returns: undefined
       }
+      change_user_role: {
+        Args: { p_changed_by: string; p_new_role: string; p_user_id: string }
+        Returns: undefined
+      }
+      delete_user_account: {
+        Args: { p_deleted_by: string; p_user_id: string }
+        Returns: undefined
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string

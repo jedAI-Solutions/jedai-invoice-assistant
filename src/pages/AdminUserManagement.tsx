@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
@@ -19,9 +20,12 @@ import {
   Calendar,
   AlertCircle,
   UserPlus,
-  Settings
+  Settings,
+  ArrowLeft,
+  Trash2,
+  UserCog
 } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import dashboardBg from "@/assets/dashboard-bg.jpg";
 import aiHeaderBg from "@/assets/ai-header-bg.jpg";
 import jedaiLogoIcon from "@/assets/jedai-logo-icon.png";
@@ -43,12 +47,16 @@ interface UserProfile {
 
 const AdminUserManagement = () => {
   const { isAdmin, profile, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [verifiedAdmin, setVerifiedAdmin] = useState<boolean | null>(isAdmin() ? true : null);
+  const [roleChangeUser, setRoleChangeUser] = useState<UserProfile | null>(null);
+  const [newRole, setNewRole] = useState<string>('');
+  const [deleteUser, setDeleteUser] = useState<UserProfile | null>(null);
 
   // Debug logging
   console.log('AdminUserManagement - Profile:', profile);
@@ -188,6 +196,62 @@ const AdminUserManagement = () => {
     }
   };
 
+  const changeUserRole = async (userId: string, role: string) => {
+    if (!profile?.id) return;
+    
+    setActionLoading(true);
+    try {
+      const { error } = await supabase.rpc('change_user_role', {
+        p_user_id: userId,
+        p_new_role: role,
+        p_changed_by: profile.id
+      });
+
+      if (error) {
+        console.error('Error changing user role:', error);
+        toast.error('Fehler beim Ändern der Benutzerrolle');
+        return;
+      }
+
+      toast.success(`Benutzerrolle erfolgreich zu ${role} geändert`);
+      setRoleChangeUser(null);
+      setNewRole('');
+      fetchUsers(); // Refresh the list
+    } catch (err) {
+      console.error('Error in changeUserRole:', err);
+      toast.error('Fehler beim Ändern der Benutzerrolle');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const deleteUserAccount = async (userId: string) => {
+    if (!profile?.id) return;
+    
+    setActionLoading(true);
+    try {
+      const { error } = await supabase.rpc('delete_user_account', {
+        p_user_id: userId,
+        p_deleted_by: profile.id
+      });
+
+      if (error) {
+        console.error('Error deleting user account:', error);
+        toast.error('Fehler beim Löschen des Benutzerkontos: ' + error.message);
+        return;
+      }
+
+      toast.success('Benutzerkonto erfolgreich gelöscht');
+      setDeleteUser(null);
+      fetchUsers(); // Refresh the list
+    } catch (err) {
+      console.error('Error in deleteUserAccount:', err);
+      toast.error('Fehler beim Löschen des Benutzerkontos');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const getStatusBadge = (status: string, isActive: boolean) => {
     if (status === 'pending') {
       return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Ausstehend</Badge>;
@@ -295,15 +359,29 @@ const AdminUserManagement = () => {
 
             {/* Action Section - Centered Bottom */}
             <div className="flex flex-row items-center justify-between gap-2 mt-2">
-              <Badge className="bg-gradient-primary text-white border-0 text-[10px] md:text-xs shadow-lg px-2 py-0.5 animate-pulse">
-                <Settings className="h-3 w-3 mr-1" />
-                Admin Modus
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-gradient-primary text-white border-0 text-[10px] md:text-xs shadow-lg px-2 py-0.5 animate-pulse">
+                  <Settings className="h-3 w-3 mr-1" />
+                  Admin Modus
+                </Badge>
+                
+                <Badge className="bg-glass backdrop-blur-md text-white border-glass text-[10px] md:text-xs shadow-lg px-2 py-0.5">
+                  <UserPlus className="h-3 w-3 mr-1" />
+                  {pendingUsers.length} Ausstehend
+                </Badge>
+              </div>
               
-              <Badge className="bg-glass backdrop-blur-md text-white border-glass text-[10px] md:text-xs shadow-lg px-2 py-0.5">
-                <UserPlus className="h-3 w-3 mr-1" />
-                {pendingUsers.length} Ausstehend
-              </Badge>
+              {/* Back to Dashboard Button */}
+              <Button
+                onClick={() => navigate('/')}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-glass bg-glass/50 backdrop-blur-md border-glass shadow-lg hover-scale transition-all duration-200"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                <span className="hidden md:inline">Zurück zum Dashboard</span>
+                <span className="md:hidden">Zurück</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -492,6 +570,7 @@ const AdminUserManagement = () => {
                     <TableHead className="text-white/90">Status</TableHead>
                     <TableHead className="text-white/90">Registriert</TableHead>
                     <TableHead className="text-white/90">Genehmigt</TableHead>
+                    <TableHead className="text-white/90">Aktionen</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -522,6 +601,44 @@ const AdminUserManagement = () => {
                           : '-'
                         }
                       </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          {/* Role Change Button */}
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setRoleChangeUser(user);
+                                  setNewRole(user.role);
+                                }}
+                                disabled={actionLoading || user.id === profile?.id}
+                                className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover-scale transition-all duration-200"
+                              >
+                                <UserCog className="h-4 w-4 mr-1" />
+                                Rolle
+                              </Button>
+                            </DialogTrigger>
+                          </Dialog>
+                          
+                          {/* Delete User Button */}
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => setDeleteUser(user)}
+                                disabled={actionLoading || user.id === profile?.id}
+                                className="hover-scale transition-all duration-200 shadow-lg"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Löschen
+                              </Button>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -530,6 +647,110 @@ const AdminUserManagement = () => {
           </Card>
         </div>
       </div>
+      
+      {/* Role Change Dialog */}
+      {roleChangeUser && (
+        <Dialog open={!!roleChangeUser} onOpenChange={() => setRoleChangeUser(null)}>
+          <DialogContent className="bg-glass backdrop-blur-glass border-glass shadow-glass">
+            <DialogHeader>
+              <DialogTitle className="text-white">Benutzerrolle ändern</DialogTitle>
+              <DialogDescription className="text-white/80">
+                Rolle für {roleChangeUser.email} ändern
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="role" className="text-white">Neue Rolle</Label>
+                <Select value={newRole} onValueChange={setNewRole}>
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                    <SelectValue placeholder="Rolle auswählen" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-glass backdrop-blur-glass border-glass">
+                    <SelectItem value="admin" className="text-white hover:bg-white/10">
+                      <div className="flex items-center">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Administrator
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="user" className="text-white hover:bg-white/10">
+                      <div className="flex items-center">
+                        <Users className="h-4 w-4 mr-2" />
+                        Benutzer
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="viewer" className="text-white hover:bg-white/10">
+                      <div className="flex items-center">
+                        <Users className="h-4 w-4 mr-2" />
+                        Betrachter
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setRoleChangeUser(null);
+                  setNewRole('');
+                }}
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                Abbrechen
+              </Button>
+              <Button
+                onClick={() => roleChangeUser && changeUserRole(roleChangeUser.id, newRole)}
+                disabled={actionLoading || !newRole || newRole === roleChangeUser.role}
+                className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+              >
+                Rolle ändern
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Delete User Dialog */}
+      {deleteUser && (
+        <Dialog open={!!deleteUser} onOpenChange={() => setDeleteUser(null)}>
+          <DialogContent className="bg-glass backdrop-blur-glass border-glass shadow-glass">
+            <DialogHeader>
+              <DialogTitle className="text-white">Benutzer löschen</DialogTitle>
+              <DialogDescription className="text-white/80">
+                Sind Sie sicher, dass Sie {deleteUser.email} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-4">
+              <div className="flex items-center text-red-400">
+                <AlertCircle className="h-5 w-5 mr-2" />
+                <p className="text-sm font-medium">Warnung: Unwiderrufliche Aktion</p>
+              </div>
+              <p className="text-red-300 text-sm mt-2">
+                Alle Daten des Benutzers werden permanent gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteUser(null)}
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                Abbrechen
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => deleteUser && deleteUserAccount(deleteUser.id)}
+                disabled={actionLoading}
+                className="shadow-lg"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Endgültig löschen
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
