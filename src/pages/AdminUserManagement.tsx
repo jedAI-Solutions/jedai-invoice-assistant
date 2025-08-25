@@ -139,6 +139,9 @@ const AdminUserManagement = () => {
     
     setActionLoading(true);
     try {
+      // Find the user to get their details for email
+      const userToApprove = users.find(u => u.id === userId);
+      
       const { error } = await supabase.rpc('approve_user', {
         p_user_id: userId,
         p_approved_by: profile.id
@@ -148,6 +151,25 @@ const AdminUserManagement = () => {
         console.error('Error approving user:', error);
         toast.error('Fehler beim Genehmigen des Benutzers');
         return;
+      }
+
+      // Send approval email
+      if (userToApprove) {
+        try {
+          await supabase.functions.invoke('send-confirmation-email', {
+            body: {
+              userId: userToApprove.id,
+              email: userToApprove.email,
+              firstName: userToApprove.first_name,
+              lastName: userToApprove.last_name,
+              type: 'approved'
+            }
+          });
+          console.log('Approval email sent to:', userToApprove.email);
+        } catch (emailError) {
+          console.error('Failed to send approval email:', emailError);
+          // Don't fail the approval if email fails
+        }
       }
 
       toast.success('Benutzer erfolgreich genehmigt');
@@ -165,6 +187,9 @@ const AdminUserManagement = () => {
     
     setActionLoading(true);
     try {
+      // Find the user to get their details for email
+      const userToReject = users.find(u => u.id === userId);
+      
       const { error } = await supabase.rpc('reject_user', {
         p_user_id: userId,
         p_rejected_by: profile.id,
@@ -175,6 +200,26 @@ const AdminUserManagement = () => {
         console.error('Error rejecting user:', error);
         toast.error('Fehler beim Ablehnen des Benutzers');
         return;
+      }
+
+      // Send rejection email
+      if (userToReject) {
+        try {
+          await supabase.functions.invoke('send-confirmation-email', {
+            body: {
+              userId: userToReject.id,
+              email: userToReject.email,
+              firstName: userToReject.first_name,
+              lastName: userToReject.last_name,
+              type: 'rejected',
+              rejectionReason: reason || undefined
+            }
+          });
+          console.log('Rejection email sent to:', userToReject.email);
+        } catch (emailError) {
+          console.error('Failed to send rejection email:', emailError);
+          // Don't fail the rejection if email fails
+        }
       }
 
       toast.success('Benutzer abgelehnt');

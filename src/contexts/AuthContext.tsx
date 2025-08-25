@@ -189,9 +189,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       toast.success('Check your email for the confirmation link!');
       
-      // Send admin notification for new user registration
+      // Send confirmation email and admin notification for new user registration
       if (data.user) {
         try {
+          // Send welcome email to user
+          await supabase.functions.invoke('send-confirmation-email', {
+            body: {
+              userId: data.user.id,
+              email: data.user.email,
+              firstName,
+              lastName,
+              type: 'welcome'
+            }
+          });
+          console.log('Welcome email sent to new user:', email);
+        } catch (emailError) {
+          console.error('Failed to send welcome email:', emailError);
+          // Don't fail the signup if email fails
+        }
+
+        try {
+          // Send admin notification
           await supabase.functions.invoke('notify-admin-new-user', {
             body: {
               userId: data.user.id,
