@@ -108,15 +108,8 @@ const AdminUserManagement = () => {
           setVerifiedAdmin(true);
           return;
         }
-        console.log('AdminUserManagement - Verifying admin via RPC is_admin...');
-        const { data, error } = await supabase.rpc('is_admin');
-        console.log('AdminUserManagement - RPC is_admin result:', { data, error });
-        if (error) {
-          console.error('Error checking admin via RPC:', error);
-          setVerifiedAdmin(false);
-          return;
-        }
-        setVerifiedAdmin(Boolean(data));
+        console.log('AdminUserManagement - User is not admin based on profile');
+        setVerifiedAdmin(false);
       } catch (e) {
         console.error('Unexpected error during admin verify:', e);
         setVerifiedAdmin(false);
