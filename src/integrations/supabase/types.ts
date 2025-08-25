@@ -2121,36 +2121,66 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           email: string | null
           first_name: string | null
           id: string
           is_active: boolean | null
           last_name: string | null
+          pending_since: string | null
+          rejection_reason: string | null
           role: string | null
+          status: string | null
           updated_at: string
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           email?: string | null
           first_name?: string | null
           id: string
           is_active?: boolean | null
           last_name?: string | null
+          pending_since?: string | null
+          rejection_reason?: string | null
           role?: string | null
+          status?: string | null
           updated_at?: string
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           email?: string | null
           first_name?: string | null
           id?: string
           is_active?: boolean | null
           last_name?: string | null
+          pending_since?: string | null
+          rejection_reason?: string | null
           role?: string | null
+          status?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "admin_user_management"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_health: {
         Row: {
@@ -2558,6 +2588,39 @@ export type Database = {
       }
     }
     Views: {
+      admin_user_management: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          approved_by_email: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string | null
+          is_active: boolean | null
+          last_name: string | null
+          pending_since: string | null
+          rejection_reason: string | null
+          role: string | null
+          status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "admin_user_management"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mandant_public_view: {
         Row: {
           created_at: string | null
@@ -2762,6 +2825,10 @@ export type Database = {
       }
     }
     Functions: {
+      approve_user: {
+        Args: { p_approved_by: string; p_user_id: string }
+        Returns: undefined
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2852,6 +2919,10 @@ export type Database = {
           p_record_id?: string
           p_table_name: string
         }
+        Returns: undefined
+      }
+      reject_user: {
+        Args: { p_reason?: string; p_rejected_by: string; p_user_id: string }
         Returns: undefined
       }
       search_tax_knowledge: {
