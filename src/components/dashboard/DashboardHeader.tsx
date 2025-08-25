@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLocation, useNavigate } from "react-router-dom";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Shield, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import aiHeaderBg from "@/assets/ai-header-bg.jpg";
 import { TransparentLogo } from "@/components/TransparentLogo";
@@ -26,7 +26,7 @@ export const DashboardHeader = ({
 }: DashboardHeaderProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const currentTab = location.pathname === '/agenda-import' ? 'agenda' : 'review';
 
   const handleSignOut = async () => {
@@ -107,6 +107,16 @@ export const DashboardHeader = ({
                 <DropdownMenuItem className="text-xs text-muted-foreground">
                   {user?.email}
                 </DropdownMenuItem>
+                {isAdmin() && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs">Administration</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => navigate('/admin/users')}>
+                      <Users className="mr-2 h-4 w-4" />
+                      Benutzerverwaltung
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />

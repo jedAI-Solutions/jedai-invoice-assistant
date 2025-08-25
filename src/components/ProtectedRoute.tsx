@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading, isActive, isPending, isRejected } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -25,6 +25,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Check if user has a profile and is active
+  if (profile && !isActive()) {
+    if (isPending()) {
+      return <Navigate to="/pending-approval" replace />;
+    }
+    if (isRejected()) {
+      return <Navigate to="/access-denied" replace />;
+    }
   }
 
   return <>{children}</>;

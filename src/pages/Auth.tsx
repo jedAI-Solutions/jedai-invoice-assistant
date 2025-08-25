@@ -233,6 +233,14 @@ const Auth = () => {
                       Passwort muss mindestens 6 Zeichen lang sein
                     </p>
                   </div>
+                  
+                  {/* Admin Approval Notice */}
+                  <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-3">
+                    <p className="text-white text-xs leading-relaxed">
+                      <strong>Hinweis:</strong> Nach der Registrierung muss Ihr Zugang von einem Administrator freigegeben werden. Sie erhalten eine Benachrichtigung, sobald Ihr Konto aktiviert wurde.
+                    </p>
+                  </div>
+                  
                   <Button 
                     type="submit" 
                     className="w-full bg-primary hover:bg-primary/90" 

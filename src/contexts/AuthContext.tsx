@@ -9,6 +9,12 @@ interface Profile {
   first_name?: string;
   last_name?: string;
   role: 'admin' | 'user' | 'viewer';
+  is_active: boolean;
+  status: 'pending' | 'approved' | 'rejected';
+  approved_by?: string;
+  approved_at?: string;
+  rejection_reason?: string;
+  pending_since?: string;
   created_at: string;
   updated_at: string;
 }
@@ -22,6 +28,9 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAdmin: () => boolean;
+  isActive: () => boolean;
+  isPending: () => boolean;
+  isRejected: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -183,6 +192,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return profile?.role === 'admin';
   };
 
+  const isActive = () => {
+    return profile?.is_active === true;
+  };
+
+  const isPending = () => {
+    return profile?.status === 'pending';
+  };
+
+  const isRejected = () => {
+    return profile?.status === 'rejected';
+  };
+
   const value = {
     user,
     profile,
@@ -192,6 +213,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     isAdmin,
+    isActive,
+    isPending,
+    isRejected,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

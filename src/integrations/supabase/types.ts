@@ -2170,13 +2170,6 @@ export type Database = {
             foreignKeyName: "profiles_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
-            referencedRelation: "admin_user_management"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profiles_approved_by_fkey"
-            columns: ["approved_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2588,39 +2581,6 @@ export type Database = {
       }
     }
     Views: {
-      admin_user_management: {
-        Row: {
-          approved_at: string | null
-          approved_by: string | null
-          approved_by_email: string | null
-          created_at: string | null
-          email: string | null
-          first_name: string | null
-          id: string | null
-          is_active: boolean | null
-          last_name: string | null
-          pending_since: string | null
-          rejection_reason: string | null
-          role: string | null
-          status: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_approved_by_fkey"
-            columns: ["approved_by"]
-            isOneToOne: false
-            referencedRelation: "admin_user_management"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profiles_approved_by_fkey"
-            columns: ["approved_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       mandant_public_view: {
         Row: {
           created_at: string | null
