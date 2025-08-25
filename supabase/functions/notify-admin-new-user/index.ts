@@ -70,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send notification emails to all admins
     const emailPromises = admins.map(async (admin) => {
       return resend.emails.send({
-        from: 'Taxagent <notifications@taxagent.app>',
+        from: 'Taxagent <onboarding@resend.dev>',
         to: [admin.email],
         subject: '🔔 New User Registration - Approval Required',
         html: `
@@ -99,7 +99,7 @@ const handler = async (req: Request): Promise<Response> => {
               </p>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${SUPABASE_URL.replace('supabase.co', 'vercel.app')}/admin/users" 
+                <a href="/admin/users" 
                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
                   Review User Registration
                 </a>
