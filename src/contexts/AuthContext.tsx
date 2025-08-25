@@ -8,7 +8,7 @@ interface Profile {
   email: string;
   first_name?: string;
   last_name?: string;
-  role: 'admin' | 'user' | 'viewer';
+  role: 'admin' | 'user';
   is_active: boolean;
   status: 'pending' | 'approved' | 'rejected';
   approved_by?: string;

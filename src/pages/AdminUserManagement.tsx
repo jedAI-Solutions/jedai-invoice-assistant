@@ -678,12 +678,6 @@ const AdminUserManagement = () => {
                         Benutzer
                       </div>
                     </SelectItem>
-                    <SelectItem value="viewer" className="text-white hover:bg-white/10">
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-2" />
-                        Betrachter
-                      </div>
-                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
