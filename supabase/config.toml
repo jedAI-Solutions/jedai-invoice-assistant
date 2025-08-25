@@ -27,3 +27,6 @@ verify_jwt = true
 
 [functions.test-webhook]
 verify_jwt = false
+
+[functions.notify-admin-new-user]
+verify_jwt = true
