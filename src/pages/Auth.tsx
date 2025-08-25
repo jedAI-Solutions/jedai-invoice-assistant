@@ -20,17 +20,32 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
   
-  const { user, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, profile, loading: authLoading, signIn, signUp, signInWithGoogle, isActive, isPending, isRejected } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
   const from = (location.state as any)?.from?.pathname || '/';
 
   useEffect(() => {
-    if (user) {
-      navigate(from, { replace: true });
+    if (!user) return; // wait for auth
+    // Wait until AuthContext finished loading profile
+    if (authLoading) return;
+
+    if (profile) {
+      if (isActive()) {
+        navigate(from, { replace: true });
+      } else if (isPending()) {
+        navigate('/pending-approval', { replace: true });
+      } else if (isRejected()) {
+        navigate('/access-denied', { replace: true });
+      } else {
+        navigate('/pending-approval', { replace: true });
+      }
+    } else {
+      // No profile yet -> treat as pending until admin approves
+      navigate('/pending-approval', { replace: true });
     }
-  }, [user, navigate, from]);
+  }, [user, profile, authLoading, isActive, isPending, isRejected, navigate, from]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,9 +53,7 @@ const Auth = () => {
     
     const { error } = await signIn(email, password);
     
-    if (!error) {
-      navigate(from, { replace: true });
-    }
+    // Navigation handled by useEffect after profile is loaded and approved
     
     setLoading(false);
   };
