@@ -17,9 +17,14 @@ import {
   Shield, 
   Mail,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  UserPlus,
+  Settings
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
+import dashboardBg from "@/assets/dashboard-bg.jpg";
+import aiHeaderBg from "@/assets/ai-header-bg.jpg";
+import jedaiLogoIcon from "@/assets/jedai-logo-icon.png";
 
 interface UserProfile {
   id: string;
@@ -218,169 +223,304 @@ const AdminUserManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Benutzerverwaltung</h1>
-            <p className="text-muted-foreground">Benutzer genehmigen und verwalten</p>
+    <div 
+      className="min-h-screen relative overflow-hidden"
+      style={{
+        backgroundImage: `url(${dashboardBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Overlay matching main page design */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/10 to-black/20" />
+      
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Admin Header matching main page design */}
+        <div 
+          className="relative bg-glass backdrop-blur-glass shadow-glass border-b border-glass p-4 md:p-8 min-h-[120px] md:min-h-[160px] overflow-hidden"
+          style={{
+            backgroundImage: `url(${aiHeaderBg})`,
+            backgroundSize: '120%',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        >
+          {/* Animated background layer */}
+          <div 
+            className="absolute inset-0 animate-bg-pan"
+            style={{
+              backgroundImage: `url(${aiHeaderBg})`,
+              backgroundSize: '130%',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat'
+            }}
+          />
+          
+          <div className="relative z-10 max-w-full mx-auto h-full flex flex-col">
+            {/* Main content area with padding for bottom elements */}
+            <div className="flex-1 flex items-center justify-center gap-3 md:gap-6 pb-8">
+              {/* Logo Container */}
+              <div className="flex-shrink-0 relative group cursor-pointer">
+                <img
+                  src={jedaiLogoIcon}
+                  alt="jedAI Solutions Logo"
+                  className="relative h-12 md:h-24 w-auto object-contain transition-all duration-700 ease-in-out
+                           hover:scale-105 hover:brightness-110
+                           animate-pulse-subtle group-hover:animate-none
+                           filter hover:drop-shadow-sm"
+                />
+                {/* Subtle glow effect on hover */}
+                <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-30 
+                              transition-opacity duration-500 ease-in-out
+                              bg-gradient-radial from-blue-200/30 via-transparent to-transparent
+                              blur-xl scale-150" />
+              </div>
+              
+              {/* Text Container */}
+              <div className="text-center">
+                <h1 className="text-lg md:text-3xl font-bold text-white font-modern leading-tight
+                             [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.8)] filter drop-shadow-lg
+                             transition-all duration-500 ease-in-out hover:scale-[1.02] cursor-default">
+                  Admin Dashboard
+                </h1>
+                <p className="text-xs md:text-sm text-white font-modern font-semibold mt-1
+                             [text-shadow:_1px_1px_3px_rgb(0_0_0_/_0.9)]
+                             transition-all duration-300 ease-in-out hover:text-gray-100">
+                  Benutzerverwaltung & Systemkonfiguration
+                </p>
+              </div>
+            </div>
+
+            {/* Action Section - Centered Bottom */}
+            <div className="flex flex-row items-center justify-between gap-2 mt-2">
+              <Badge className="bg-gradient-primary text-white border-0 text-[10px] md:text-xs shadow-lg px-2 py-0.5 animate-pulse">
+                <Settings className="h-3 w-3 mr-1" />
+                Admin Modus
+              </Badge>
+              
+              <Badge className="bg-glass backdrop-blur-md text-white border-glass text-[10px] md:text-xs shadow-lg px-2 py-0.5">
+                <UserPlus className="h-3 w-3 mr-1" />
+                {pendingUsers.length} Ausstehend
+              </Badge>
+            </div>
           </div>
-          <Users className="h-8 w-8 text-primary" />
         </div>
+        
+        <div className="max-w-7xl mx-auto p-3 md:p-6 space-y-6 md:space-y-8">
+          {/* Statistics Cards with glass effect */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-fade-in">
+            <Card className="bg-glass backdrop-blur-glass border-glass shadow-glass hover-scale transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-white">Gesamt</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{users.length}</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-glass backdrop-blur-glass border-glass shadow-glass hover-scale transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-white">Ausstehend</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-yellow-400">{pendingUsers.length}</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-glass backdrop-blur-glass border-glass shadow-glass hover-scale transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-white">Genehmigt</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-400">{approvedUsers.length}</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-glass backdrop-blur-glass border-glass shadow-glass hover-scale transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-white">Abgelehnt</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-400">{rejectedUsers.length}</div>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Gesamt</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{users.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Ausstehend</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{pendingUsers.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Genehmigt</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{approvedUsers.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Abgelehnt</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{rejectedUsers.length}</div>
-            </CardContent>
-          </Card>
-        </div>
+          {/* Pending Users Section with glass effect */}
+          {pendingUsers.length > 0 && (
+            <Card className="bg-glass backdrop-blur-glass border-glass shadow-glass animate-fade-in">
+              <CardHeader>
+                <CardTitle className="flex items-center text-white">
+                  <AlertCircle className="h-5 w-5 mr-2 text-yellow-400 animate-pulse" />
+                  Ausstehende Genehmigungen ({pendingUsers.length})
+                </CardTitle>
+                <CardDescription className="text-white/80">
+                  Diese Benutzer warten auf Ihre Genehmigung
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-white/20">
+                      <TableHead className="text-white/90">Benutzer</TableHead>
+                      <TableHead className="text-white/90">E-Mail</TableHead>
+                      <TableHead className="text-white/90">Registriert</TableHead>
+                      <TableHead className="text-white/90">Aktionen</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingUsers.map((user) => (
+                      <TableRow key={user.id} className="border-white/10 hover:bg-white/5 transition-colors">
+                        <TableCell>
+                          <div className="space-y-1">
+                            <p className="font-medium text-white">
+                              {user.first_name && user.last_name 
+                                ? `${user.first_name} ${user.last_name}`
+                                : 'Kein Name'
+                              }
+                            </p>
+                            {getRoleBadge(user.role)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center text-white/90">
+                            <Mail className="h-4 w-4 mr-2 text-white/60" />
+                            {user.email}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center text-white/90">
+                            <Calendar className="h-4 w-4 mr-2 text-white/60" />
+                            {new Date(user.pending_since || user.created_at).toLocaleDateString('de-DE', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              onClick={() => approveUser(user.id)}
+                              disabled={actionLoading}
+                              className="bg-green-600 hover:bg-green-700 text-white border-0 shadow-lg hover-scale transition-all duration-200"
+                            >
+                              <Check className="h-4 w-4 mr-1" />
+                              Genehmigen
+                            </Button>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => setSelectedUser(user)}
+                                  disabled={actionLoading}
+                                  className="hover-scale transition-all duration-200 shadow-lg"
+                                >
+                                  <X className="h-4 w-4 mr-1" />
+                                  Ablehnen
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="bg-glass backdrop-blur-glass border-glass shadow-glass">
+                                <DialogHeader>
+                                  <DialogTitle className="text-white">Benutzer ablehnen</DialogTitle>
+                                  <DialogDescription className="text-white/80">
+                                    Möchten Sie {user.email} ablehnen? Optional können Sie einen Grund angeben.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div>
+                                    <Label htmlFor="reason" className="text-white">Grund der Ablehnung (optional)</Label>
+                                    <Textarea
+                                      id="reason"
+                                      placeholder="Grund für die Ablehnung..."
+                                      value={rejectionReason}
+                                      onChange={(e) => setRejectionReason(e.target.value)}
+                                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                                    />
+                                  </div>
+                                </div>
+                                <DialogFooter>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedUser(null);
+                                      setRejectionReason('');
+                                    }}
+                                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                                  >
+                                    Abbrechen
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    onClick={() => selectedUser && rejectUser(selectedUser.id, rejectionReason)}
+                                    disabled={actionLoading}
+                                    className="shadow-lg"
+                                  >
+                                    Ablehnen
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Pending Users Section */}
-        {pendingUsers.length > 0 && (
-          <Card>
+          {/* All Users Table with glass effect */}
+          <Card className="bg-glass backdrop-blur-glass border-glass shadow-glass animate-fade-in">
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <AlertCircle className="h-5 w-5 mr-2 text-yellow-600" />
-                Ausstehende Genehmigungen ({pendingUsers.length})
-              </CardTitle>
-              <CardDescription>
-                Diese Benutzer warten auf Ihre Genehmigung
+              <CardTitle className="text-white">Alle Benutzer</CardTitle>
+              <CardDescription className="text-white/80">
+                Übersicht aller registrierten Benutzer
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Benutzer</TableHead>
-                    <TableHead>E-Mail</TableHead>
-                    <TableHead>Registriert</TableHead>
-                    <TableHead>Aktionen</TableHead>
+                  <TableRow className="border-white/20">
+                    <TableHead className="text-white/90">Benutzer</TableHead>
+                    <TableHead className="text-white/90">E-Mail</TableHead>
+                    <TableHead className="text-white/90">Rolle</TableHead>
+                    <TableHead className="text-white/90">Status</TableHead>
+                    <TableHead className="text-white/90">Registriert</TableHead>
+                    <TableHead className="text-white/90">Genehmigt</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pendingUsers.map((user) => (
-                    <TableRow key={user.id}>
+                  {users.map((user) => (
+                    <TableRow key={user.id} className="border-white/10 hover:bg-white/5 transition-colors">
                       <TableCell>
-                        <div className="space-y-1">
-                          <p className="font-medium">
-                            {user.first_name && user.last_name 
-                              ? `${user.first_name} ${user.last_name}`
-                              : 'Kein Name'
-                            }
-                          </p>
-                          {getRoleBadge(user.role)}
-                        </div>
+                        <p className="font-medium text-white">
+                          {user.first_name && user.last_name 
+                            ? `${user.first_name} ${user.last_name}`
+                            : 'Kein Name'
+                          }
+                        </p>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center">
-                          <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <div className="flex items-center text-white/90">
+                          <Mail className="h-4 w-4 mr-2 text-white/60" />
                           {user.email}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                          {new Date(user.pending_since || user.created_at).toLocaleDateString('de-DE', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </div>
+                      <TableCell>{getRoleBadge(user.role)}</TableCell>
+                      <TableCell>{getStatusBadge(user.status, user.is_active)}</TableCell>
+                      <TableCell className="text-white/90">
+                        {new Date(user.created_at).toLocaleDateString('de-DE')}
                       </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            size="sm"
-                            onClick={() => approveUser(user.id)}
-                            disabled={actionLoading}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <Check className="h-4 w-4 mr-1" />
-                            Genehmigen
-                          </Button>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => setSelectedUser(user)}
-                                disabled={actionLoading}
-                              >
-                                <X className="h-4 w-4 mr-1" />
-                                Ablehnen
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Benutzer ablehnen</DialogTitle>
-                                <DialogDescription>
-                                  Möchten Sie {user.email} ablehnen? Optional können Sie einen Grund angeben.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div>
-                                  <Label htmlFor="reason">Grund der Ablehnung (optional)</Label>
-                                  <Textarea
-                                    id="reason"
-                                    placeholder="Grund für die Ablehnung..."
-                                    value={rejectionReason}
-                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                  />
-                                </div>
-                              </div>
-                              <DialogFooter>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => {
-                                    setSelectedUser(null);
-                                    setRejectionReason('');
-                                  }}
-                                >
-                                  Abbrechen
-                                </Button>
-                                <Button
-                                  variant="destructive"
-                                  onClick={() => selectedUser && rejectUser(selectedUser.id, rejectionReason)}
-                                  disabled={actionLoading}
-                                >
-                                  Ablehnen
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
+                      <TableCell className="text-white/90">
+                        {user.approved_at 
+                          ? new Date(user.approved_at).toLocaleDateString('de-DE')
+                          : '-'
+                        }
                       </TableCell>
                     </TableRow>
                   ))}
@@ -388,62 +528,7 @@ const AdminUserManagement = () => {
               </Table>
             </CardContent>
           </Card>
-        )}
-
-        {/* All Users Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Alle Benutzer</CardTitle>
-            <CardDescription>
-              Übersicht aller registrierten Benutzer
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Benutzer</TableHead>
-                  <TableHead>E-Mail</TableHead>
-                  <TableHead>Rolle</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Registriert</TableHead>
-                  <TableHead>Genehmigt</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <p className="font-medium">
-                        {user.first_name && user.last_name 
-                          ? `${user.first_name} ${user.last_name}`
-                          : 'Kein Name'
-                        }
-                      </p>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
-                        {user.email}
-                      </div>
-                    </TableCell>
-                    <TableCell>{getRoleBadge(user.role)}</TableCell>
-                    <TableCell>{getStatusBadge(user.status, user.is_active)}</TableCell>
-                    <TableCell>
-                      {new Date(user.created_at).toLocaleDateString('de-DE')}
-                    </TableCell>
-                    <TableCell>
-                      {user.approved_at 
-                        ? new Date(user.approved_at).toLocaleDateString('de-DE')
-                        : '-'
-                      }
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        </div>
       </div>
     </div>
   );
