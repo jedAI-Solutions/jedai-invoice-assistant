@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -22,7 +22,7 @@ export type Database = {
           belegnummer: string | null
           betrag: number
           buchungstext: string
-          check_notes: string[] | null
+          check_notes: string | null
           created_at: string | null
           document_id: string | null
           document_url: string | null
@@ -50,7 +50,7 @@ export type Database = {
           belegnummer?: string | null
           betrag: number
           buchungstext: string
-          check_notes?: string[] | null
+          check_notes?: string | null
           created_at?: string | null
           document_id?: string | null
           document_url?: string | null
@@ -78,7 +78,7 @@ export type Database = {
           belegnummer?: string | null
           betrag?: number
           buchungstext?: string
-          check_notes?: string[] | null
+          check_notes?: string | null
           created_at?: string | null
           document_id?: string | null
           document_url?: string | null
@@ -2769,8 +2769,8 @@ export type Database = {
       get_mandantenstammdaten: {
         Args: Record<PropertyKey, never>
         Returns: {
-          name1: string
           mandant_nr: string
+          name1: string
         }[]
       }
       get_user_role: {
@@ -2799,31 +2799,31 @@ export type Database = {
       }
       import_agenda_mandants: {
         Args: {
-          p_konto: string
-          p_name_unternehmen: string
-          p_unternehmensgegenstand: string
-          p_name_person: string
-          p_vorname_person: string
-          p_name_keine_angabe: string
           p_adressattyp: string
-          p_kurzbezeichnung: string
+          p_anrede: string
+          p_bankname: string
+          p_bic: string
+          p_email: string
           p_eu_land: string
           p_eu_ustid: string
-          p_anrede: string
-          p_titel: string
-          p_strasse: string
-          p_postfach: string
-          p_plz: string
-          p_ort: string
-          p_land: string
-          p_telefon: string
-          p_email: string
-          p_internet: string
-          p_steuernummer: string
           p_iban: string
-          p_bic: string
-          p_bankname: string
+          p_internet: string
           p_kontenrahmen?: string
+          p_konto: string
+          p_kurzbezeichnung: string
+          p_land: string
+          p_name_keine_angabe: string
+          p_name_person: string
+          p_name_unternehmen: string
+          p_ort: string
+          p_plz: string
+          p_postfach: string
+          p_steuernummer: string
+          p_strasse: string
+          p_telefon: string
+          p_titel: string
+          p_unternehmensgegenstand: string
+          p_vorname_person: string
         }
         Returns: string
       }
@@ -2833,35 +2833,35 @@ export type Database = {
       }
       log_audit_event: {
         Args: {
-          p_session_id: string
-          p_user_id: string
           p_action: string
           p_details?: Json
           p_ip_address?: unknown
+          p_session_id: string
           p_user_agent?: string
+          p_user_id: string
         }
         Returns: undefined
       }
       log_security_event: {
-        Args: { event_type: string; details?: string }
+        Args: { details?: string; event_type: string }
         Returns: undefined
       }
       log_sensitive_data_access: {
         Args: {
-          p_table_name: string
           p_operation: string
           p_record_id?: string
+          p_table_name: string
         }
         Returns: undefined
       }
       search_tax_knowledge: {
-        Args: { search_query: string; limit_results?: number }
+        Args: { limit_results?: number; search_query: string }
         Returns: {
-          id: number
-          title: string
-          content: string
           category: string
+          content: string
+          id: number
           relevance_score: number
+          title: string
           ts_rank_score: number
         }[]
       }
