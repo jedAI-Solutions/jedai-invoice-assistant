@@ -298,10 +298,11 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
 
   return (
     <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Export-Historie</CardTitle>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary">{visibleBatches.length} Batches</Badge>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>Export-Historie</span>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{visibleBatches.length} Batches</Badge>
           <div className="flex items-center gap-2">
             <Select
               value={String(linkTtl)}
@@ -327,7 +328,8 @@ export default function ExportList({ selectedMandant }: { selectedMandant: strin
               Refresh
             </Button>
           </div>
-        </div>
+          </div>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {visibleBatches.length === 0 ? (

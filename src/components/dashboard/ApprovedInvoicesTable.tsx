@@ -261,21 +261,23 @@ export default function ApprovedInvoicesTable({ selectedMandant }: { selectedMan
 
   return (
     <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Genehmigte Rechnungen</CardTitle>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary">{approvedInvoices.length} Einträge</Badge>
-          <Button
-            variant="gradient"
-            size="sm"
-            onClick={handleExportAll}
-            disabled={exporting || approvedInvoices.length === 0}
-            title="Agenda Exportdatei generieren"
-          >
-            <UploadCloud className="h-4 w-4" />
-            <span className="hidden sm:inline">Agenda Exportdatei generieren</span>
-          </Button>
-        </div>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>Genehmigte Rechnungen</span>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{approvedInvoices.length} Einträge</Badge>
+            <Button
+              variant="gradient"
+              size="sm"
+              onClick={handleExportAll}
+              disabled={exporting || approvedInvoices.length === 0}
+              title="Agenda Exportdatei generieren"
+            >
+              <UploadCloud className="h-4 w-4" />
+              <span className="hidden sm:inline">Agenda Exportdatei generieren</span>
+            </Button>
+          </div>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {approvedInvoices.length === 0 ? (
