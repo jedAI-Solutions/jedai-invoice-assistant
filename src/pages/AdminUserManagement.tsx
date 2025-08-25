@@ -391,15 +391,15 @@ const AdminUserManagement = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-fade-in">
             <Card className="bg-glass backdrop-blur-glass border-glass shadow-glass hover-scale transition-all duration-300">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-white">Gesamt</CardTitle>
+                <CardTitle className="text-sm font-medium text-foreground">Gesamt</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{users.length}</div>
+                <div className="text-2xl font-bold text-foreground">{users.length}</div>
               </CardContent>
             </Card>
             <Card className="bg-glass backdrop-blur-glass border-glass shadow-glass hover-scale transition-all duration-300">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-white">Ausstehend</CardTitle>
+                <CardTitle className="text-sm font-medium text-foreground">Ausstehend</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-yellow-400">{pendingUsers.length}</div>
@@ -407,7 +407,7 @@ const AdminUserManagement = () => {
             </Card>
             <Card className="bg-glass backdrop-blur-glass border-glass shadow-glass hover-scale transition-all duration-300">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-white">Genehmigt</CardTitle>
+                <CardTitle className="text-sm font-medium text-foreground">Genehmigt</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-400">{approvedUsers.length}</div>
@@ -415,7 +415,7 @@ const AdminUserManagement = () => {
             </Card>
             <Card className="bg-glass backdrop-blur-glass border-glass shadow-glass hover-scale transition-all duration-300">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-white">Abgelehnt</CardTitle>
+                <CardTitle className="text-sm font-medium text-foreground">Abgelehnt</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-red-400">{rejectedUsers.length}</div>
@@ -427,11 +427,11 @@ const AdminUserManagement = () => {
           {pendingUsers.length > 0 && (
             <Card className="bg-glass backdrop-blur-glass border-glass shadow-glass animate-fade-in">
               <CardHeader>
-                <CardTitle className="flex items-center text-white">
+                <CardTitle className="flex items-center text-foreground">
                   <AlertCircle className="h-5 w-5 mr-2 text-yellow-400 animate-pulse" />
                   Ausstehende Genehmigungen ({pendingUsers.length})
                 </CardTitle>
-                <CardDescription className="text-white/80">
+                <CardDescription className="text-muted-foreground">
                   Diese Benutzer warten auf Ihre Genehmigung
                 </CardDescription>
               </CardHeader>
@@ -439,10 +439,10 @@ const AdminUserManagement = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-white/20">
-                      <TableHead className="text-white/90">Benutzer</TableHead>
-                      <TableHead className="text-white/90">E-Mail</TableHead>
-                      <TableHead className="text-white/90">Registriert</TableHead>
-                      <TableHead className="text-white/90">Aktionen</TableHead>
+                      <TableHead className="text-foreground">Benutzer</TableHead>
+                      <TableHead className="text-foreground">E-Mail</TableHead>
+                      <TableHead className="text-foreground">Registriert</TableHead>
+                      <TableHead className="text-foreground">Aktionen</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -450,7 +450,7 @@ const AdminUserManagement = () => {
                       <TableRow key={user.id} className="border-white/10 hover:bg-white/5 transition-colors">
                         <TableCell>
                           <div className="space-y-1">
-                            <p className="font-medium text-white">
+                            <p className="font-medium text-foreground">
                               {user.first_name && user.last_name 
                                 ? `${user.first_name} ${user.last_name}`
                                 : 'Kein Name'
@@ -460,14 +460,14 @@ const AdminUserManagement = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center text-white/90">
-                            <Mail className="h-4 w-4 mr-2 text-white/60" />
+                          <div className="flex items-center text-muted-foreground">
+                            <Mail className="h-4 w-4 mr-2 text-muted-foreground/60" />
                             {user.email}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center text-white/90">
-                            <Calendar className="h-4 w-4 mr-2 text-white/60" />
+                          <div className="flex items-center text-muted-foreground">
+                            <Calendar className="h-4 w-4 mr-2 text-muted-foreground/60" />
                             {new Date(user.pending_since || user.created_at).toLocaleDateString('de-DE', {
                               day: '2-digit',
                               month: '2-digit',
@@ -555,8 +555,8 @@ const AdminUserManagement = () => {
           {/* All Users Table with glass effect */}
           <Card className="bg-glass backdrop-blur-glass border-glass shadow-glass animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-white">Alle Benutzer</CardTitle>
-              <CardDescription className="text-white/80">
+              <CardTitle className="text-foreground">Alle Benutzer</CardTitle>
+              <CardDescription className="text-muted-foreground">
                 Übersicht aller registrierten Benutzer
               </CardDescription>
             </CardHeader>
@@ -564,20 +564,20 @@ const AdminUserManagement = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="border-white/20">
-                    <TableHead className="text-white/90">Benutzer</TableHead>
-                    <TableHead className="text-white/90">E-Mail</TableHead>
-                    <TableHead className="text-white/90">Rolle</TableHead>
-                    <TableHead className="text-white/90">Status</TableHead>
-                    <TableHead className="text-white/90">Registriert</TableHead>
-                    <TableHead className="text-white/90">Genehmigt</TableHead>
-                    <TableHead className="text-white/90">Aktionen</TableHead>
+                    <TableHead className="text-foreground">Benutzer</TableHead>
+                    <TableHead className="text-foreground">E-Mail</TableHead>
+                    <TableHead className="text-foreground">Rolle</TableHead>
+                    <TableHead className="text-foreground">Status</TableHead>
+                    <TableHead className="text-foreground">Registriert</TableHead>
+                    <TableHead className="text-foreground">Genehmigt</TableHead>
+                    <TableHead className="text-foreground">Aktionen</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.map((user) => (
                     <TableRow key={user.id} className="border-white/10 hover:bg-white/5 transition-colors">
                       <TableCell>
-                        <p className="font-medium text-white">
+                        <p className="font-medium text-foreground">
                           {user.first_name && user.last_name 
                             ? `${user.first_name} ${user.last_name}`
                             : 'Kein Name'
@@ -585,17 +585,17 @@ const AdminUserManagement = () => {
                         </p>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center text-white/90">
-                          <Mail className="h-4 w-4 mr-2 text-white/60" />
+                        <div className="flex items-center text-muted-foreground">
+                          <Mail className="h-4 w-4 mr-2 text-muted-foreground/60" />
                           {user.email}
                         </div>
                       </TableCell>
                       <TableCell>{getRoleBadge(user.role)}</TableCell>
                       <TableCell>{getStatusBadge(user.status, user.is_active)}</TableCell>
-                      <TableCell className="text-white/90">
+                      <TableCell className="text-muted-foreground">
                         {new Date(user.created_at).toLocaleDateString('de-DE')}
                       </TableCell>
-                      <TableCell className="text-white/90">
+                      <TableCell className="text-muted-foreground">
                         {user.approved_at 
                           ? new Date(user.approved_at).toLocaleDateString('de-DE')
                           : '-'
