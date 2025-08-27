@@ -218,10 +218,41 @@ export const BookingDetails = ({
                   <p className="text-sm text-muted-foreground">Begründung für die automatische Klassifizierung</p>
                 </div>
               </div>
-              <div className="ml-11 p-3 bg-white/5 rounded-lg border border-white/10">
+              <div className="ml-11 p-3 bg-white/5 rounded-lg border border-white/10 space-y-4">
                 <p className="text-sm text-foreground leading-relaxed">
                   {selectedEntry.aiReasoning || "Basierend auf dem Beleginhalt wurde eine automatische Kategorisierung vorgenommen. Die KI hat Datum, Betrag und Beschreibung analysiert und entsprechend dem Wahrscheinlichkeitsmodell klassifiziert."}
                 </p>
+                {(() => {
+                  // Parse PostgreSQL array format for check_notes (e.g., "{item1,item2}")
+                  const parseCheckNotes = (notes: any): string[] => {
+                    if (!notes) return [];
+                    if (Array.isArray(notes)) return notes;
+                    if (typeof notes === "string") {
+                      // Handle PostgreSQL array format: "{item1,item2,item3}"
+                      const trimmed = notes.trim();
+                      if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+                        return trimmed.slice(1, -1).split(",").map(item => item.trim().replace(/^"|"$/g, ""));
+                      }
+                    }
+                    return [];
+                  };
+
+                  const checkNotes = parseCheckNotes(selectedEntry.check_notes);
+                  
+                  return checkNotes.length > 0 && (
+                    <div className="pt-2 border-t border-white/10">
+                      <p className="text-xs text-muted-foreground mb-2">Wichtige Prüfpunkte:</p>
+                      <ul className="space-y-1">
+                        {checkNotes.map((note, index) => (
+                          <li key={`check-note-${index}`} className="flex items-start gap-2">
+                            <span className="text-primary mt-0.5 text-xs">•</span>
+                            <span className="text-xs text-foreground">{note}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
