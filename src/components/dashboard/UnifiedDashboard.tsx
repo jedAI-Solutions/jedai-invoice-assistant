@@ -8,6 +8,7 @@ import { BookingEntry, Mandant, DashboardStats } from "@/types/booking";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { mapDatevTaxCodeToPercentage, mapPercentageToDatevTaxCode } from "@/utils/taxMapping";
 
 interface UnifiedDashboardProps {
   onStatsUpdate: (stats: DashboardStats) => void;
@@ -76,7 +77,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
           amount: item.betrag || 0,
           description: item.buchungstext || 'Keine Beschreibung',
           account: item.konto || '',
-          taxRate: item.uststeuerzahl ? `${item.uststeuerzahl}%` : '19%',
+          taxRate: mapDatevTaxCodeToPercentage(item.uststeuerzahl),
           confidence: Math.round((item.overall_confidence || 0) * 100),
           status: (item.status || 'pending') as any,
           mandant: mInfo?.name1 || item.mandant_resolved || 'Unbekannt',
@@ -363,7 +364,7 @@ export const UnifiedDashboard = ({ onStatsUpdate, selectedMandant, selectedTimef
 
       const parseTaxRate = (rate?: string) => {
         if (!rate) return undefined;
-        return rate.replace('%', '').trim();
+        return mapPercentageToDatevTaxCode(rate);
       };
 
       const updateData: any = {
